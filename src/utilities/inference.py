@@ -21,6 +21,7 @@ async def file_list_chunker(file_list, user_prompt):
             f"FILE_LIST: {file_list[lower_bound:chunk_size * iteration]}"
             f"RESPONSE: 'Return a comma seperated list containing all the relevant files'\n"
         )
+
         lower_bound = chunk_size * iteration
     prompts.append(
         "Please review the User Prompt and identify the relevant files from the following list based on the "
@@ -35,26 +36,25 @@ async def file_list_chunker(file_list, user_prompt):
 
 async def identify_relevant_files(prompts):
     try:
-        responses = []
         with Pool() as p:
-            for result in p.map(call_llm, prompts):
-                responses.append(result)
+            responses = p.map(call_llm, prompts)
+        p.join()
         full_list = []
         for response in responses:
-            if "N/A" not in response["response"]:
-                full_list.extend(response["response".split(",")])
+            if "N/A" not in response:
+                full_list.extend(response.split(","))
         sanitized = []
         for file in full_list:
             sanitized.append(file.strip())
         return sanitized
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=f"Error {exc}")
+        raise HTTPException(status_code=500, detail=f"Error {exc}") from exc
 
 
 async def refactor(target_guidance, target_code, version, repo_dir):
     manager = Agent('Manager', target_guidance)
     code_file_content = [
-        f"###{target_code[i]}###\n{show_file_contents(version, target_code[i], repo_dir)}\n######"
+        f"###{target_code[i]}###\n{await show_file_contents(version, target_code[i], repo_dir)}\n######"
         for i in range(len(target_code))
     ]
     manager_manifest = await generate_plan_file(target_guidance, target_code)
@@ -64,6 +64,7 @@ async def refactor(target_guidance, target_code, version, repo_dir):
         feature_request=target_guidance,
         custom_manifest=manager_manifest
     )
+    print(manager.progress)
     unreviewed_code_and_test = {
         "Code": manager.progress['Developer 8'],
         "Test": manager.progress['Developer 10']
@@ -77,23 +78,24 @@ async def refactor(target_guidance, target_code, version, repo_dir):
 
 
 async def code_review(progress, reviews: int = 2):
+    print(progress)
     code_response = call_llm(
-        prompt=f"Provided Code: '''\n{progress['code']}'''\n",
+        prompt=f"Provided Code: '''\n{progress.get('Code', progress.get('Software Developer'))}'''\n",
         rules="You are a code reviewer. Your job is to inspect the Provided Code and make any required changes. "
               "Do not offer any explanation of any kind for the code you produce, simply return the code. "
               "If no changes exist, your response should be only: 'N/A'."
     )
-    reviewed_code = await reformat_llm_output(code_response["response"])
+    reviewed_code = await reformat_llm_output(code_response)
     if 'N/A' in reviewed_code:
         return progress
     test_response = call_llm(
         prompt=f"Provided Code: '''{reviewed_code}'''\n"
-               f"Provided Test Cases: '''\n{progress['Test']}\n'''",
+               f"Provided Test Cases: '''\n{progress.get('Test', progress.get('Code Tester'))}\n'''",
         rules="You are a code reviewer. Your job is to inspect the provided unit tests for the provided code and make "
               "any required changes. Do not include labels and do not offer any explanation of any kind for the code "
               "you produce, simply return the code. If no changes exist, your response should only be 'N/A'."
     )
-    reviewed_tests = await reformat_llm_output(test_response["response"])
+    reviewed_tests = await reformat_llm_output(test_response)
     if 'N/A' in reviewed_tests or reviews < 1:
         return progress
     new_progress = {
@@ -113,12 +115,13 @@ async def generate_plan_file(target_guidance, target_code):
               "or correction. The first agent then send teh code back to you and the n you send it to the second "
               "developer who is responsible to review and adjust the code based on the feature or guidance. The "
               "process continues sequentially where the code build is passed to the new developer. These are the "
-              "developer roles from Devs 3 -19: Dev 3, 4, and 5 do the same as Dev 2. Dev 6, 7, and 8 verify code for "
+              "developer roles from Devs 3 - 9: Dev 3, 4, and 5 do the same as Dev 2. Dev 6, 7, and 8 verify code for "
               "security. Dev 9 and 10 only write unit tests. Please ensure that the developer prompts that I can use "
               "for developers 1 - 10. Keys in JSON should be Developer Number, and Values should be the prompt. Please "
-              "ensure each prompt is clear, concise and provides enough detail to pass to the next stage."
+              "ensure each prompt is clear, concise and provides enough detail to pass to the next stage.\n"
+              "EXAMPLE RESPONSE: { 'Developer 2': 'Revise the code for bugs', 'Developer 3': 'Revise Code for bugs' } "
     )
-    manager_manifest = json.loads(manager_response["response"])
+    manager_manifest = json.loads(manager_response)
     return manager_manifest
 
 
@@ -156,8 +159,7 @@ async def run_iteration_prompts(
                         rules=developer_rules
                     )
             else:
-                response = {'response': code_to_revise}
-            response = response['response']
+                response = code_to_revise
             if 'N/A' not in response:
                 code_to_revise = await reformat_llm_output(response)
             agent_responses.update({cur_agent: code_to_revise})
@@ -177,7 +179,7 @@ async def reformat_llm_output(llm_output: str):
               "output except for the code enclosed in triple quotes. Respond with only the cleaned code. If no "
               "cleaning needs to be done, response with only 'A/N'"
     )
-    reformat_output = reformat_response["response"]
+    reformat_output = reformat_response
     print("reformatted output")
     print(reformat_output)
     if 'A/N' not in reformat_output:
@@ -188,17 +190,14 @@ async def reformat_llm_output(llm_output: str):
 def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
     try:
         response = requests.post(
-            # llm url
             url,
             data={
-                "messages": str(
-                    {"role": "system", "content": rules},
-                    {"role": "user", "content": prompt}
-                ),
-                "temperature": .05
+                "prompt": '[{"role": "system", "content":' + rules + '}, {"role": "user", "content":' + prompt + '}]',
+                "temperature": 0.05
             }
         )
-        return response
+        response = response.json()
+        return response["choices"][0]["message"]["content"]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
