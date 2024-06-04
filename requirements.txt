@@ -1,0 +1,6 @@
+uvicorn
+starlette
+python-dotenv
+python-multipart
+requests
+fastapi
