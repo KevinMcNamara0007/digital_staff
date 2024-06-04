@@ -21,7 +21,7 @@ tasks = APIRouter(
 )
 
 
-@tasks.post("RunTask")
+@tasks.post("/RunTask")
 async def run_task(
         user_prompt: str = Form(
             description="What you want the agent to do.",

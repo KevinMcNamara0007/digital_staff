@@ -35,8 +35,10 @@ async def file_list_chunker(file_list, user_prompt):
 
 async def identify_relevant_files(prompts):
     try:
+        responses = []
         with Pool() as p:
-            responses = p.map(call_llm, prompts)
+            for result in p.map(call_llm, prompts):
+                responses.append(result)
         full_list = []
         for response in responses:
             if "N/A" not in response["response"]:
@@ -183,14 +185,16 @@ async def reformat_llm_output(llm_output: str):
     return llm_output.strip()
 
 
-async def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
+def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
     try:
         response = requests.post(
             # llm url
             url,
             data={
-                "prompt": f"Rules: {rules}\n\n"
-                          f"Prompt: {prompt}",
+                "messages": str(
+                    {"role": "system", "content": rules},
+                    {"role": "user", "content": prompt}
+                ),
                 "temperature": .05
             }
         )

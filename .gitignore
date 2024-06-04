@@ -1,3 +1,4 @@
 .idea
 digitalstaff.iml
 venv
+efs/repos/*

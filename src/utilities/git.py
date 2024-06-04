@@ -8,7 +8,8 @@ async def clone_repo(repo_link):
     try:
         dest_folder = f'efs/repos/{repo_link.split("/")[-1].split(".git")[0]}'
         if not os.path.exists(dest_folder):
-            subprocess.run(
+            print(f"https://{USER}:{USER_PASS}@{repo_link.replace('https://', '')}")
+            output = subprocess.run(
                 [
                     "git",
                     "clone",
@@ -17,6 +18,7 @@ async def clone_repo(repo_link):
                 ],
                 capture_output=True
             )
+            print(output.stdout)
         return dest_folder
     except Exception as exc:
         print(f"Could not clone repo: {exc}", flush=True)
@@ -56,7 +58,7 @@ async def repo_file_list(repo_dir):
             cwd=f"./{repo_dir}",
             stdout=subprocess.PIPE
         )
-        return output.communicate()[0].decode("utf-8").strip()
+        return output.communicate()[0].decode("utf-8").strip().split("\n")
     except Exception as exc:
         print(f"Could not get file list: {exc}", flush=True)
         raise HTTPException(status_code=500, detail=f"Could not get file list: {exc}")
