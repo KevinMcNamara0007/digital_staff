@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
+from src.controllers.tasks import tasks
 
 # App Details
 digital_staff = FastAPI(
@@ -12,6 +13,8 @@ digital_staff = FastAPI(
         "docExpansion": "none"
     }
 )
+
+digital_staff.include_router(tasks)
 
 digital_staff.add_middleware(
     CORSMiddleware,
