@@ -1,0 +1,21 @@
+/* HTML: <div class="loader"></div> */
+#loader{
+    display: none;
+}
+
+.loader {
+    width: 60px;
+    aspect-ratio: 1;
+    background:
+            linear-gradient(90deg,#CEE879 50%,#FF5254 0) top/100% 50% no-repeat,
+            linear-gradient(90deg,#FCB653 50%,#5CACC4 0);
+    -webkit-mask: linear-gradient(#000 0 0) 0 0/50% 50% no-repeat;
+    animation: l18 2s infinite;
+}
+@keyframes l18 {
+    0%   {-webkit-mask-position:0    0   }
+    25%  {-webkit-mask-position:100% 0   }
+    50%  {-webkit-mask-position:100% 100%}
+    75%  {-webkit-mask-position:0    100%}
+    100% {-webkit-mask-position:0    0   }
+}
