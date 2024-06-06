@@ -13,32 +13,87 @@ function digitalAgentAPI(){
     formData.append("https_clone_link", document.getElementById("repo").value);
     formData.append("original_code_branch", document.getElementById("branch").value);
     formData.append("new_branch_name", document.getElementById("newBranch").value);
+    formData.append("flow", "no")
     displayHideInputs();
     displayHideLoader();
-    $.ajax({
-        type: "POST",
-        url: "/Tasks/RunTask",
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function (data) {
-            displayHideLoader();
-            displayHideResponses();
-            let completeString = "Final Code \n" + data["Code Final"] + "\n\n Test Final \n " + data["Test Final"] + "\n\n Dev 1 \n" +
-                data["Developer 1"] + "\n\n Dev 2 \n" + data["Developer 2"] + "\n\n Dev 3 \n" + data["Developer 3"] +
-                "\n\n Dev 4 \n" + data["Developer 4"] + "\n\n Dev 5 \n" + data["Developer 5"] + "\n\n Dev 6 \n" + data["Developer 6"] +
-                "\n\n Dev 7 \n" + data["Developer 7"] + "\n\n Dev 8 \n" + data["Developer 8"] + "\n\n Dev 9 \n" + data["Developer 9"] +
-                "\n\n Dev 10 \n" + data["Developer 10"]
-            document.getElementById("newCode").innerText = completeString.replaceAll('`')
-
-        },
-        error: function (xhr, ajaxOptions, thrownError) {
-            displayHideLoader();
-            displayHideInputs();
-            displayAlert("Agent API has failed")
-        },
-    });
+    fetch("/Tasks/repo_ops", {
+        method: 'POST',
+        body: formData
+    }).then(response => {
+        console.log(response)
+        if(!response.ok){
+            displayAlert("Error on clone response")
+        }
+        return response.json();
+    }).then(data => {
+        displayHideResponses();
+        let completeString = "Files: \n\n" + data.files
+        document.getElementById("newCode").innerText = completeString.replaceAll('`')
+        managerTasksAPI(formData, data.files, data.repo_dir)
+    }).catch(error=>{
+        displayHideLoader();
+        displayHideInputs();
+        displayAlert("Git Repo Clone API Failed")
+    })
 }
+
+function managerTasksAPI(prevData, files, directory){
+    prevData.append("file_list", files)
+    prevData.append("repo_dir", directory)
+    fetch("/Tasks/manager_plan", {
+        method: 'POST',
+        body: prevData
+    }).then(response => {
+        console.log(response)
+        if(!response.ok){
+            displayAlert("Error on manager plan response")
+        }
+        return response.json();
+    }).then(async data => {
+        console.log(data)
+        let previous = document.getElementById("newCode")
+        let completeString = "Dev 1\n" + data.Developer1 + "\n\nDev 2\n" + data.Developer2 + "\n\nDev 3\n" + data.Developer3 +
+            "\n\nDev 4\n" + data.Developer4 + "\n\nDev 5\n" + data.Developer5 + "\n\nDev 6\n" + data.Developer6 +
+            "\n\nDev 7\n" + data.Developer7 + "\n\nDev 8\n" + data.Developer8 + "\n\nDev 9\n" + data.Developer9 + "\n\nDev 10\n" + data.Developer10;
+        previous.innerText = previous.innerText + "\n\nManager Plan:\n\n" + completeString
+        let previousAgentResponse = "";
+        console.log("got here")
+        console.log(Object.keys(data))
+        for (const key of Object.keys(data)) {
+            let agentResponse = await agentTaskAPI(prevData, key, data[key], previousAgentResponse)
+            previous.innerText = previous.innerText + "\n\n" + key + " Response:\n" + agentResponse;
+            previousAgentResponse = previousAgentResponse + "{" + key + ":" + agentResponse + "},"
+        }
+        displayHideLoader();
+    }).catch(error =>{
+        displayHideLoader();
+        displayHideInputs();
+        displayAlert("Manager Task API has failed")
+    })
+}
+
+async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
+    prevFormData.append("agent_task", agentTask)
+    prevFormData.append("agent_responses", agentResponses)
+    await fetch("/Tasks/agent_task", {
+        method: 'POST',
+        body: prevFormData
+    }).then(response => {
+        console.log(response)
+        if(!response.ok){
+            displayAlert("Error on manager plan response")
+        }
+        return response.json();
+    }).then(data => {
+        console.log(data)
+        return data
+    }).catch(error =>{
+        return "Failed"
+        displayAlert("Manager Task API has failed")
+    })
+}
+
+
 const delay = ms => new Promise(res => setTimeout(res, ms));
 const displayAlert = msg => {
     document.getElementById("popup").style.display = "block";

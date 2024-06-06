@@ -8,12 +8,11 @@ async def clone_repo(repo_link):
     try:
         dest_folder = f'efs/repos/{repo_link.split("/")[-1].split(".git")[0]}'
         if not os.path.exists(dest_folder):
-            print(f"https://{USER}:{USER_PASS}@{repo_link.replace('https://', '')}")
             output = subprocess.run(
                 [
                     "git",
                     "clone",
-                    f"https://{USER}:{USER_PASS}@{repo_link.replace('https://', '')}",
+                    f"https://{repo_link.replace('https://', '')}",
                     dest_folder
                 ],
                 capture_output=True
