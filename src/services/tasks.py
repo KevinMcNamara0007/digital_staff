@@ -29,13 +29,13 @@ async def create_plan_service(user_prompt, file_list, repo_dir, new_branch_name,
                                                       all_code, all_agent_responses, flow)
             all_agent_responses = all_agent_responses + f"[Agent: {agent}, Response: {agent_response}]:"
         # get final solution
-        return produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, all_agent_responses, all_code, flow)
-    return create_plan(user_prompt, file_list, repo_dir)
+        return await produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, all_agent_responses, all_code, flow)
+    return await create_plan(user_prompt, file_list, repo_dir)
 
 
 async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", flow="n"):
     if flow == "y":
-        response = agent_task(task, response, code)
+        response = await agent_task(task, response, code)
         print(response)
         return response
     # Get All Code
@@ -51,6 +51,6 @@ async def get_all_code(file_list, repo_dir, new_branch_name):
     return all_code
 
 
-def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name,
+async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name,
                                    agent_responses, code="", flow="n"):
-    return produce_final_solution(user_prompt, file_list, agent_responses, code)
+    return await produce_final_solution(user_prompt, file_list, agent_responses, code)
