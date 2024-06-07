@@ -60,7 +60,7 @@ function managerTasksAPI(prevData, files, directory){
         console.log(Object.keys(data))
         previousAgentResponse = ""
         for (const key of Object.keys(data)) {
-            await agentTaskAPI(prevData, key, data[key], previousAgentResponse, previous)
+            await agentTaskAPI(prevData, key, data[key], previousAgentResponse)
         }
         displayHideLoader();
     }).catch(error =>{
@@ -71,9 +71,10 @@ function managerTasksAPI(prevData, files, directory){
 }
 
 let previousAgentResponse = "";
-async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, previous){
+async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
     prevFormData.append("agent_task", agentTask)
     prevFormData.append("agent_responses", agentResponses)
+    let previous = document.getElementById("newCode")
     await fetch("/Tasks/agent_task", {
         method: 'POST',
         body: prevFormData
@@ -83,8 +84,9 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, prev
             displayAlert("Error on manager plan response")
         }
         const jsonResponse = await response.json();
-        previousAgentResponse = previousAgentResponse + "{" + key + ":" + await jsonResponse + "},"
-        previous.innerText = previous.innerText + "\n\n" + agent + " Response:\n" + jsonResponse;
+        console.log(jsonResponse)
+        previousAgentResponse = previousAgentResponse + "{" + agent + ":" + await jsonResponse + "},"
+        previous.innerText = previous.innerText + "\n\n\n" + agent + " Response:\n" + jsonResponse;
         return jsonResponse;
     }).catch(error =>{
         return "Failed"
