@@ -40,10 +40,6 @@ agent_roles = {
 }
 
 accepted_code_file_extensions = [
-    # Python
-    '.py',
-    # Java
-    '.java',
     # C++
     '.cpp',
     '.cc',
@@ -70,6 +66,8 @@ accepted_code_file_extensions = [
     '.h',
     '.idc',
     '.w',
+    # Java
+    '.java',
     # Javascript
     '.js',
     '._js',
@@ -122,6 +120,11 @@ accepted_code_file_extensions = [
 
 
 def file_filter(file_list):
+    """
+    Takes a file list and returns a list of the files only of the files relating to coding files
+    :param file_list:
+    :return:
+    """
     return [file for file in file_list if
             any(code_file_extension in file for code_file_extension in accepted_code_file_extensions)
             ]
