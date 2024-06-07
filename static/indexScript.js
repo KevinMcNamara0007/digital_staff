@@ -72,7 +72,7 @@ function managerTasksAPI(prevData, files, directory){
 
 let previousAgentResponse = "";
 async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, previous){
-    prevFormData.append("agent_task", "say a joke")
+    prevFormData.append("agent_task", agentTask)
     prevFormData.append("agent_responses", agentResponses)
     await fetch("/Tasks/agent_task", {
         method: 'POST',
