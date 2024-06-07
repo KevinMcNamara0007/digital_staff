@@ -34,6 +34,19 @@ def agent_task(task, responses, code):
     return call_llm(prompt, "none")
 
 
+def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
+    prompt = (f"Instructions: 1. You are an elite coder assigned to do complete the ask of this: {user_prompt} ."
+              f"2. Your coding agents have helped you with certain tasks, use their answers as reference: [{agent_responses}]."
+              f"3. This was the original code used to complete the agents tasks: [{original_code}]."
+              f"4. These were the exact file names used {file_list}."
+              f"5. Using the responses of your agents and the original code, you will complete the users ask"
+              f"by producing a final code solution for each file and its code."
+              "6. YOU WILL RESPOND ONLY IN THIS FORMAT EXAMPLE:"
+              " [{'FILE_NAME':'', 'FILE_CODE':''},{'FILE_NAME':'', 'FILE_CODE':''}] ."
+              "7. File code must only be code of type which is related with the extension of the file name.")
+    return call_llm(prompt, "none")
+
+
 def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
     try:
         response = requests.post(

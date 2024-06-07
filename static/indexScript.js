@@ -89,8 +89,10 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
         previous.innerText = previous.innerText + "\n\n\n" + agent + " Response:\n" + jsonResponse;
         return jsonResponse;
     }).catch(error =>{
+        previousAgentResponse = previousAgentResponse + "{" + agent + ":" + "Failed To Do Task" + "},"
+        previous.innerText = previous.innerText + "\n\n\n" + agent + " Response:\n" + "Failed to do Task";
         return "Failed"
-        displayAlert("Manager Task API has failed")
+        displayAlert("Agent Task API has failed")
     })
 }
 
