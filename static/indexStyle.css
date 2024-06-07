@@ -67,6 +67,7 @@ button:hover{
 }
 
 .response{
+    padding: 5% 0;
     width: 80%;
     white-space: pre-wrap;
 }

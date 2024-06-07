@@ -56,13 +56,11 @@ function managerTasksAPI(prevData, files, directory){
             "\n\nDev 4\n" + data.Developer4 + "\n\nDev 5\n" + data.Developer5 + "\n\nDev 6\n" + data.Developer6 +
             "\n\nDev 7\n" + data.Developer7 + "\n\nDev 8\n" + data.Developer8 + "\n\nDev 9\n" + data.Developer9 + "\n\nDev 10\n" + data.Developer10;
         previous.innerText = previous.innerText + "\n\nManager Plan:\n\n" + completeString
-        let previousAgentResponse = "";
         console.log("got here")
         console.log(Object.keys(data))
+        previousAgentResponse = ""
         for (const key of Object.keys(data)) {
-            let agentResponse = await agentTaskAPI(prevData, key, data[key], previousAgentResponse)
-            previous.innerText = previous.innerText + "\n\n" + key + " Response:\n" + agentResponse;
-            previousAgentResponse = previousAgentResponse + "{" + key + ":" + agentResponse + "},"
+            await agentTaskAPI(prevData, key, data[key], previousAgentResponse, previous)
         }
         displayHideLoader();
     }).catch(error =>{
@@ -72,21 +70,22 @@ function managerTasksAPI(prevData, files, directory){
     })
 }
 
-async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
-    prevFormData.append("agent_task", agentTask)
+let previousAgentResponse = "";
+async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, previous){
+    prevFormData.append("agent_task", "say a joke")
     prevFormData.append("agent_responses", agentResponses)
     await fetch("/Tasks/agent_task", {
         method: 'POST',
         body: prevFormData
-    }).then(response => {
+    }).then(async response => {
         console.log(response)
-        if(!response.ok){
+        if (!response.ok) {
             displayAlert("Error on manager plan response")
         }
-        return response.json();
-    }).then(data => {
-        console.log(data)
-        return data
+        const jsonResponse = await response.json();
+        previousAgentResponse = previousAgentResponse + "{" + key + ":" + await jsonResponse + "},"
+        previous.innerText = previous.innerText + "\n\n" + agent + " Response:\n" + jsonResponse;
+        return jsonResponse;
     }).catch(error =>{
         return "Failed"
         displayAlert("Manager Task API has failed")

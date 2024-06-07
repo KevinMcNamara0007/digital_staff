@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Form
+from typing import List
 from pydantic import parse_obj_as
 from src.services.tasks import repo_ops, get_repo_service, create_plan_service, agent_task_service
 
@@ -112,6 +113,6 @@ async def agent_tasks(
         repo_dir: str = Form(default="./efs/pythongit", description="repo directory folder"),
         agent_responses: str = Form(default="[Dev 1: Dev 1 response]", description="agent responses")
 ):
-    ile_list = parse_obj_as(List[str], file_list.split(','))
+    file_list = parse_obj_as(List[str], file_list.split(','))
     return await agent_task_service(agent_task, user_prompt, file_list, repo_dir,
                                     new_branch_name, "", agent_responses, flow)

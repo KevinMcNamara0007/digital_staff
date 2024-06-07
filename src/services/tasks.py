@@ -53,7 +53,6 @@ async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_
         return response
     # Get All Code
     all_code = await get_all_code(file_list, repo_dir, new_branch_name)
-    print(all_code)
     return agent_task(task, response, all_code)
 
 
