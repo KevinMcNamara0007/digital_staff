@@ -171,4 +171,12 @@ const displayHideLoader = () => {
 const reset = () => {
     displayHideResponses();
     displayHideInputs();
+    document.getElementById("responses").innerHTML = '<div>' +
+        '                <button onclick="reset()">Try Again</button>' +
+        '            </div>' +
+        '            <div id="blocks">' +
+        '                <code id="newCode" class="response">' +
+        '                    ' +
+        '                </code>' +
+        '            </div>'
 }
