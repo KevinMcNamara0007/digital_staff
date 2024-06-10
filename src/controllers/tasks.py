@@ -1,5 +1,6 @@
+import platform
 import subprocess
-
+import uuid
 from fastapi import APIRouter, Form
 from typing import List
 from pydantic import parse_obj_as
@@ -123,12 +124,20 @@ async def produce_solution(
                                           new_branch_name, agent_responses, "", flow)
 
 @tasks.post("/build_test")
-def build_test(request_model: RequestModel):
-    # Prompt engineering for building and testing
-    prompt = "Build the project, run tests, and validate results."
-    # Placeholder logic for building and testing
-    request_model.artifacts.additional_data["build_test"] = "Build and test complete"
-    return {"status": "Build and test complete", "prompt": prompt, "request_model": request_model}
+async def build_test(
+        user_prompt: str = Form(
+            description="What you want the agent to do.",
+            default="Refactor the provided code for any vulnerabilities, optimizations, and mistakes."
+        ),
+        new_branch_name: str = Form(
+            default="feature/digitalstaff",
+            description="Name for the new branch where changes will be reflected."
+        ),
+        flow: str = Form(default="no", description="automated process flow yes/no"),
+        repo_dir: str = Form(default="./efs/pythongit", description="repo directory folder"),
+        agent_responses: str = Form(default="[Dev 1: Dev 1 response]", description="agent responses")
+):
+    return await run_python_tests("efs/repos/VideoPlayer_Consumer_Producer")
 
 
 async def identify_language(repo_dir):
@@ -136,15 +145,54 @@ async def identify_language(repo_dir):
 
 
 async def run_python_tests(repo_dir):
-    # pip install virtualenv
     # virtualenv venv
     # .\venv\Scripts\activate
     # pip install pytest pytest-cov httpx
     # pip install -r requirements.txt
     # pytest -p no:cacheprovider --cov=.
+    # issue correction loops
+    # deactivate the venv
+    # cleanup venv files
+    unique_venv_name = f"{uuid.uuid4().hex[:6].upper()}"
     install_testing_env = subprocess.Popen(
-        "pip install virtualenv".split(),
+        f"virtualenv {unique_venv_name}".split(),
         cwd=f"./{repo_dir}",
         stdout=subprocess.PIPE
     )
-    print(install_testing_env.communicate()[0])
+    if "created" in install_testing_env.communicate()[0].decode('utf-8'):
+        print(f"{unique_venv_name} created")
+        venv_deactivate_command = "deactivate"
+        if "Windows" in platform.system():
+            venv_activate_command = f'.\\{unique_venv_name}\\Scripts\\activate'
+            path_to_python_exec = f'{unique_venv_name}\\Scripts\\python.exe'
+        else:
+            venv_activate_command = f"source {unique_venv_name}/bin/activate"
+            path_to_python_exec = f'{unique_venv_name}/bin/python'
+        activate_virtual_env = subprocess.Popen(
+            venv_activate_command.split(),
+            cwd=f"./{repo_dir}",
+            stdout=subprocess.PIPE,
+            shell=True
+        )
+        activate_virtual_env.wait()
+
+        if "cannot" not in activate_virtual_env.communicate()[0].decode('utf-8'):
+            print(f"{unique_venv_name} activated")
+            install_testing_dependencies = subprocess.Popen(
+                f"{path_to_python_exec} -m pip install pytest pytest-cov httpx".split(),
+                cwd=f"./{repo_dir}",
+                stdout=subprocess.PIPE,
+                shell=True
+            )
+            install_testing_dependencies.wait()
+            if "installed" in install_testing_dependencies.communicate()[0].decode('utf-8'):
+                print("pytest deps installed")
+                install_repo_requirements = subprocess.Popen(
+                    f"{path_to_python_exec} -m pip install -r requirements.txt".split(),
+                    cwd=f"./{repo_dir}",
+                    stdout=subprocess.PIPE,
+                    shell=True
+                )
+                install_repo_requirements.wait()
+                print("Completed installation of requirements")
+                return install_repo_requirements.communicate()[0].decode('utf-8')
