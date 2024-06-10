@@ -31,7 +31,7 @@ async def agent_task(task, responses, code):
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
     prompt = (f"Instructions: 1. You are an elite coder assigned to complete the ask of this: {user_prompt} ."
               f"2. Your coding agents have helped you with certain tasks, use their answers as reference: [{agent_responses}]."
-              f"3. This was the original code used to complete the agents tasks: [{original_code.replace('"', "'")}]."
+              "3. This was the original code used to complete the agents tasks: [" + original_code.replace('"', "'") + "]."
               f"4. These were the exact file names used {file_list}."
               f"5. Using the responses of your agents and the original code, you will complete the users ask"
               f"by producing a final code solution for each file and its code."
