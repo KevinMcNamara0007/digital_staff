@@ -32,7 +32,6 @@ function digitalAgentAPI(){
         managerTasksAPI(formData, data.files, data.repo_dir)
     }).catch(error=>{
         displayHideLoader();
-        displayHideInputs();
         displayAlert("Git Repo Clone API Failed")
     })
 }
@@ -66,7 +65,6 @@ function managerTasksAPI(prevData, files, directory){
         await getFinalSolution(prevData, previousAgentResponse, "");;
     }).catch(error =>{
         displayHideLoader();
-        displayHideInputs();
         displayAlert("Manager Task API has failed")
     })
 }

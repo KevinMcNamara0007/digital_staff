@@ -53,4 +53,6 @@ async def get_all_code(file_list, repo_dir, new_branch_name):
 
 async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name,
                                    agent_responses, code="", flow="n"):
+    if code == "":
+        code = await get_all_code(file_list, repo_dir, new_branch_name)
     return await produce_final_solution(user_prompt, file_list, agent_responses, code)

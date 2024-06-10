@@ -31,16 +31,26 @@ async def agent_task(task, responses, code):
 
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
-    prompt = (f"Instructions: 1. You are an elite coder assigned to do complete the ask of this: {user_prompt} ."
+    prompt = (f"Instructions: 1. You are an elite coder assigned to complete the ask of this: {user_prompt} ."
               f"2. Your coding agents have helped you with certain tasks, use their answers as reference: [{agent_responses}]."
-              f"3. This was the original code used to complete the agents tasks: [{original_code}]."
+              f"3. This was the original code used to complete the agents tasks: [{original_code.replace('"', "'")}]."
               f"4. These were the exact file names used {file_list}."
               f"5. Using the responses of your agents and the original code, you will complete the users ask"
               f"by producing a final code solution for each file and its code."
-              "6. YOU WILL RESPOND ONLY IN THIS FORMAT EXAMPLE:"
-              " [{'FILE_NAME':'', 'FILE_CODE':''},{'FILE_NAME':'', 'FILE_CODE':''}] ."
-              "7. File code must only be code of type which is related with the extension of the file name.")
-    return call_llm(prompt, "none")
+              "6. File code must only be code of type which is related with the extension of the file name."
+              "7. YOU WILL RESPOND ONLY IN THIS JSON FORMAT EXAMPLE: "
+              ' "File1": {"FILE_NAME":"", "FILE_CODE":""}, "File2" : {"FILE_NAME":"", "FILE_CODE":""}] .'
+              )
+    response = call_llm(prompt, "none")
+    response = response.replace('""', '')
+    # response = response.replace('\\n', '')
+    # response = response.replace('\\', '')
+    print(response)
+    try:
+        response = json.loads(response)
+    except Exception as exc:
+        print(f'Could not parse String Into JSON ERROR: {exc}')
+    return response
 
 
 def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
