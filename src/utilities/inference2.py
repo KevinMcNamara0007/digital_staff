@@ -13,10 +13,8 @@ async def create_plan(user_prompt, file_list, repo_dir):
               "1. You are AI Manager who creates a code development plan that has up to 10 developer agents if needed."
               "2. Each developer will have a sequential task based on the previous developer's task."
               "3. You will use the target guidance and target code files to assume what your developers will need to."
-              "4. The second to last developer will always verify the code for security."
-              "5. The last developer will write the unit tests needed for each file."
-              "6. RESPOND ONLY IN THIS EXAMPLE FORMAT: { 'Developer 2': 'DEVELOPER TASK', 'Developer 3': 'DEVELOPER "
-              "TASK'}."
+              "4. The last developer will always verify the code for security."
+              '5. RESPOND ONLY IN THIS EXAMPLE FORMAT: { "Developer 2": "DEVELOPER TASK", "Developer 3": "DEVELOPER TASK"}.'
     )
     print(manager_response)
     manager_manifest = json.loads(manager_response)

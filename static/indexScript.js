@@ -88,7 +88,7 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
         previousAgentResponse = previousAgentResponse + "{" + agent + ":" + await jsonResponse + "},"
         let element = document.createElement('code')
         element.className = "response";
-        element.innerText =  agent + " Response:\n" + jsonResponse;
+        element.innerText =  agent + " Response:\n" + jsonResponse + "\n";
         previous.appendChild(element);
         return jsonResponse;
     }).catch(error =>{
@@ -113,10 +113,30 @@ async function getFinalSolution(prevFormData, code){
         console.log("Final Solution:")
         console.log(data)
         let previous = document.getElementById("blocks")
-        let element = document.createElement('code')
-        element.className = "response";
-        element.innerText =   "\n\nFinal Solution:\n\n" + data;
-        previous.appendChild(element);
+        try{
+            console.log("All keys")
+            if(data["File 1"] || data["File1"]){
+                console.log(Object.keys(data))
+                for (const key of Object.keys(data)){
+                    console.log("KEy")
+                    console.log(key)
+                    let element = document.createElement('code')
+                    element.className = "response";
+                    element.innerText =   "\n\nFinal Solution:\n\n" + key.FILE_NAME + "\n\n FINAL CODE:\n" + key.FILE_CODE;
+                    previous.appendChild(element);
+                }
+            }else{
+                let element = document.createElement('code')
+                element.className = "response";
+                element.innerText =   "\n\nFinal Solution:\n\n" + JSON.stringify(data);
+                previous.appendChild(element);
+            }
+        }catch (e) {
+            let element = document.createElement('code')
+            element.className = "response";
+            element.innerText =   "\n\nFinal Solution:\n\n" + JSON.stringify(data);
+            previous.appendChild(element);
+        }
         displayHideLoader()
     }).catch(error =>{
         displayHideLoader()
