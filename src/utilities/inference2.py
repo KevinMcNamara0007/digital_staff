@@ -24,9 +24,8 @@ async def agent_task(task, responses, code):
     print(f"Agent Response Token Amount: {check_token_count(responses)}")
     prompt = (f"Instructions:"
               f"1. This is your task: {task}."
-              f"2. If there is nothing needed to be updated, please respond with: NA."
-              f"3. If your task requires a previous agents response, these are the previous agents responses: {responses}."
-              f"4. If your task requires original code, use these files and their code as reference: {code}.")
+              f"2. If your task requires a previous agents response, these are the previous agents responses: {responses}."
+              f"3. If your task requires original code, use these files and their code as reference: {code}.")
     print(f"Token Amount: {check_token_count(prompt)}")
     return customized_response(prompt)
 
@@ -47,11 +46,15 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     response = response.replace('""', '')
     response = response.replace("```", '')
     response = response.replace('json', '')
-    print(response)
     try:
         response = json.loads(response)
     except Exception as exc:
-        print(f'Could not parse String Into JSON ERROR: {exc}')
+        print(f'Could not parse String Into JSON ERROR Will Remove all formatting: {exc}')
+        response = response.replace('\n', '')
+        try:
+            response = json.loads(response)
+        except Exception as exc:
+            print("Removing Formatting Did not help final response, sending back regular string")
     return response
 
 
