@@ -32,7 +32,6 @@ function digitalAgentAPI(){
         managerTasksAPI(formData, data.files, data.repo_dir)
     }).catch(error=>{
         displayHideLoader();
-        displayHideInputs();
         displayAlert("Git Repo Clone API Failed")
     })
 }
@@ -52,9 +51,10 @@ function managerTasksAPI(prevData, files, directory){
     }).then(async data => {
         console.log(data)
         let previous = document.getElementById("newCode")
-        let completeString = "Dev 1\n" + data.Developer1 + "\n\nDev 2\n" + data.Developer2 + "\n\nDev 3\n" + data.Developer3 +
-            "\n\nDev 4\n" + data.Developer4 + "\n\nDev 5\n" + data.Developer5 + "\n\nDev 6\n" + data.Developer6 +
-            "\n\nDev 7\n" + data.Developer7 + "\n\nDev 8\n" + data.Developer8 + "\n\nDev 9\n" + data.Developer9 + "\n\nDev 10\n" + data.Developer10;
+        let completeString = "";
+        for (const key of Object.keys(data)) {
+            completeString = completeString + "\n\n" + key + "\n\n" + data[key];
+        }
         previous.innerText = previous.innerText + "\n\nManager Plan:\n\n" + completeString
         console.log("got here")
         console.log(Object.keys(data))
@@ -62,10 +62,9 @@ function managerTasksAPI(prevData, files, directory){
         for (const key of Object.keys(data)) {
             await agentTaskAPI(prevData, key, data[key], previousAgentResponse)
         }
-        displayHideLoader();
+        await getFinalSolution(prevData, previousAgentResponse, "");;
     }).catch(error =>{
         displayHideLoader();
-        displayHideInputs();
         displayAlert("Manager Task API has failed")
     })
 }
@@ -74,7 +73,8 @@ let previousAgentResponse = "";
 async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
     prevFormData.append("agent_task", agentTask)
     prevFormData.append("agent_responses", agentResponses)
-    let previous = document.getElementById("newCode")
+
+    let previous = document.getElementById("blocks")
     await fetch("/Tasks/agent_task", {
         method: 'POST',
         body: prevFormData
@@ -84,15 +84,62 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
             displayAlert("Error on manager plan response")
         }
         const jsonResponse = await response.json();
-        console.log(jsonResponse)
+        // Create new element to display
         previousAgentResponse = previousAgentResponse + "{" + agent + ":" + await jsonResponse + "},"
-        previous.innerText = previous.innerText + "\n\n\n" + agent + " Response:\n" + jsonResponse;
+        let element = document.createElement('code')
+        element.className = "response";
+        element.innerText =  agent + " Response:\n" + jsonResponse + "\n";
+        previous.appendChild(element);
         return jsonResponse;
     }).catch(error =>{
         previousAgentResponse = previousAgentResponse + "{" + agent + ":" + "Failed To Do Task" + "},"
         previous.innerText = previous.innerText + "\n\n\n" + agent + " Response:\n" + "Failed to do Task";
         return "Failed"
-        displayAlert("Agent Task API has failed")
+        displayAlert("Agent Task has failed")
+    })
+}
+
+async function getFinalSolution(prevFormData, code){
+    prevFormData.append("agent_responses", previousAgentResponse)
+    await fetch("/Tasks/produce_solution", {
+        method: 'POST',
+        body: prevFormData
+    }).then(response=>{
+        if (!response.ok) {
+            displayAlert("Error on Final Solution")
+        }
+        return response.json();
+    }).then(data =>{
+        console.log("Final Solution:")
+        console.log(data)
+        let previous = document.getElementById("blocks")
+        try{
+            console.log("All keys")
+            if(data["File 1"] || data["File1"]){
+                console.log(Object.keys(data))
+                for (const key of Object.keys(data)){
+                    console.log("KEy")
+                    console.log(key)
+                    let element = document.createElement('code')
+                    element.className = "response";
+                    element.innerText =   "\n\nFinal Solution:\n\n" + key.FILE_NAME + "\n\n FINAL CODE:\n" + key.FILE_CODE;
+                    previous.appendChild(element);
+                }
+            }else{
+                let element = document.createElement('code')
+                element.className = "response";
+                element.innerText =   "\n\nFinal Solution:\n\n" + JSON.stringify(data);
+                previous.appendChild(element);
+            }
+        }catch (e) {
+            let element = document.createElement('code')
+            element.className = "response";
+            element.innerText =   "\n\nFinal Solution:\n\n" + JSON.stringify(data);
+            previous.appendChild(element);
+        }
+        displayHideLoader()
+    }).catch(error =>{
+        displayHideLoader()
     })
 }
 
@@ -124,4 +171,12 @@ const displayHideLoader = () => {
 const reset = () => {
     displayHideResponses();
     displayHideInputs();
+    document.getElementById("responses").innerHTML = '<div>' +
+        '                <button onclick="reset()">Try Again</button>' +
+        '            </div>' +
+        '            <div id="blocks">' +
+        '                <code id="newCode" class="response">' +
+        '                    ' +
+        '                </code>' +
+        '            </div>'
 }
