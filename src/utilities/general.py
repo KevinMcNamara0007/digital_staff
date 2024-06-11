@@ -14,6 +14,7 @@ USER = os.environ["USER"]
 USER_PASS = os.environ["USER_PASS"]
 manifest_path = os.environ["manifest_path"]
 llm_url = os.environ["llm_url"]
+openai_key = os.environ["openai_key"]
 
 with open(manifest_path, "r") as manifest_file:
     manifest = json.load(manifest_file)
