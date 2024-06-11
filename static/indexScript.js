@@ -118,14 +118,13 @@ async function getFinalSolution(prevFormData, code){
         let previous = document.getElementById("blocks")
         try{
             console.log("All keys")
-            if(data["File 1"] || data["File1"]){
-                console.log(Object.keys(data))
-                for (const key of Object.keys(data)){
+            if(data[0]){
+                for (const fileObject of data){
                     console.log("KEy")
-                    console.log(key)
+                    console.log(fileObject)
                     let element = document.createElement('code')
                     element.className = "response";
-                    element.innerText =   "\n\nFinal Solution:\n\n" + key.FILE_NAME + "\n\n FINAL CODE:\n" + key.FILE_CODE;
+                    element.innerText =   "\n\nFinal Solution:\n\n" + fileObject.FILE_NAME + "\n\n FINAL CODE:\n\n" + fileObject.FILE_CODE;
                     previous.appendChild(element);
                 }
             }else{

@@ -2,8 +2,9 @@ import json
 
 import requests
 from fastapi import HTTPException
+from openai import OpenAI
 
-from src.utilities.general import manifest, llm_url
+from src.utilities.general import manifest, llm_url, openai_key
 
 
 def manager__development_agent_prompts(user_prompt, file_list):
@@ -37,13 +38,13 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
               f"5. Using the responses of your agents and the original code, you will complete the users ask"
               f"by producing a final code solution for each file and its code."
               "6. File code must only be code of type which is related with the extension of the file name."
-              "7. YOU WILL RESPOND ONLY IN THIS JSON FORMAT EXAMPLE: "
-              ' "File1": {"FILE_NAME":"", "FILE_CODE":""}, "File2" : {"FILE_NAME":"", "FILE_CODE":""}] .'
+              "7. YOU WILL ONLY RESPOND USING THIS JSON FORMAT EXAMPLE: "
+              '[{"FILE_NAME":"", "FILE_CODE":""},{"FILE_NAME":"", "FILE_CODE":""}]'
               )
-    response = call_llm(prompt, "none")
+    response = customized_response(prompt)
     response = response.replace('""', '')
-    # response = response.replace('\\n', '')
-    # response = response.replace('\\', '')
+    response = response.replace("```", '')
+    response = response.replace('json', '')
     print(response)
     try:
         response = json.loads(response)
@@ -65,3 +66,14 @@ def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
         return response["choices"][0]["message"]["content"]
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
+
+
+def customized_response(prompt):
+    new_prompt = [{"role": "user", "content": prompt}]
+    client = OpenAI(api_key=openai_key)
+    response = client.chat.completions.create(
+        model="gpt-4-0125-preview",
+        messages=new_prompt
+    )
+    content = response.choices[0].message.content
+    return content
