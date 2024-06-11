@@ -68,7 +68,8 @@ async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
     await cmd_run(
         command_to_run=f"virtualenv {repo_dir}/{unique_venv_name}",
     )
-    path_to_python_exec = f'{unique_venv_name}\\Scripts\\python.exe' if "Windows" in platform.system() \
+    path_to_python_exec = f'{unique_venv_name}\\Scripts\\python.exe' \
+        if "Windows" in platform.system() \
         else f'{unique_venv_name}/bin/python'
     # Install all dependencies + requirements of repo
     await cmd_popen(
