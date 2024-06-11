@@ -4,30 +4,31 @@ import requests
 from fastapi import HTTPException
 from openai import OpenAI
 
-from src.utilities.general import manifest, llm_url, openai_key
+from src.utilities.general import manifest, llm_url, openai_key, check_token_count
 
 
-def manager__development_agent_prompts(user_prompt, file_list):
+def manager__development_agent_prompts(user_prompt, assets, software_type):
     return [
-        f'You are a software engineer. You are asked to complete the ask of {user_prompt} using the following files: {file_list}.',
-        f'You are a software engineer. You will review agent 1 code and certify that agent 1 fulfilled the ask of: {user_prompt}. If the ask is not completed, complete the ask.',
-        f'You are a software engineer. You will review agent 1 and agent 2 code. Certify that both agents fulfilled the ask of: {user_prompt}. If the ask is not completed, complete the ask.',
-        f'You are a software engineer. You will fix all major bugs, vulnerabilities and code smells from agent 1, 2, and 3.',
-        f'You are software engineer who specializes in security. You will review and update agent code for security if needed.',
-        f'You are a software engineer who specializes in code testing. If there is unit test code please update the code. If there is no unit test code please create unit tests for following files {file_list} and agent code.',
-        f'You are a software engineer who specializes in reviewing code. Inspect all agent code and unit test code from agents for faults and fix where needed.'
+        f"You are an expert {software_type} developer.  {user_prompt} using the following files: {assets}.", # zero shot
+        f"You are an expert {software_type} developer.  {user_prompt} using the following files: {assets}.", # one shot
+        f"review the following for accuracy and completness: {user_prompt} aginst the following {assets}.", # checks for completeness
+        f"review the following for bugs and vulnerabilities and code smells: {user_prompt} aginst the following {assets}.", # zero shot bugs and vulnerabilities and code smells
+        f"review the following for bugs and vulnerabilities and code smells: {user_prompt} aginst the following {assets}.", # one shot bugs and vulnerabilities and code smells
+        f"review the following for unit tests: {user_prompt} aginst the following {assets}.", # zero shot unit tests
+        f"You are an expert {software_type}.  Inspect and optimize code and unit test, look for faults and correct where needed: {assets}." # zero shot final check
     ]
 
 
 async def agent_task(task, responses, code):
+    print(f"Agent Task: {task}")
+    print(f"Agent Response Token Amount: {check_token_count(responses)}")
     prompt = (f"Instructions:"
               f"1. This is your task: {task}."
-              f"2. You will ONLY RESPOND with the updated code."
-              f"3. You will not provide any explanation to any of the code."
-              f"4. If there is nothing needed to be updated, please respond with: NA."
-              f"2. If your task requires a previous agents response, these are the previous agents responses: {responses}."
-              f"3. If your task requires original code, use these files and their code as reference: {code}.")
-    return call_llm(prompt, "none")
+              f"2. If there is nothing needed to be updated, please respond with: NA."
+              f"3. If your task requires a previous agents response, these are the previous agents responses: {responses}."
+              f"4. If your task requires original code, use these files and their code as reference: {code}.")
+    print(f"Token Amount: {check_token_count(prompt)}")
+    return customized_response(prompt)
 
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
@@ -41,6 +42,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
               "7. YOU WILL ONLY RESPOND USING THIS JSON FORMAT EXAMPLE: "
               '[{"FILE_NAME":"", "FILE_CODE":""},{"FILE_NAME":"", "FILE_CODE":""}]'
               )
+    print(f"Final Solution Token Amount: {check_token_count(prompt)}")
     response = customized_response(prompt)
     response = response.replace('""', '')
     response = response.replace("```", '')

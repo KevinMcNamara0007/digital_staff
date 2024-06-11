@@ -1,6 +1,7 @@
 import json
 import os
 from dotenv import load_dotenv
+import tiktoken
 
 if os.environ.get("ENV"):
     load_dotenv(f"config/{os.environ['ENV']}")
@@ -129,3 +130,9 @@ def file_filter(file_list):
     return [file for file in file_list if
             any(code_file_extension in file for code_file_extension in accepted_code_file_extensions)
             ]
+
+
+def check_token_count(history):
+    encoding = tiktoken.encoding_for_model("gpt-4-0125-preview")
+    num_tokens = len(encoding.encode(history))
+    return num_tokens
