@@ -118,7 +118,7 @@ accepted_code_file_extensions = {
 
 def file_filter(file_list):
     """
-    Takes a file list and returns a list of the files only of the files relating to coding files
+    Takes a file list and returns a list of the files only of the files relating to accepted coding files
     :param file_list:
     :return:
     """
@@ -128,6 +128,12 @@ def file_filter(file_list):
 
 
 async def cleanup_post_test(venv_name, repo_dir):
+    """
+    Remove all evidence of running tests on the repo, to prevent adding files not recognized by the user.
+    :param venv_name:
+    :param repo_dir:
+    :return:
+    """
     pytest_files = ['.pytest_cache', 'test.html', 'junit.xml', '.coverage']
     venv_path = f"{repo_dir}\\{venv_name}"
     try:

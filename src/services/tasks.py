@@ -64,6 +64,14 @@ async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_
 
 
 async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
+    """
+    Takes the local path of the repo, an existing venv, and number of tries. It creates/reuses a venv to run pytest on
+    any possible tests that may be present in the repo. If any errors arise, it will fix them and rerun the tests.
+    :param repo_dir:
+    :param present_venv_name:
+    :param tries:
+    :return:
+    """
     unique_venv_name = f"{uuid.uuid4().hex[:6].upper()}" if not present_venv_name else present_venv_name
     # Create virtual env
     await cmd_run(
@@ -93,10 +101,20 @@ async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
 
 
 async def failure_repair(output_message, repo_dir, venv_name, tries=3):
+    """
+    Fixes errors that come up during the run of the testing phases dependent on the error returned from the pytest
+    command.
+    :param output_message:
+    :param repo_dir:
+    :param venv_name:
+    :param tries:
+    :return:
+    """
     # Check for missing packages
     if "No module named" in output_message:
         start = output_message.index("No module named")
         missing_package = output_message[start:].split("'")[1]
+        # Add package to requirements file
         with open(f"{repo_dir}\\requirements.txt", "a") as f:
             f.write("\n" + missing_package + "\n")
         return await run_python_tests(repo_dir, venv_name, tries - 1) \
