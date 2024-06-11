@@ -73,3 +73,33 @@ async def show_file_contents(version, file_path, repo_dir):
         return output.communicate()[0].decode("utf-8")
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Could not read file: {exc}")
+
+
+async def cmd_popen(repo_dir, command_to_run, shelled=False, tries=3):
+    try:
+        command_output = subprocess.Popen(
+            command_to_run.split(),
+            cwd=f"./{repo_dir}",
+            stdout=subprocess.PIPE,
+            shell=shelled
+        )
+        return command_output.communicate()[0].decode('utf-8')
+    except Exception as exc:
+        print(f"Error in subprocess: {exc}")
+        if tries > 0:
+            return await cmd_popen(repo_dir, command_to_run, shelled, tries - 1)
+        raise HTTPException(status_code=500, detail=f"Error in subprocess: {exc}")
+
+
+async def cmd_run(command_to_run, tries=3):
+    try:
+        command_output = subprocess.run(
+            command_to_run.split(),
+            capture_output=True
+        )
+        return command_output.stdout.decode('utf-8')
+    except Exception as exc:
+        print(f"Error in subprocess: {exc}")
+        if tries > 0:
+            return await cmd_run(command_to_run, tries - 1)
+        raise HTTPException(status_code=500, detail=f"Error in subprocess: {exc}")

@@ -1,6 +1,10 @@
-from src.utilities.general import file_filter
+import os.path
+import platform
+import shutil
+import uuid
+from src.utilities.general import file_filter, cleanup_post_test
 from src.utilities.git import clone_repo, check_current_branch, checkout_and_rebranch, repo_file_list, \
-    show_file_contents
+    show_file_contents, cmd_popen, cmd_run
 from src.utilities.inference2 import create_plan, agent_task, produce_final_solution
 
 
@@ -29,7 +33,8 @@ async def create_plan_service(user_prompt, file_list, repo_dir, new_branch_name,
                                                       all_code, all_agent_responses, flow)
             all_agent_responses = all_agent_responses + f"[Agent: {agent}, Response: {agent_response}]:"
         # get final solution
-        return produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, all_agent_responses, all_code, flow)
+        return produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, all_agent_responses,
+                                        all_code, flow)
     return create_plan(user_prompt, file_list, repo_dir)
 
 
@@ -52,5 +57,45 @@ async def get_all_code(file_list, repo_dir, new_branch_name):
 
 
 def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name,
-                                   agent_responses, code="", flow="n"):
+                             agent_responses, code="", flow="n"):
     return produce_final_solution(user_prompt, file_list, agent_responses, code)
+
+
+async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
+    unique_venv_name = f"{uuid.uuid4().hex[:6].upper()}" if not present_venv_name else present_venv_name
+    # Create virtual env
+    await cmd_run(
+        command_to_run=f"virtualenv {repo_dir}/{unique_venv_name}",
+    )
+    path_to_python_exec = f'{unique_venv_name}\\Scripts\\python.exe' if "Windows" in platform.system() \
+        else f'{unique_venv_name}/bin/python'
+    # Install all dependencies + requirements of repo
+    await cmd_popen(
+        repo_dir=repo_dir,
+        command_to_run=f"{path_to_python_exec} -m pip install pytest pytest-cov httpx -r requirements.txt",
+        shelled=True
+    )
+    # Run tests
+    test_output = await cmd_popen(
+        repo_dir=repo_dir,
+        command_to_run=f"{path_to_python_exec} -m pytest -p no:cacheprovider --no-cov",
+        shelled=True
+    )
+    # issue correction loops
+    if "FAILED" in test_output or "Interrupted" in test_output:
+        await failure_repair(test_output, repo_dir, unique_venv_name, tries)
+    # Cleanup
+    await cleanup_post_test(venv_name=unique_venv_name, repo_dir=repo_dir)
+    return "Success"
+
+
+async def failure_repair(output_message, repo_dir, venv_name, tries=3):
+    # Check for missing packages
+    if "No module named" in output_message:
+        start = output_message.index("No module named")
+        missing_package = output_message[start:].split("'")[1]
+        with open(f"{repo_dir}\\requirements.txt", "a") as f:
+            f.write("\n" + missing_package + "\n")
+        return await run_python_tests(repo_dir, venv_name, tries - 1) \
+            if tries > 0 else RuntimeError(f"Failed to add package: {missing_package}")
+    return "LLM Needs to be involved here"
