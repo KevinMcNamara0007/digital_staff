@@ -6,25 +6,26 @@ from fastapi import HTTPException
 from src.utilities.general import manifest, llm_url
 
 
-async def create_plan(user_prompt, file_list, repo_dir):
-    manager_response = call_llm(
-        prompt=f"Target Guidance: {user_prompt} \n Target Code: {file_list}",
-        rules="INSTRUCTIONS: "
-              "1. You are AI Manager who creates a code development plan that has up to 10 developer agents if needed."
-              "2. Each developer will have a sequential task based on the previous developer's task."
-              "3. You will use the target guidance and target code files to assume what your developers will need to."
-              "4. The last developer will always verify the code for security."
-              '5. RESPOND ONLY IN THIS EXAMPLE FORMAT: { "Developer 2": "DEVELOPER TASK", "Developer 3": "DEVELOPER TASK"}.'
-    )
-    print(manager_response)
-    manager_manifest = json.loads(manager_response)
-    return manager_manifest
+def manager__development_agent_prompts(user_prompt, file_list):
+    return [
+        f'You are a software engineer. You are asked to complete the ask of {user_prompt} using the following files: {file_list}.',
+        f'You are a software engineer. You will review agent 1 code and certify that agent 1 fulfilled the ask of: {user_prompt}. If the ask is not completed, complete the ask.',
+        f'You are a software engineer. You will review agent 1 and agent 2 code. Certify that both agents fulfilled the ask of: {user_prompt}. If the ask is not completed, complete the ask.',
+        f'You are a software engineer. You will fix all major bugs, vulnerabilities and code smells from agent 1, 2, and 3.',
+        f'You are software engineer who specializes in security. You will review and update agent code for security if needed.',
+        f'You are a software engineer who specializes in code testing. If there is unit test code please update the code. If there is no unit test code please create unit tests for following files {file_list} and agent code.',
+        f'You are a software engineer who specializes in reviewing code. Inspect all agent code and unit test code from agents for faults and fix where needed.'
+    ]
 
 
 async def agent_task(task, responses, code):
-    prompt = (f"Instructions: 1. You are an agent assigned to do this specific task: {task} ."
-              f"2. If your task requires a previous agents response, use these as reference: [{responses}]."
-              f"3. If you require code, use these files and their code as reference: [{code}]")
+    prompt = (f"Instructions:"
+              f"1. This is your task: {task}."
+              f"2. You will ONLY RESPOND with the updated code."
+              f"3. You will not provide any explanation to any of the code."
+              f"4. If there is nothing needed to be updated, please respond with: NA."
+              f"2. If your task requires a previous agents response, these are the previous agents responses: {responses}."
+              f"3. If your task requires original code, use these files and their code as reference: {code}.")
     return call_llm(prompt, "none")
 
 

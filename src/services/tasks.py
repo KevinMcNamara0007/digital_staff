@@ -1,7 +1,7 @@
 from src.utilities.general import file_filter
 from src.utilities.git import clone_repo, check_current_branch, checkout_and_rebranch, repo_file_list, \
     show_file_contents
-from src.utilities.inference2 import create_plan, agent_task, produce_final_solution
+from src.utilities.inference2 import manager__development_agent_prompts, agent_task, produce_final_solution
 
 
 async def get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name, flow="n"):
@@ -18,19 +18,19 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
 
 async def create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow="n"):
     if flow == "y":
-        tasks = create_plan(user_prompt, file_list, repo_dir)
+        tasks = manager__development_agent_prompts(user_prompt, file_list)
         # Get All Code Into 1 string
         all_code = await get_all_code(file_list, repo_dir, new_branch_name)
         # Do Each Agent Task
         all_agent_responses = ""
-        for agent in tasks.keys():
-            print(agent)
-            agent_response = await agent_task_service(tasks[agent], user_prompt, file_list, repo_dir, new_branch_name,
+        for index, agent_prompt in enumerate(tasks):
+            print(agent_prompt)
+            agent_response = await agent_task_service(agent_prompt, user_prompt, file_list, repo_dir, new_branch_name,
                                                       all_code, all_agent_responses, flow)
-            all_agent_responses = all_agent_responses + f"[Agent: {agent}, Response: {agent_response}]:"
+            all_agent_responses = all_agent_responses + "{" f"Agent: {index}, Response: {agent_response}" "}"
         # get final solution
         return await produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, all_agent_responses, all_code, flow)
-    return await create_plan(user_prompt, file_list, repo_dir)
+    return manager__development_agent_prompts(user_prompt, file_list)
 
 
 async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", flow="n"):

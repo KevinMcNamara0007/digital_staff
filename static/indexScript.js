@@ -52,17 +52,20 @@ function managerTasksAPI(prevData, files, directory){
         console.log(data)
         let previous = document.getElementById("newCode")
         let completeString = "";
-        for (const key of Object.keys(data)) {
-            completeString = completeString + "\n\n" + key + "\n\n" + data[key];
-        }
+
+        data.forEach(function (prompt, index) {
+            completeString = completeString + "\n\nAgent " + (index+1) + "\n\n" + prompt;
+            index++;
+        });
         previous.innerText = previous.innerText + "\n\nManager Plan:\n\n" + completeString
         console.log("got here")
         console.log(Object.keys(data))
         previousAgentResponse = ""
-        for (const key of Object.keys(data)) {
-            await agentTaskAPI(prevData, key, data[key], previousAgentResponse)
+        for (const prompt of data) {
+            const index = data.indexOf(prompt);
+            await agentTaskAPI(prevData, ("agent " + (index+1)), prompt, previousAgentResponse)
         }
-        await getFinalSolution(prevData, previousAgentResponse, "");;
+        await getFinalSolution(prevData, previousAgentResponse, "");
     }).catch(error =>{
         displayHideLoader();
         displayAlert("Manager Task API has failed")
@@ -88,7 +91,7 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
         previousAgentResponse = previousAgentResponse + "{" + agent + ":" + await jsonResponse + "},"
         let element = document.createElement('code')
         element.className = "response";
-        element.innerText =  agent + " Response:\n" + jsonResponse + "\n";
+        element.innerText =  agent + " Response:\n\n" + jsonResponse + "\n";
         previous.appendChild(element);
         return jsonResponse;
     }).catch(error =>{
