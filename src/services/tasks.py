@@ -1,12 +1,9 @@
-import os.path
 import platform
-import shutil
 import uuid
 from src.utilities.general import file_filter, cleanup_post_test
 from src.utilities.git import clone_repo, check_current_branch, checkout_and_rebranch, repo_file_list, \
     show_file_contents, cmd_popen, cmd_run
 from src.utilities.inference2 import manager__development_agent_prompts, agent_task, produce_final_solution
-import src.utilities.inference2
 
 
 async def get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name, flow="n"):
@@ -40,12 +37,12 @@ async def create_plan_service(user_prompt, file_list, repo_dir, new_branch_name,
 
 async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", flow="n"):
     if flow == "y":
-        response = await src.utilities.inference2.agent_task(task, response, code)
+        response = await agent_task(task, response, code)
         print(response)
         return response
     # Get All Code
     all_code = await get_all_code(file_list, repo_dir, new_branch_name)
-    return await src.utilities.inference2.agent_task(task, response, all_code)
+    return await agent_task(task, response, all_code)
 
 
 async def get_all_code(file_list, repo_dir, new_branch_name):
@@ -60,7 +57,7 @@ async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_
                                    agent_responses, code="", flow="n"):
     if code == "":
         code = await get_all_code(file_list, repo_dir, new_branch_name)
-    return await src.utilities.inference2.produce_final_solution(user_prompt, file_list, agent_responses, code)
+    return await produce_final_solution(user_prompt, file_list, agent_responses, code)
 
 
 async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
