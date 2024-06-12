@@ -81,6 +81,7 @@ async def cmd_popen(repo_dir, command_to_run, shelled=False, tries=3, sterr=Fals
             command_to_run.split(),
             cwd=f"./{repo_dir}",
             stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             shell=shelled
         )
         if sterr:
