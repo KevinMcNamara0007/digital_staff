@@ -13,7 +13,7 @@ def manager__development_agent_prompts(user_prompt, assets, software_type):
         # zero shot
         f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code for: {assets}.",
         # one shot
-        f"Review the following for accuracy and completness: {user_prompt}, produce ONLY complete code for: {assets}.",
+        f"Review the following for accuracy and completeness: {user_prompt}, produce ONLY complete code for: {assets}.",
         # checks for completeness
         f"Review the following for bugs and vulnerabilities and code smells: {user_prompt}, produce ONLY complete code for: {assets}.",
         # zero shot bugs and vulnerabilities and code smells
@@ -33,27 +33,26 @@ async def agent_task(task, responses, code):
               f"1. This is your task: {task}."
               f"2. If your task requires a previous agents response, these are the previous agents responses: {responses}."
               f"3. If your task requires original code, use these files and their code as reference: {code}."
-              f"4. RESPOND ONLY WITH FILE NAMES AND CODE.")
+              f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE.")
     print(f"Token Amount: {check_token_count(prompt)}")
     return customized_response(prompt)
 
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
     prompt = (
-            f"Instructions: "
-            f"1. You are an elite coder assigned to complete the ask of this: {user_prompt} ."
-            f"2. Your coding agents have helped you with certain tasks, use their answers as reference: [{agent_responses}]."
-            f"3. This was the original code used to complete the agents tasks: [" + original_code.replace('"',"'") + "]."
-            f"4. These were the exact file names used {file_list}."
-            f"5. Using the responses of your agents and the original code, you will complete the users ask"
-            f"by producing a final code solution for each file and its code."
-            f"6. If your agents have created new files such as unit tests, please include those new files."
-            f"7. File code must only be code of type which is related with the extension of the file name."
-            f"8. YOU WILL ONLY RESPOND USING THIS JSON FORMAT EXAMPLE: "
-            '[{"FILE_NAME":"", "FILE_CODE":""},{"FILE_NAME":"", "FILE_CODE":""}]'
+        "Instructions:"
+        "1. You are an expert programmer."
+        "2. You will compile all agent code for each corresponding file and place it into a JSON format."
+        "3. You will only respond using this JSON format: [{\"FILE_NAME\":\"file_name1\", \"FILE_CODE\":\"file_code1\"}, {\"FILE_NAME\":\"file_name2\", \"FILE_CODE\":\"file_code2\"}]."
+        "4. File code will only be the code of the file associated with it."
+        f"5. These are the original file names: {file_list}."
+        "6. Agents may have created new files. Please include new files into the JSON response as well."
+        f"7. Here are the agent responses you will reference: {agent_responses}"
+        "8. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code."
     )
-    print(f"Final Solution Token Amount: {check_token_count(prompt)}")
-    response = customized_response(prompt)
+    print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
+    response = call_turbo(prompt)
+    print(f"Final solution OUTPUT: {check_token_count(response)}")
     response = response.replace('""', '')
     response = response.replace("```", '')
     response = response.replace('json', '')
@@ -90,6 +89,17 @@ def customized_response(prompt):
     client = OpenAI(api_key=openai_key)
     response = client.chat.completions.create(
         model="gpt-4o",
+        messages=new_prompt
+    )
+    content = response.choices[0].message.content
+    return content
+
+
+def call_turbo(prompt):
+    new_prompt = [{"role": "user", "content": prompt}]
+    client = OpenAI(api_key=openai_key)
+    response = client.chat.completions.create(
+        model="gpt-4-0125-preview",
         messages=new_prompt
     )
     content = response.choices[0].message.content
