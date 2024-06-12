@@ -4,6 +4,7 @@ import shutil
 
 from dotenv import load_dotenv
 from fastapi import HTTPException
+import tiktoken
 
 if os.environ.get("ENV"):
     load_dotenv(f"config/{os.environ['ENV']}")
@@ -147,3 +148,9 @@ async def cleanup_post_test(venv_name, repo_dir):
         print(f"Error at cleanup: {exc}")
         raise HTTPException(status_code=500, detail=f"Error at cleanup: {exc}")
 
+
+
+def check_token_count(history):
+    encoding = tiktoken.encoding_for_model("gpt-4-0125-preview")
+    num_tokens = len(encoding.encode(history))
+    return num_tokens
