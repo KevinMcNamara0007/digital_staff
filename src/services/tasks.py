@@ -1,12 +1,12 @@
+import os
 import platform
+import re
 import uuid
 from src.utilities.general import file_filter, cleanup_post_test
 from src.utilities.git import clone_repo, check_current_branch, checkout_and_rebranch, repo_file_list, \
-    show_file_contents
+    show_file_contents, cmd_popen, cmd_run
 from src.utilities.inference2 import manager__development_agent_prompts, agent_task, produce_final_solution, \
     customized_response
-    show_file_contents, cmd_popen, cmd_run
-from src.utilities.inference2 import manager__development_agent_prompts, agent_task, produce_final_solution
 
 
 async def get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name, flow="n"):
@@ -34,7 +34,8 @@ async def create_plan_service(user_prompt, file_list, repo_dir, new_branch_name,
                                                       all_code, all_agent_responses, flow)
             all_agent_responses = all_agent_responses + "{" f"Agent: {index}, Response: {agent_response}" "}"
         #API get final solution
-        return await produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, all_agent_responses, all_code, flow)
+        return await produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, all_agent_responses,
+                                              all_code, flow)
     #UI Get Software Type
     software_type = await get_software_type(file_list)
     print(f"SOFTWARE TYPE: {software_type}")
@@ -73,60 +74,152 @@ async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_
     return await produce_final_solution(user_prompt, file_list, agent_responses, code)
 
 
-async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
+async def run_python_tests(repo_dir, present_venv_name=None, tries=5):
     """
     Takes the local path of the repo, an existing venv, and number of tries. It creates/reuses a venv to run pytest on
     any possible tests that may be present in the repo. If any errors arise, it will fix them and rerun the tests.
-    :param repo_dir:
-    :param present_venv_name:
-    :param tries:
-    :return:
+
+    :param repo_dir: Directory of the repository.
+    :param present_venv_name: Name of an existing virtual environment.
+    :param tries: Number of attempts to retry fixing issues.
+    :return: Result of the test run after attempting to fix issues.
     """
-    unique_venv_name = f"{uuid.uuid4().hex[:6].upper()}" if not present_venv_name else present_venv_name
-    # Create virtual env
-    await cmd_run(
-        command_to_run=f"virtualenv {repo_dir}/{unique_venv_name}",
-    )
-    path_to_python_exec = f'{unique_venv_name}\\Scripts\\python.exe' \
-        if "Windows" in platform.system() \
-        else f'{unique_venv_name}/bin/python'
-    # Install all dependencies + requirements of repo
-    await cmd_popen(
-        repo_dir=repo_dir,
-        command_to_run=f"{path_to_python_exec} -m pip install pytest pytest-cov httpx -r requirements.txt",
-        shelled=True
-    )
-    # Run tests
-    test_output = await cmd_popen(
-        repo_dir=repo_dir,
-        command_to_run=f"{path_to_python_exec} -m pytest -p no:cacheprovider --no-cov",
-        shelled=True
-    )
-    # issue correction loops
-    if "FAILED" in test_output or "Interrupted" in test_output:
-        await failure_repair(test_output, repo_dir, unique_venv_name, tries)
+    unique_venv_name = present_venv_name or f"{uuid.uuid4().hex[:6].upper()}"
+
+    # Create virtual environment
+    await cmd_run(f"virtualenv {os.path.join(repo_dir, unique_venv_name)}")
+
+    path_to_python_exec = os.path.join(repo_dir, unique_venv_name, 'Scripts', 'python.exe') if platform.system() == "Windows" else os.path.join(repo_dir, unique_venv_name, 'bin', 'python')
+
+    # Install dependencies
+    await cmd_popen(repo_dir, f"{path_to_python_exec} -m pip install pytest pytest-cov httpx -r requirements.txt", shelled=True)
+
+    # Run tests and analyze results
+    results = await run_pytest_and_analyze(repo_dir, path_to_python_exec)
+
+    # Check for missing packages or code errors and attempt to fix them
+    if results["missing_packages"] or results["code_errors"]:
+        await failure_repair(results["missing_packages"], results["code_errors"], repo_dir, unique_venv_name, tries)
+
     # Cleanup
     await cleanup_post_test(venv_name=unique_venv_name, repo_dir=repo_dir)
+
     return "Success"
 
 
-async def failure_repair(output_message, repo_dir, venv_name, tries=3):
+async def failure_repair(missing_packages, code_errors, repo_dir, venv_name, tries=3):
     """
     Fixes errors that come up during the run of the testing phases dependent on the error returned from the pytest
     command.
-    :param output_message:
-    :param repo_dir:
-    :param venv_name:
-    :param tries:
-    :return:
+
+    :param missing_packages: List of missing packages detected during the pytest run.
+    :param code_errors: List of code errors detected during the pytest run.
+    :param repo_dir: Directory of the repository.
+    :param venv_name: Name of the virtual environment.
+    :param tries: Number of attempts to retry fixing the issues.
+    :return: Result of the test run after attempting to fix issues.
     """
     # Check for missing packages
-    if "No module named" in output_message:
-        start = output_message.index("No module named")
-        missing_package = output_message[start:].split("'")[1]
-        # Add package to requirements file
-        with open(f"{repo_dir}\\requirements.txt", "a") as f:
-            f.write("\n" + missing_package + "\n")
-        return await run_python_tests(repo_dir, venv_name, tries - 1) \
-            if tries > 0 else RuntimeError(f"Failed to add package: {missing_package}")
-    return "LLM Needs to be involved here"
+    if missing_packages:
+        missing_modules = '\n'.join(missing_packages) + '\n'
+        requirements_path = os.path.join(repo_dir, 'requirements.txt')
+
+        # Append missing packages to requirements file
+        with open(requirements_path, "a") as f:
+            f.write(missing_modules)
+
+        # Retry running the tests if tries are left, else raise an error
+        if tries > 0:
+            return await run_python_tests(repo_dir, venv_name, tries - 1)
+        else:
+            raise RuntimeError(f"Failed to add package: {missing_packages}")
+
+    if code_errors:
+        for error in code_errors:
+            file_path = error['file']
+            line_number = int(error['line'])
+            error_message = f"Error in function {error['function']}"
+
+            # Call OpenAI to fix the error
+            await handle_code_error(file_path, line_number, error_message)
+
+        # Retry running the tests if tries are left, else raise an error
+        if tries > 0:
+            return await run_python_tests(repo_dir, venv_name, tries - 1)
+        else:
+            raise RuntimeError("Failed to fix code errors")
+
+    # You might want to handle the scenario where neither missing packages nor code errors exist
+    return None
+
+
+async def run_pytest_and_analyze(repo_dir, path_to_python_exec):
+    """
+    Runs pytest in the specified repository and analyzes the output for missing packages and code errors.
+
+    :param repo_dir: Directory of the repository.
+    :param path_to_python_exec: Path to the Python executable in the virtual environment.
+    :return: A dictionary with lists of missing packages and code errors.
+    """
+    # Run pytest and capture output
+    stdout, stderr = await cmd_popen(
+        repo_dir=repo_dir,
+        command_to_run=f"{path_to_python_exec} -m pytest -p no:cacheprovider --no-cov",
+        shelled=True,
+        sterr=True
+    )
+
+    # Define patterns to search for missing packages and code errors
+    missing_package_pattern = re.compile(r'No module named (\S+)')
+    code_error_pattern = re.compile(r'File "(.+)", line (\d+), in (\S+)')
+
+    # Initialize result dictionary
+    results = {
+        'missing_packages': missing_package_pattern.findall(stderr),
+        'code_errors': [
+            {
+                'file': match.group(1),
+                'line': match.group(2),
+                'function': match.group(3)
+            }
+            for match in code_error_pattern.finditer(stderr)
+        ]
+    }
+
+    return results
+
+
+async def handle_code_error(file_path, line_number, error_message, context_lines=5):
+    # Read the file content
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    # Get the lines around the error location
+    start_line = max(line_number - context_lines - 1, 0)
+    end_line = min(line_number + context_lines, len(lines))
+    code_context = ''.join(lines[start_line:end_line])
+
+    prompt = (
+        f"There is an error in the following Python file:\n\n"
+        f"File: {file_path}\n"
+        f"Line: {line_number}\n"
+        f"Error: {error_message}\n\n"
+        f"Here is the code context:\n\n"
+        f"{code_context}\n\n"
+        f"Please provide a fix for this error."
+    )
+
+    response = customized_response(prompt)
+
+    fix_suggestion = response.strip()
+
+    # Apply the fix suggestion to the code (this step might need more context)
+    with open(file_path, 'r') as file:
+        lines = file.readlines()
+
+    lines[line_number - 1] = fix_suggestion + '\n'
+
+    with open(file_path, 'w') as file:
+        file.writelines(lines)
+
+    return fix_suggestion

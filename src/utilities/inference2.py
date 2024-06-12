@@ -9,13 +9,20 @@ from src.utilities.general import manifest, llm_url, openai_key, check_token_cou
 
 def manager__development_agent_prompts(user_prompt, assets, software_type):
     return [
-        f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code for: {assets}.", # zero shot
-        f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code for: {assets}.",  # one shot
-        f"Review the following for accuracy and completness: {user_prompt}, produce ONLY complete code for: {assets}.", # checks for completeness
-        f"Review the following for bugs and vulnerabilities and code smells: {user_prompt}, produce ONLY complete code for: {assets}.", # zero shot bugs and vulnerabilities and code smells
-        f"Review the following for unit tests: {assets}. If there is none, create units tests. produce ONLY complete code.", # zero shot unit tests
-        f"Add inline code comments for all key variables and methods, produce ONLY complete code for: {assets}.", # zero shot unit tests
-        f"You are an expert {software_type}. Inspect and optimize code and unit test, correct where needed and produce complete code for: {assets}." # zero shot unit tests
+        f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code for: {assets}.",
+        # zero shot
+        f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code for: {assets}.",
+        # one shot
+        f"Review the following for accuracy and completness: {user_prompt}, produce ONLY complete code for: {assets}.",
+        # checks for completeness
+        f"Review the following for bugs and vulnerabilities and code smells: {user_prompt}, produce ONLY complete code for: {assets}.",
+        # zero shot bugs and vulnerabilities and code smells
+        f"Review the following for unit tests: {assets}. If there is none, create units tests. produce ONLY complete code.",
+        # zero shot unit tests
+        f"Add inline code comments for all key variables and methods, produce ONLY complete code for: {assets}.",
+        # zero shot unit tests
+        f"You are an expert {software_type}. Inspect and optimize code and unit test, correct where needed and produce complete code for: {assets}."
+        # zero shot unit tests
     ]
 
 
@@ -36,15 +43,16 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
             f"Instructions: "
             f"1. You are an elite coder assigned to complete the ask of this: {user_prompt} ."
             f"2. Your coding agents have helped you with certain tasks, use their answers as reference: [{agent_responses}]."
-            f"3. This was the original code used to complete the agents tasks: [" + original_code.replace('"', "'") + "]."
-            f"4. These were the exact file names used {file_list}."
-            f"5. Using the responses of your agents and the original code, you will complete the users ask"
-            f"by producing a final code solution for each file and its code."
-            f"6. If your agents have created new files such as unit tests, please include those new files."
-            f"7. File code must only be code of type which is related with the extension of the file name."
-            f"8. YOU WILL ONLY RESPOND USING THIS JSON FORMAT EXAMPLE: "
-            '[{"FILE_NAME":"", "FILE_CODE":""},{"FILE_NAME":"", "FILE_CODE":""}]'
-            )
+            f"3. This was the original code used to complete the agents tasks: [" + original_code.replace('"',
+                                                                                                          "'") + "]."
+                                                                                                                 f"4. These were the exact file names used {file_list}."
+                                                                                                                 f"5. Using the responses of your agents and the original code, you will complete the users ask"
+                                                                                                                 f"by producing a final code solution for each file and its code."
+                                                                                                                 f"6. If your agents have created new files such as unit tests, please include those new files."
+                                                                                                                 f"7. File code must only be code of type which is related with the extension of the file name."
+                                                                                                                 f"8. YOU WILL ONLY RESPOND USING THIS JSON FORMAT EXAMPLE: "
+                                                                                                                 '[{"FILE_NAME":"", "FILE_CODE":""},{"FILE_NAME":"", "FILE_CODE":""}]'
+    )
     print(f"Final Solution Token Amount: {check_token_count(prompt)}")
     response = customized_response(prompt)
     response = response.replace('""', '')

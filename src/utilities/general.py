@@ -119,35 +119,45 @@ accepted_code_file_extensions = {
 
 def file_filter(file_list):
     """
-    Takes a file list and returns a list of the files only of the files relating to accepted coding files
-    :param file_list:
-    :return:
+    Takes a file list and returns a list of the files relating to accepted coding files,
+    excluding __init__.py and empty files.
+
+    :param file_list: List of file paths.
+    :return: List of filtered file paths.
     """
-    return [file for file in file_list if
-            any(code_file_extension in file for code_file_extension in accepted_code_file_extensions.keys())
-            ]
+    accepted_extensions = tuple(accepted_code_file_extensions.keys())
+    return [
+        file for file in file_list
+        if file.endswith(accepted_extensions)
+           and not os.path.basename(file) == '__init__.py'
+           and os.path.getsize(file) > 0
+    ]
 
 
 async def cleanup_post_test(venv_name, repo_dir):
     """
     Remove all evidence of running tests on the repo, to prevent adding files not recognized by the user.
-    :param venv_name:
-    :param repo_dir:
-    :return:
+
+    :param venv_name: Name of the virtual environment.
+    :param repo_dir: Directory of the repository.
+    :return: None
     """
     pytest_files = ['.pytest_cache', 'test.html', 'junit.xml', '.coverage']
-    venv_path = f"{repo_dir}\\{venv_name}"
+    venv_path = os.path.join(repo_dir, venv_name)
+
     try:
         for file in pytest_files:
-            pytest_file_path = f"{repo_dir}\\{file}"
+            pytest_file_path = os.path.join(repo_dir, file)
             if os.path.exists(pytest_file_path):
                 os.remove(pytest_file_path)
+
         if os.path.exists(venv_path):
             shutil.rmtree(venv_path)
-    except Exception as exc:
-        print(f"Error at cleanup: {exc}")
-        raise HTTPException(status_code=500, detail=f"Error at cleanup: {exc}")
 
+    except Exception as exc:
+        error_message = f"Error during cleanup: {exc}"
+        print(error_message)
+        raise HTTPException(status_code=500, detail=error_message)
 
 
 def check_token_count(history):
