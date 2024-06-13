@@ -119,9 +119,10 @@ accepted_code_file_extensions = {
 exclude_file_types = [
     '__init__.py',
     'cpython',
-    '.h5',
-    '.wav',
+    '.h5', '.xml', '.doc', '.docx', '.dot', '.xml', '.db', '.sqlite', '.bmp',
+    '.wav', '.jpg', '.zip', '.png', '.pdf', '.tar',
     '.csv',
+    '.xls', '.xlsx', '.xlsm', '.xlt', '.xltx', '.ppt', '.pptx', '.txt', '.tsv', '.json', '.sql',
     # General
     ".log", ".tmp", ".bak", ".swp", ".DS_Store",
     # Python
