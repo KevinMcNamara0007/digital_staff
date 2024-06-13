@@ -45,61 +45,61 @@ agent_roles = {
 }
 
 accepted_code_file_extensions = {
-    # '.cpp': 'C++',
-    # '.cc': 'C++',
-    # '.cp': 'C++',
-    # '.cxx': 'C++',
-    # '.h': 'C++',
-    # '.h++': 'C++',
-    # '.hh': 'C++',
-    # '.hpp': 'C++',
-    # '.hxx': 'C++',
-    # '.inc': 'C++',
-    # '.inl': 'C++',
-    # '.ipp': 'C++',
-    # '.tcc': 'C++',
-    # '.tpp': 'C++',
-    # '.cs': 'C#',
-    # '.cake': 'C#',
-    # '.cshtml': 'C#',
-    # '.csx': 'C#',
-    # '.c': 'C',
-    # '.cats': 'C',
-    # '.idc': 'C',
-    # '.w': 'C',
-    # '.java': 'Java',
-    # '.js': 'Javascript',
-    # '._js': 'Javascript',
-    # '.bones': 'Javascript',
-    # '.es': 'Javascript',
-    # '.es6': 'Javascript',
-    # '.frag': 'Javascript',
-    # '.gs': 'Javascript',
-    # '.jake': 'Javascript',
-    # '.jsb': 'Javascript',
-    # '.jscad': 'Javascript',
-    # '.jsfl': 'Javascript',
-    # '.jsm': 'Javascript',
-    # '.jss': 'Javascript',
-    # '.njs': 'Javascript',
-    # '.pac': 'Javascript',
-    # '.sjs': 'Javascript',
-    # '.ssjs': 'Javascript',
-    # '.sublime-build': 'Javascript',
-    # '.sublime-commands': 'Javascript',
-    # '.sublime-completions': 'Javascript',
-    # '.sublime-keymap': 'Javascript',
-    # '.sublime-macro': 'Javascript',
-    # '.sublime-menu': 'Javascript',
-    # '.sublime-mousemap': 'Javascript',
-    # '.sublime-project': 'Javascript',
-    # '.sublime-settings': 'Javascript',
-    # '.sublime-theme': 'Javascript',
-    # '.sublime-workspace': 'Javascript',
-    # '.sublime_metrics': 'Javascript',
-    # '.sublime_session': 'Javascript',
-    # '.xsjs': 'Javascript',
-    # '.xsjslib': 'Javascript',
+    '.cpp': 'C++',
+    '.cc': 'C++',
+    '.cp': 'C++',
+    '.cxx': 'C++',
+    '.h': 'C++',
+    '.h++': 'C++',
+    '.hh': 'C++',
+    '.hpp': 'C++',
+    '.hxx': 'C++',
+    '.inc': 'C++',
+    '.inl': 'C++',
+    '.ipp': 'C++',
+    '.tcc': 'C++',
+    '.tpp': 'C++',
+    '.cs': 'C#',
+    '.cake': 'C#',
+    '.cshtml': 'C#',
+    '.csx': 'C#',
+    '.c': 'C',
+    '.cats': 'C',
+    '.idc': 'C',
+    '.w': 'C',
+    '.java': 'Java',
+    '.js': 'Javascript',
+    '._js': 'Javascript',
+    '.bones': 'Javascript',
+    '.es': 'Javascript',
+    '.es6': 'Javascript',
+    '.frag': 'Javascript',
+    '.gs': 'Javascript',
+    '.jake': 'Javascript',
+    '.jsb': 'Javascript',
+    '.jscad': 'Javascript',
+    '.jsfl': 'Javascript',
+    '.jsm': 'Javascript',
+    '.jss': 'Javascript',
+    '.njs': 'Javascript',
+    '.pac': 'Javascript',
+    '.sjs': 'Javascript',
+    '.ssjs': 'Javascript',
+    '.sublime-build': 'Javascript',
+    '.sublime-commands': 'Javascript',
+    '.sublime-completions': 'Javascript',
+    '.sublime-keymap': 'Javascript',
+    '.sublime-macro': 'Javascript',
+    '.sublime-menu': 'Javascript',
+    '.sublime-mousemap': 'Javascript',
+    '.sublime-project': 'Javascript',
+    '.sublime-settings': 'Javascript',
+    '.sublime-theme': 'Javascript',
+    '.sublime-workspace': 'Javascript',
+    '.sublime_metrics': 'Javascript',
+    '.sublime_session': 'Javascript',
+    '.xsjs': 'Javascript',
+    '.xsjslib': 'Javascript',
     '.py': 'Python',
     '.bzl': 'Python',
     '.cgi': 'Python',
@@ -116,6 +116,54 @@ accepted_code_file_extensions = {
     '.xpy': 'Python',
 }
 
+exclude_file_types = [
+    '__init__.py',
+    'cpython',
+    '.h5', '.xml', '.doc', '.docx', '.dot', '.xml', '.db', '.sqlite', '.bmp',
+    '.wav', '.jpg', '.zip', '.png', '.pdf', '.tar',
+    '.csv',
+    '.xls', '.xlsx', '.xlsm', '.xlt', '.xltx', '.ppt', '.pptx', '.txt', '.tsv', '.json', '.sql',
+    # General
+    ".log", ".tmp", ".bak", ".swp", ".DS_Store",
+    # Python
+    ".pyc", ".pyo", "__pycache__/", ".pyd",
+    # Java
+    ".class", ".jar", ".war", ".ear", ".log", ".iml",
+    # JavaScript/Node.js
+    "node_modules/", ".log",
+    # C/C++
+    ".o", ".obj", ".exe", ".dll", ".so", ".dylib", ".a", ".lib", ".out",
+    # C#
+    ".exe", ".dll", ".pdb", ".mdb",
+    # Go
+    ".exe", ".dll", ".so", ".a", ".out",
+    # Ruby
+    ".gem", ".bundle/", ".config/", ".yardoc", "_yardoc/", ".log", ".rvmrc",
+    # PHP
+    ".log",
+    # Swift
+    ".xcodeproj", ".xcworkspace", ".xcuserdata", ".xcuserstate",
+    # Objective-C
+    ".xcodeproj", ".xcworkspace", ".xcuserdata", ".xcuserstate",
+    # Kotlin
+    ".class", ".jar",
+    # Rust
+    "target/", ".rlib",
+    # TypeScript
+    ".tsbuildinfo",
+    # Haskell
+    ".hi", ".o",
+    # Perl
+    ".bs", ".o",
+    # Assembly
+    ".o", ".obj",
+    # LaTeX
+    ".aux", ".bbl", ".blg", ".brf", ".idx", ".ilg", ".ind", ".lof", ".log", ".lot", ".nav", ".out", ".snm", ".toc",
+    ".vrb",
+    # Version control
+    ".git/", ".svn/", ".hg/", ".DS_Store"
+]
+
 
 def file_filter(file_list):
     """
@@ -126,12 +174,14 @@ def file_filter(file_list):
     :return: List of filtered file paths.
     """
     accepted_extensions = tuple(accepted_code_file_extensions.keys())
-    return [
+    new_list = [
         file for file in file_list
         if file.endswith(accepted_extensions)
-           and not os.path.basename(file) == '__init__.py'
-           and os.path.getsize(file) > 0
     ]
+    new_list = [file for file in new_list if
+                not any(string in file for string in exclude_file_types)
+                ]
+    return new_list
 
 
 async def cleanup_post_test(venv_name, repo_dir):

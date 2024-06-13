@@ -118,7 +118,7 @@ async function getFinalSolution(prevFormData, code){
         let previous = document.getElementById("blocks")
         try{
             console.log("All keys")
-            if(data[0]){
+            if(data[0] && data.length < 200){
                 for (const fileObject of data){
                     console.log("KEy")
                     console.log(fileObject)
