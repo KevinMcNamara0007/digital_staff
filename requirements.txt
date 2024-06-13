@@ -7,3 +7,4 @@ fastapi~=0.111.0
 pydantic~=2.7.3
 virtualenv
 openai~=1.33.0
+aiohttp
