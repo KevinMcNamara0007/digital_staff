@@ -103,7 +103,7 @@ async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
 
     # Run tests and analyze results
     results = await run_pytest_and_analyze(repo_dir, path_to_python_exec)
-
+    print(results)
     # Check for missing packages or code errors and attempt to fix them
     await failure_repair(results["missing_packages"], results["code_errors"], results["syntax_errors"], results["general_errors"], repo_dir, unique_venv_name, tries)
 
@@ -291,6 +291,13 @@ async def cleanup_post_test(venv_name, repo_dir):
 
 
 async def check_code_language(code_changes):
+    if len(code_changes.produced_code) < 1:
+        file_list = await repo_file_list(code_changes.repo_dir)
+        print(file_list)
+        for file in file_list:
+            for extension in accepted_code_file_extensions.keys():
+                if file.endswith(extension):
+                    return accepted_code_file_extensions[extension]
     for file in code_changes.produced_code:
         language = accepted_code_file_extensions.get(f'.{file.FILE_NAME.split(".")[-1]}')
         if language:
@@ -302,12 +309,12 @@ async def process_changes(final_artifact):
     code_language = await check_code_language(final_artifact)
     if "N/A" in code_language:
         return "Unsupported language"
-    await add_files_to_repo(final_artifact.produced_code, final_artifact.repo_dir)
+    await add_files_to_local_repo(final_artifact.produced_code, final_artifact.repo_dir)
     if code_language == "Python":
         return await run_python_tests(final_artifact.repo_dir)
 
 
-async def add_files_to_repo(code_files, repo_dir):
+async def add_files_to_local_repo(code_files, repo_dir):
     for file in code_files:
         file_path = os.path.join(repo_dir, file.FILE_NAME)
         directory = os.path.dirname(file_path)
