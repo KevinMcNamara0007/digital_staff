@@ -112,10 +112,10 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
             align-items: center;
         }
         & .step:hover{
-            background: #00477b;
+            background: #00477b !important;
         }
         & #1:hover, & #2:hover, & #3:hover, & #4:hover , & #5:hover, & #6:hover, & #7:hover & #final:hover{
-            background: #00477b;
+            background: #00477b !important;
         }
     }
     & .blocks{
