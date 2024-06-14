@@ -114,6 +114,9 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
         & .step:hover{
             background: #00477b;
         }
+        & #1:hover, & #2:hover, & #3:hover, & #4:hover , & #5:hover, & #6:hover, & #7:hover & #final:hover{
+            background: #00477b;
+        }
     }
     & .blocks{
         display: grid;
@@ -139,15 +142,15 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
         & .response{
             & .title{
                 text-align: center;
-                padding-top: 4px;
-                padding-bottom: 4px;
+                padding-top: 15px;
+                padding-bottom: 15px;
             }
             & .answer{
                 height: 400px;
                 white-space: pre-wrap !important;
                 overflow-y: auto;
-                margin-right: 10px;
-                margin-left: 10px;
+                margin-right: 20px;
+                margin-left: 20px;
                 &::-webkit-scrollbar{
                     width: 8px;
                 }
@@ -166,8 +169,8 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
                 height: 81%;
                 white-space: pre-wrap !important;
                 overflow-y: auto;
-                margin-right: 10px;
-                margin-left: 10px;
+                margin-right: 20px;
+                margin-left: 20px;
                 &::-webkit-scrollbar{
                     width: 8px;
                 }
