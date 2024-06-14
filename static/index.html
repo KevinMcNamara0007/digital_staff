@@ -1,30 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <title>Digital Staff</title>
-        <link rel="stylesheet" href="indexStyle.css" />
-        <link rel="stylesheet" href="loader.css" />
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="indexScript.js"></script>
-    </head>
-    <body>
-        <div class="hero">
-            <h1>Digital Staff</h1>
-        </div>
-        <div id="popup" class="popup">
-            <div class="popup-content">
-                <p id="alert">Failed to get a response</p>
-            </div>
-        </div>
-        <div id="loader" class="container">
-            <div class="loader"></div>
-        </div>
-        <div id="inputs" class="container">
-            <h3>Digital Agent Instructions</h3>
-            <label>
-                <input id="instruction" type="text" title="instruction" placeholder="Enter your instructions here"/>
-            </label>
+<head>
+    <meta charset="UTF-8">
+    <title>Digital Staff</title>
+    <link rel="stylesheet" href="newIndexStyle.css" />
+    <link rel="stylesheet" href="loader.css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="indexScript.js"></script>
+</head>
+<body>
+    <div id="repoSettings" class="repoSettingsPopup">
+        <div class="repoContent">
             <h3>Git Repo Link</h3>
             <label>
                 <input id="repo" type="text" title="Git Repo" placeholder="Enter your git repo link here"/>
@@ -33,21 +19,49 @@
             <label>
                 <input id="branch" type="text" title="Repo Branch" placeholder="Enter your branch here"/>
             </label>
-            <h3>New Branch Name</h3>
-            <label>
-                <input id="newBranch" type="text" title="New Branch Name" placeholder="Enter new branch name here"/>
-            </label>
-            <button title="Initiate Agent" onclick="digitalAgentAPI()">Initiate Digital Agent</button>
+            <button onclick="digitalAgentAPI()">Continue</button>
         </div>
-        <div id="responses" class="container">
-            <div>
-                <button onclick="reset()">Try Again</button>
-            </div>
-            <div id="blocks">
-                <code id="newCode" class="response">
+    </div>
+    <div id="popup" class="popup">
+        <div class="popup-content">
+            <p id="alert">Failed to get a response</p>
+        </div>
+    </div>
+    <div class="menuContainer">
+        <div class="menuHero">
+            <div><h3>DIGITAL STAFF</h3></div>
+        </div>
+        <div class="menuSessions" id="sessions">
+            <h3>Sessions</h3>
+        </div>
+        <div class="menuSettings">
+            <div class="setting"><img src="./images/accountIcon.svg"/> Account</div>
+            <div class="setting"><img src="./images/settingsIcon.svg"/> Settings</div>
+            <div class="setting"><img src="./images/tips.svg"/> Tips</div>
+            <div class="setting"><img src="./images/trashIcon.svg"/> Clear History</div>
+        </div>
+    </div>
+    <div class="mainContainer">
+        <div class="steps">
+            <div class="step" onclick="changeActive(-1)"> Plan </div>
+            <div class="step" onclick="loadAgent('agent1', 1)"> Agent 1 </div>
+            <div class="step" onclick="loadAgent('agent2', 2)"> Agent 2 </div>
+            <div class="step" onclick="loadAgent('agent3', 3)"> Agent 3 </div>
+            <div class="step" onclick="loadAgent('agent4', 4)"> Agent 4 </div>
+            <div class="step" onclick="loadAgent('agent5', 5)"> Agent 5 </div>
+            <div class="step" onclick="loadAgent('agent6', 6)"> Agent 6 </div>
+            <div class="step" onclick="loadAgent('agent7', 7)"> Agent 7 </div>
+            <div class="step"> Solution </div>
+        </div>
+        <div class="blocks" id="codeBlocks">
 
-                </code>
-            </div>
         </div>
-    </body>
+        <div class="promptContainer">
+            <label>
+                <input id="instruction" type="text" title="instruction" placeholder="Enter your instructions here"/>
+            </label>
+            <button onclick="showRepoSettings()"><img alt="search" src="./images/arrowIcon.svg"/></button>
+        </div>
+    </div>
+</body>
 </html>

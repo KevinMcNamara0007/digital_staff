@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Digital Staff</title>
+        <link rel="stylesheet" href="indexStyle.css" />
+        <link rel="stylesheet" href="loader.css" />
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+        <script src="indexScript.js"></script>
+    </head>
+    <body>
+        <div class="hero">
+            <h1>Digital Staff</h1>
+        </div>
+        <div id="popup" class="popup">
+            <div class="popup-content">
+                <p id="alert">Failed to get a response</p>
+            </div>
+        </div>
+        <div id="loader" class="container">
+            <div class="loader"></div>
+        </div>
+        <div id="inputs" class="container">
+            <h3>Digital Agent Instructions</h3>
+            <label>
+                <input id="instruction" type="text" title="instruction" placeholder="Enter your instructions here"/>
+            </label>
+            <h3>Git Repo Link</h3>
+            <label>
+                <input id="repo" type="text" title="Git Repo" placeholder="Enter your git repo link here"/>
+            </label>
+            <h3>Git Repo Branch</h3>
+            <label>
+                <input id="branch" type="text" title="Repo Branch" placeholder="Enter your branch here"/>
+            </label>
+            <h3>New Branch Name</h3>
+            <label>
+                <input id="newBranch" type="text" title="New Branch Name" placeholder="Enter new branch name here"/>
+            </label>
+            <button title="Initiate Agent" onclick="digitalAgentAPI()">Initiate Digital Agent</button>
+        </div>
+        <div id="responses" class="container">
+            <div>
+                <button onclick="reset()">Try Again</button>
+            </div>
+            <div id="blocks">
+                <code id="newCode" class="response">
+
+                </code>
+            </div>
+        </div>
+    </body>
+</html>

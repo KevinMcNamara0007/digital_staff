@@ -1,21 +1,30 @@
-let code = "Here is the cleaned code:\n\ngeneral.py:\n\n```python\ndef add(x, y):\n return x + y\n\ndef subtract(x, y):\n return x - y\n\ndef multiply(x, y):\n return x * y\n\ndef divide(x, y):\n return x / y\n```\n\nutilities/__init__.py:\n\n```python\nimport json\n\nif sys.version_info >= (3, 7):\n def print_colorized_text(text):\n pass\n if not sys.stdout.isattt:\n def colorize(text, color):\n return f\"\\033[{color}m{text}\\033[0m\"\n return colorize(text, \"31\")\n else:\n return text\n else:\n return print_colorized_text\n else:\n pass\n\ndef json_load(json_string):\n return json.loads(json_string)\n```\n\nutilities/git.py:\n\n```python\nimport subprocess\nimport re\n\ndef get_current_branch():\n result = subprocess.run(\"git branch\", shell=True, stdout=subprocess.PIPE).stdout.decode(\"utf-8\").split(\"\\n\")[1:-1] if result else None\n return [i for i in result if not i.startswith(\"*\")][0] if result else None\n\ndef get_git_status():\n result = subprocess.run(\"git status\", shell=True, stdout=subprocess.PIPE).stdout.decode(\"utf-8\")\n return re.search(r\"([\\d\\W]+)\\s+(\\d{2,})[ ]+\\[(.+?)\\]\", result.decode(\"utf-8\")) if result else None\n```\n\nutilities/inference.py:\n\n```python\nimport numpy as np\nimport tensorflow as tf\n\ndef load_model(model_path):\n return tf.keras.models.load_model(model_path)\n\ndef predict(model, input_data):\n if not (isinstance(input_data, np.ndarray) or isinstance(input_data, list)):\n raise TypeError(\"Input data must be a numpy array or a list.\")\n return model.predict(input_data)\n```"
+let history = localStorage.getItem("digitalHistory")
+    ? JSON.parse(localStorage.getItem("digitalHistory"))
+    : [];
+let active = 0;
+let current = 0;
+
 window.onload = function () {
-    // document.getElementById("newCode").innerText = code.replaceAll('`')
-    document.getElementById("inputs").style.display = "flex"
-    document.getElementById("responses").style.display = "none"
-    document.getElementById("loader").style.display = "none"
+    loadSessions()
 }
 
+function showRepoSettings(){
+    document.getElementById("repoSettings").style.display = "block";
+}
 
 function digitalAgentAPI(){
     let formData = new FormData();
-    formData.append("user_prompt", document.getElementById("instruction").value);
+    let instruction = document.getElementById("instruction").value;
+    formData.append("user_prompt", instruction);
     formData.append("https_clone_link", document.getElementById("repo").value);
     formData.append("original_code_branch", document.getElementById("branch").value);
-    formData.append("new_branch_name", document.getElementById("newBranch").value);
+    formData.append("new_branch_name", document.getElementById("branch").value);
     formData.append("flow", "no")
-    displayHideInputs();
-    displayHideLoader();
+
+    //HIDE REPO SETTINGS
+    document.getElementById("repoSettings").style.display = "none";
+
+    // Call API
     fetch("/Tasks/repo_ops", {
         method: 'POST',
         body: formData
@@ -26,13 +35,37 @@ function digitalAgentAPI(){
         }
         return response.json();
     }).then(data => {
-        displayHideResponses();
-        let completeString = "Files: \n\n" + data.files
-        document.getElementById("newCode").innerText = completeString.replaceAll('`')
+        active = history.length;
+        current = history.length;
+        // new history object
+        let object = {
+            "title": instruction,
+            "plan": "loader",
+            "agent1": "loader",
+            "agent2": "loader",
+            "agent3": "loader",
+            "agent4": "loader",
+            "agent5": "loader",
+            "agent6": "loader",
+            "agent7": "loader",
+            "solution": []
+        }
+        history.push(object)
+
+        // Create new session div
+        let element = document.createElement('div')
+        element.className = "session";
+        element.innerText =  instruction;
+        element.onclick = function(){changeActive(current)};
+        document.getElementById("sessions").appendChild(element)
+
+        // Empty Response Div
+        document.getElementById("codeBlocks").innerHTML = ""
+
+        // Get Manager Plan
         managerTasksAPI(formData, data.files, data.repo_dir)
     }).catch(error=>{
-        displayHideLoader();
-        displayAlert("Git Repo Clone API Failed")
+        displayAlert("Git Repo Clone API Failed" + error)
     })
 }
 
@@ -49,35 +82,38 @@ function managerTasksAPI(prevData, files, directory){
         }
         return response.json();
     }).then(async data => {
-        console.log(data)
-        let previous = document.getElementById("newCode")
+        //Get Entire Manager Plan
         let completeString = "";
-
         data.forEach(function (prompt, index) {
             completeString = completeString + "\n\nAgent " + (index+1) + "\n\n" + prompt;
             index++;
         });
-        previous.innerText = previous.innerText + "\n\nManager Plan:\n\n" + completeString
-        console.log("got here")
-        console.log(Object.keys(data))
+        //Update Manager Plan in history
+        history[current].plan = "Files to use:\n\n" + files + "\n\n" + completeString;
+        //Display Manager Plan
+        // Create new session div
+        let element = document.createElement('div')
+        element.className = "response";
+        element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[current].plan + '</div>';
+        document.getElementById("codeBlocks").appendChild(element)
+
         previousAgentResponse = ""
         for (const prompt of data) {
             const index = data.indexOf(prompt);
-            await agentTaskAPI(prevData, ("agent " + (index+1)), prompt, previousAgentResponse)
+            await agentTaskAPI(prevData, ("agent " + (index+1)), prompt, previousAgentResponse, index)
         }
+        // Final Solution
         await getFinalSolution(prevData, previousAgentResponse, "");
     }).catch(error =>{
-        displayHideLoader();
         displayAlert("Manager Task API has failed")
     })
 }
 
 let previousAgentResponse = "";
-async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
+async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, index){
     prevFormData.append("agent_task", agentTask)
     prevFormData.append("agent_responses", agentResponses)
 
-    let previous = document.getElementById("blocks")
     await fetch("/Tasks/agent_task", {
         method: 'POST',
         body: prevFormData
@@ -87,18 +123,21 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses){
             displayAlert("Error on manager plan response")
         }
         const jsonResponse = await response.json();
+        //Clear Response DIV
+        document.getElementById("codeBlocks").innerHTML = "";
         // Create new element to display
-        previousAgentResponse = previousAgentResponse + "{" + agent + ":" + await jsonResponse + "},"
-        let element = document.createElement('code')
+        let element = document.createElement('div')
         element.className = "response";
-        element.innerText =  agent + " Response:\n\n" + jsonResponse + "\n";
-        previous.appendChild(element);
+        element.innerHTML =  '<div class="title">Agent ' + (index+1) +'</div>' + '<div class="agentAnswer '+ (index+1) + '">' + await jsonResponse + '</div>';
+        document.getElementById("codeBlocks").appendChild(element)
+        // Update current history
+        history[current]["agent" + (index+1)] = jsonResponse;
+        // Update Agent LOG
+        previousAgentResponse = previousAgentResponse + "{" + jsonResponse + "}"
         return jsonResponse;
     }).catch(error =>{
-        previousAgentResponse = previousAgentResponse + "{" + agent + ":" + "Failed To Do Task" + "},"
-        previous.innerText = previous.innerText + "\n\n\n" + agent + " Response:\n" + "Failed to do Task";
-        return "Failed"
         displayAlert("Agent Task has failed")
+        return "Failed"
     })
 }
 
@@ -115,33 +154,49 @@ async function getFinalSolution(prevFormData, code){
     }).then(data =>{
         console.log("Final Solution:")
         console.log(data)
-        let previous = document.getElementById("blocks")
         try{
-            console.log("All keys")
             if(data[0] && data.length < 200){
+                //Clear Response DIV
+                document.getElementById("codeBlocks").innerHTML = "";
+                // Create new element to display
+                let element = document.createElement('div')
+                element.className = "response";
+                element.innerHTML = ""
                 for (const fileObject of data){
                     console.log("KEy")
                     console.log(fileObject)
-                    let element = document.createElement('code')
-                    element.className = "response";
-                    element.innerText =   "\n\nFinal Solution:\n\n" + fileObject.FILE_NAME + "\n\n FINAL CODE:\n\n" + fileObject.FILE_CODE;
-                    previous.appendChild(element);
+                    // Update History
+                    history[current].solution.push({
+                        FILE_NAME: fileObject.FILE_NAME,
+                        FILE_CODE: fileObject.FILE_CODE
+                    })
+                    element.innerHTML = element.innerHTML + '<div class="title">' + fileObject.FILE_NAME + '</div>' + '<div class="answer">' + fileObject.FILE_CODE + '</div>';
+                    document.getElementById("codeBlocks").appendChild(element)
                 }
+                // Update History Perm
+                console.log(history)
+                localStorage.setItem("digitalHistory", JSON.stringify(history));
             }else{
-                let element = document.createElement('code')
+                //Clear Response DIV
+                document.getElementById("codeBlocks").innerHTML = "";
+                // Create new element to display
+                let element = document.createElement('div')
                 element.className = "response";
-                element.innerText =   "\n\nFinal Solution:\n\n" + JSON.stringify(data);
-                previous.appendChild(element);
+                element.innerHTML =  '<div class="title">' + 'Solution Failed To Parse' + '</div>' + '<div class="answer">' + JSON.stringify(data) + '</div>';
+                document.getElementById("codeBlocks").appendChild(element)
             }
+
         }catch (e) {
-            let element = document.createElement('code')
+            //Clear Response DIV
+            document.getElementById("codeBlocks").innerHTML = "";
+            // Create new element to display
+            let element = document.createElement('div')
             element.className = "response";
-            element.innerText =   "\n\nFinal Solution:\n\n" + JSON.stringify(data);
-            previous.appendChild(element);
+            element.innerHTML =  '<div class="title">' + 'Solution Failed To Parse' + '</div>' + '<div class="answer">' + JSON.stringify(data) + '</div>';
+            document.getElementById("codeBlocks").appendChild(element)
         }
-        displayHideLoader()
     }).catch(error =>{
-        displayHideLoader()
+        displayAlert("Error on Final Solution")
     })
 }
 
@@ -156,29 +211,37 @@ const displayAlert = msg => {
     })
 }
 
-const displayHideInputs = () =>{
-    const inputs = document.getElementById("inputs");
-    inputs.style.display = inputs.style.display !== "flex" ? "flex" : "none";
-}
-const displayHideResponses = () => {
-    const responses = document.getElementById("responses");
-    responses.style.display = responses.style.display !== "flex" ? "flex" : "none";
+const changeActive = (index) => {
+    console.log(index)
+    if(index !== -1){
+        active = index;
+    }
+    //Display Manager Plan
+    document.getElementById("codeBlocks").innerHTML = "";
+    // Create new session div
+    let element = document.createElement('div')
+    element.className = "response";
+    element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[active].plan + '</div>';
+    document.getElementById("codeBlocks").appendChild(element)
 }
 
-const displayHideLoader = () => {
-    const loader = document.getElementById("loader");
-    loader.style.display = loader.style.display !== "flex" ? "flex" : "none";
+const loadSessions = () => {
+    history.forEach(item => {
+        let index = history.indexOf(item)
+        let element = document.createElement('div')
+        element.className = "session";
+        element.innerText =  item.title;
+        element.onclick = function(){changeActive(index)};
+        document.getElementById("sessions").appendChild(element)
+    })
 }
 
-const reset = () => {
-    displayHideResponses();
-    displayHideInputs();
-    document.getElementById("responses").innerHTML = '<div>' +
-        '                <button onclick="reset()">Try Again</button>' +
-        '            </div>' +
-        '            <div id="blocks">' +
-        '                <code id="newCode" class="response">' +
-        '                    ' +
-        '                </code>' +
-        '            </div>'
+const loadAgent = (agent, agentNumber) => {
+    //Clear Response DIV
+    document.getElementById("codeBlocks").innerHTML = "";
+    // Create new element to display
+    let element = document.createElement('div')
+    element.className = "response";
+    element.innerHTML =  '<div class="title">' + (agent) +'</div>' + '<div class="agentAnswer '+ (agentNumber) + '">' + history[active][agent] + '</div>';
+    document.getElementById("codeBlocks").appendChild(element)
 }

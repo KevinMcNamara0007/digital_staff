@@ -1,0 +1,314 @@
+*, *:before, *:after {
+    margin: 0;
+    padding: 0;
+    outline: 0;
+    box-sizing: border-box;
+}
+
+body{
+    margin: 0;
+    width: 100%;
+    background: #1f1f1f;
+
+    display: grid;
+    grid-template-columns: 1fr 4fr;
+}
+
+div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placeholder{
+    font-family: Amplitude,Arial,Halvetica,sans-serif;
+    color: white;
+}
+
+.menuContainer{
+    background: #2c2c2c;
+    position: absolute;
+    width: 20%;
+    top: 0;
+    bottom: 0;
+    padding-left: 10px;
+    padding-right: 10px;
+    & .menuHero{
+        width: 100%;
+        height: 100px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    & .menuSessions{
+        width: 100%;
+        height: 70%;
+        overflow-y: auto;
+        background: #1f1f1f;
+        & h3{
+            position: relative;
+            padding-top: 10px;
+            text-align: center;
+        }
+        & .session{
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        & .session:hover{
+            background: #00477b;
+        }
+        &::-webkit-scrollbar{
+            width: 4px;
+        }
+        &::-webkit-scrollbar-track{
+            border-radius: 10px;
+            background: #fdfdfd;
+        }
+        &::-webkit-scrollbar-thumb{
+            background: #461fb7;
+        }
+        &::-webkit-scrollbar-thumb:hover{
+            background: #FF5254;
+        }
+    }
+    & .menuSettings{
+        position: relative;
+        margin-top: 10px;
+        width: 70%;
+        margin-left: 20%;
+        & .setting{
+            display: flex;
+            position: relative;
+            align-items: center;
+            width: 100%;
+            height: 40px;
+            margin: auto;
+            & img{
+                left: 0;
+                margin-right: 20px;
+                position: relative;
+                width: 30px;
+                height: 30px;
+            }
+        }
+        & .setting:hover{
+            background: #ffffff;
+            color: #461fb7;
+        }
+    }
+}
+
+.mainContainer{
+    position: absolute;
+    margin-left: 20%;
+    width: 80%;
+    top: 0;
+    bottom: 0;
+    & .steps{
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        height: 60px;
+        border-bottom: 3px solid #ffffff;
+        & .step{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        & .step:hover{
+            background: #00477b;
+        }
+    }
+    & .blocks{
+        display: grid;
+        width: 100%;
+        height: 82%;
+        overflow-y: auto;
+        background: #1f1f1f;
+        grid-template-columns: 1fr;
+        direction:ltr;
+        &::-webkit-scrollbar{
+            width: 15px;
+        }
+        &::-webkit-scrollbar-track{
+            border-radius: 10px;
+            background: #44699f;
+        }
+        &::-webkit-scrollbar-thumb{
+            background: #201d44;
+        }
+        &::-webkit-scrollbar-thumb:hover{
+            background: #f3f3f3;
+        }
+        & .response{
+            & .title{
+                text-align: center;
+                padding-top: 4px;
+                padding-bottom: 4px;
+            }
+            & .answer{
+                height: 400px;
+                white-space: pre-wrap !important;
+                overflow-y: auto;
+                margin-right: 10px;
+                margin-left: 10px;
+                &::-webkit-scrollbar{
+                    width: 8px;
+                }
+                &::-webkit-scrollbar-track{
+                    border-radius: 10px;
+                    background: #ffffff;
+                }
+                &::-webkit-scrollbar-thumb{
+                    background: #6b6b6b;
+                }
+                &::-webkit-scrollbar-thumb:hover{
+                    background: #526a81;
+                }
+            }
+            & .agentAnswer{
+                height: 81%;
+                white-space: pre-wrap !important;
+                overflow-y: auto;
+                margin-right: 10px;
+                margin-left: 10px;
+                &::-webkit-scrollbar{
+                    width: 8px;
+                }
+                &::-webkit-scrollbar-track{
+                    border-radius: 10px;
+                    background: #ffffff;
+                }
+                &::-webkit-scrollbar-thumb{
+                    background: #6b6b6b;
+                }
+                &::-webkit-scrollbar-thumb:hover{
+                    background: #526a81;
+                }
+            }
+        }
+
+    }
+    & .promptContainer{
+        border-top: 3px solid #ffffff;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+        width: 100%;
+        & input[type="text"]{
+            min-width: 600px;
+            height: 40px;
+            border: 1px solid white;
+            background: transparent;
+            color: white;
+            border-bottom-left-radius: 999px;
+            border-top-left-radius: 999px;
+            padding: 0 10px;
+            font-size: 18px;
+            border-right: none !important;
+        }
+        & button{
+            min-width: 50px;
+            height: 40px;
+            border: 1px solid white;
+            background: transparent;
+            color: white;
+            border-bottom-right-radius: 999px;
+            border-top-right-radius: 999px;
+            padding: 0 10px;
+            font-size: 18px;
+            border-left: none !important;
+
+            & img{
+                position: relative;
+                top: 3px;
+                width: 30px !important;
+                height: 30px !important;
+            }
+        }
+        & button:hover{
+            background: #fcfcfc;
+        }
+    }
+}
+
+/*POP UP*/
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+}
+
+.popup-content {
+    background-color: rgb(137 35 35 / 90%);
+    color: #fdfdfd;
+    font-weight: 700;
+    border-radius: 5px;
+    text-align: center;
+    width: 500px;
+    padding: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/*REPO Settings*/
+.repoSettingsPopup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+}
+
+.repoContent {
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(5, 24, 37);
+    color: #fdfdfd;
+    font-weight: 700;
+    border-radius: 5px;
+    text-align: center;
+    width: 500px;
+    height: 300px;
+    padding: 20px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    align-items: center;
+    justify-content: center;
+    & h3{
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    & input[type="text"]{
+        min-width: 400px;
+        height: 40px;
+        border: 1px solid white;
+        background: transparent;
+        color: white;
+        border-radius: 999px;
+        padding: 0 10px;
+        font-size: 18px;
+        border-right: none !important;
+    }
+    & button{
+        background: #00477b;
+        position: relative;
+        width: auto;
+        padding: 10px;
+        margin-top: 10px;
+        border: 1px solid white;
+    }
+    & button:hover{
+        background: #fdfdfd;
+        color: #00477b;
+    }
+}
