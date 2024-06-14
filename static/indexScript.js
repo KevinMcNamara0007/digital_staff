@@ -13,6 +13,7 @@ function showRepoSettings(){
 }
 
 function digitalAgentAPI(){
+    resetColors();
     let formData = new FormData();
     let instruction = document.getElementById("instruction").value;
     formData.append("user_prompt", instruction);
@@ -98,14 +99,24 @@ function managerTasksAPI(prevData, files, directory){
         document.getElementById("codeBlocks").appendChild(element)
 
         previousAgentResponse = ""
+        let index = 0;
         for (const prompt of data) {
-            const index = data.indexOf(prompt);
-            await agentTaskAPI(prevData, ("agent " + (index+1)), prompt, previousAgentResponse, index)
+            index++;
+            if(index === 1){
+                document.getElementById("1").style.backgroundColor = "#e37508";
+            }else{
+                console.log((index-1).toString())
+                document.getElementById((index-1).toString()).style.backgroundColor = "#3b7c35";
+                document.getElementById((index).toString()).style.backgroundColor = "#e37508";
+            }
+            await agentTaskAPI(prevData, ("agent " + (index)), prompt, previousAgentResponse, index)
         }
         // Final Solution
+        document.getElementById((index).toString()).style.backgroundColor = "#3b7c35";
         await getFinalSolution(prevData, previousAgentResponse, "");
     }).catch(error =>{
-        displayAlert("Manager Task API has failed")
+        console.log(error)
+        displayAlert("Manager Task API has failed" + error)
     })
 }
 
@@ -128,20 +139,23 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, inde
         // Create new element to display
         let element = document.createElement('div')
         element.className = "response";
-        element.innerHTML =  '<div class="title">Agent ' + (index+1) +'</div>' + '<div class="agentAnswer '+ (index+1) + '">' + await jsonResponse + '</div>';
+        element.innerHTML =  '<div class="title">Agent ' + (index) +'</div>' + '<div class="agentAnswer '+ (index+1) + '">' + await jsonResponse + '</div>';
         document.getElementById("codeBlocks").appendChild(element)
         // Update current history
-        history[current]["agent" + (index+1)] = jsonResponse;
+        console.log(index)
+        history[current]["agent" + (index)] = jsonResponse;
         // Update Agent LOG
         previousAgentResponse = previousAgentResponse + "{" + jsonResponse + "}"
         return jsonResponse;
     }).catch(error =>{
+        document.getElementById(index).style.background = "#a41c02";
         displayAlert("Agent Task has failed")
         return "Failed"
     })
 }
 
 async function getFinalSolution(prevFormData, code){
+    document.getElementById("final").style.backgroundColor = "#e37508";
     prevFormData.append("agent_responses", previousAgentResponse)
     await fetch("/Tasks/produce_solution", {
         method: 'POST',
@@ -176,7 +190,9 @@ async function getFinalSolution(prevFormData, code){
                 // Update History Perm
                 console.log(history)
                 localStorage.setItem("digitalHistory", JSON.stringify(history));
+                document.getElementById("final").style.background = "#3b7c35";
             }else{
+                document.getElementById("final").style.background = "#a41c02";
                 //Clear Response DIV
                 document.getElementById("codeBlocks").innerHTML = "";
                 // Create new element to display
@@ -242,6 +258,40 @@ const loadAgent = (agent, agentNumber) => {
     // Create new element to display
     let element = document.createElement('div')
     element.className = "response";
-    element.innerHTML =  '<div class="title">' + (agent) +'</div>' + '<div class="agentAnswer '+ (agentNumber) + '">' + history[active][agent] + '</div>';
+    element.innerHTML =  '<div class="title">Agent ' + (agentNumber) +'</div>' + '<div class="agentAnswer '+ (agentNumber) + '">' + history[active][agent] + '</div>';
     document.getElementById("codeBlocks").appendChild(element)
+}
+
+const loadSolution = () => {
+    //Clear Response DIV
+    document.getElementById("codeBlocks").innerHTML = "";
+    // Create new element to display
+    let element = document.createElement('div')
+    element.className = "response";
+    element.innerHTML = "";
+
+    history[active].solution.forEach(item => {
+        element.innerHTML = element.innerHTML + '<div class="title">' + item.FILE_NAME + '</div>' + '<div class="answer">' + item.FILE_CODE + '</div>';
+        document.getElementById("codeBlocks").appendChild(element)
+    })
+}
+
+const clearHistory = () => {
+    localStorage.removeItem("digitalHistory");
+    history = [];
+    //Clear Response DIV
+    document.getElementById("codeBlocks").innerHTML = "";
+    document.getElementById("sessions").innerHTML = '<h3>Sessions</h3>';
+    resetColors();
+}
+
+const resetColors = () => {
+    document.getElementById("1").style.backgroundColor = "#1f1f1f";
+    document.getElementById("2").style.backgroundColor = "#1f1f1f";
+    document.getElementById("3").style.backgroundColor = "#1f1f1f";
+    document.getElementById("4").style.backgroundColor = "#1f1f1f";
+    document.getElementById("5").style.backgroundColor = "#1f1f1f";
+    document.getElementById("6").style.backgroundColor = "#1f1f1f";
+    document.getElementById("7").style.backgroundColor = "#1f1f1f";
+    document.getElementById("final").style.backgroundColor = "#1f1f1f";
 }

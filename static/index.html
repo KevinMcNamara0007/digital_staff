@@ -38,20 +38,20 @@
             <div class="setting"><img src="./images/accountIcon.svg"/> Account</div>
             <div class="setting"><img src="./images/settingsIcon.svg"/> Settings</div>
             <div class="setting"><img src="./images/tips.svg"/> Tips</div>
-            <div class="setting"><img src="./images/trashIcon.svg"/> Clear History</div>
+            <div class="setting" onclick="clearHistory()"><img src="./images/trashIcon.svg"/> Clear History</div>
         </div>
     </div>
     <div class="mainContainer">
         <div class="steps">
-            <div class="step" onclick="changeActive(-1)"> Plan </div>
-            <div class="step" onclick="loadAgent('agent1', 1)"> Agent 1 </div>
-            <div class="step" onclick="loadAgent('agent2', 2)"> Agent 2 </div>
-            <div class="step" onclick="loadAgent('agent3', 3)"> Agent 3 </div>
-            <div class="step" onclick="loadAgent('agent4', 4)"> Agent 4 </div>
-            <div class="step" onclick="loadAgent('agent5', 5)"> Agent 5 </div>
-            <div class="step" onclick="loadAgent('agent6', 6)"> Agent 6 </div>
-            <div class="step" onclick="loadAgent('agent7', 7)"> Agent 7 </div>
-            <div class="step"> Solution </div>
+            <div id="plan" class="step" onclick="changeActive(-1)"> Plan </div>
+            <div id="1" class="step" onclick="loadAgent('agent1', 1)"> Agent 1 </div>
+            <div id="2" class="step" onclick="loadAgent('agent2', 2)"> Agent 2 </div>
+            <div id="3" class="step" onclick="loadAgent('agent3', 3)"> Agent 3 </div>
+            <div id="4" class="step" onclick="loadAgent('agent4', 4)"> Agent 4 </div>
+            <div id="5" class="step" onclick="loadAgent('agent5', 5)"> Agent 5 </div>
+            <div id="6" class="step" onclick="loadAgent('agent6', 6)"> Agent 6 </div>
+            <div id="7" class="step" onclick="loadAgent('agent7', 7)"> Agent 7 </div>
+            <div id="final" class="step" onclick="loadSolution()"> Solution </div>
         </div>
         <div class="blocks" id="codeBlocks">
 
