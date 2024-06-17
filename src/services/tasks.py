@@ -12,7 +12,7 @@ from src.utilities.general import file_filter, accepted_code_file_extensions
 from src.utilities.git import clone_repo, check_current_branch, checkout_and_rebranch, repo_file_list, \
     show_file_contents, cmd_popen, cmd_run
 from src.utilities.inference2 import manager__development_agent_prompts, agent_task, produce_final_solution, \
-    customized_response
+    customized_response, call_openai
 
 
 async def get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name, flow="n"):
@@ -21,6 +21,13 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
     if cur_branch not in new_branch_name or new_branch_name not in cur_branch:
         await checkout_and_rebranch(new_branch_name, original_code_branch, repo_dir)
     file_list = file_filter(await repo_file_list(repo_dir))
+    # GET SPECIFIC FILES FROM LIST BASED ON USER_PROMPT
+    prompt = (f"Instructions: 1. RESPOND WITH ONLY USING THE FILES NEEDED TO COMPLETE THE USER ASK: {user_prompt}."
+              f"2. RESPOND ONLY IN FORMAT: filename1,filename2,filename3 ."
+              f"3. THESE ARE THE FILES RELEVANT TO THE ASK: {await get_all_code(file_list, repo_dir, new_branch_name)}.")
+    file_list = await call_openai(prompt)
+    print(file_list)
+    # API FLOW
     if flow == "y":
         await create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow)
     return {"user_prompt": user_prompt, "files": file_list, "repo_dir": repo_dir}

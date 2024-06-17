@@ -48,7 +48,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
     response = await call_openai(prompt, model="gpt-4-0125-preview")
     print(f"Final solution OUTPUT: {check_token_count(response)}")
-    response = response.replace('""', '').replace("```", '').replace('json', '')
+    response = response.replace('"""', '').replace("```", '').replace('json', '')
 
     try:
         response = json.loads(response)
