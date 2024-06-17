@@ -166,24 +166,10 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
                 }
             }
             & .agentAnswer{
-                height: 81%;
                 white-space: pre-wrap !important;
                 overflow-y: auto;
                 margin-right: 20px;
                 margin-left: 20px;
-                &::-webkit-scrollbar{
-                    width: 8px;
-                }
-                &::-webkit-scrollbar-track{
-                    border-radius: 10px;
-                    background: #ffffff;
-                }
-                &::-webkit-scrollbar-thumb{
-                    background: #6b6b6b;
-                }
-                &::-webkit-scrollbar-thumb:hover{
-                    background: #526a81;
-                }
             }
         }
 
