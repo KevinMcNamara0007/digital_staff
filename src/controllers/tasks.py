@@ -1,8 +1,9 @@
 from typing import List
 from fastapi import APIRouter, Form
 from pydantic import parse_obj_as
+from src.models.request_models import CodeFileList
 from src.services.tasks import get_repo_service, create_plan_service, agent_task_service, produce_solution_service, \
-    run_python_tests
+    process_changes
 
 tasks = APIRouter(
     prefix="/Tasks",
@@ -122,10 +123,6 @@ async def produce_solution(
 
 @tasks.post("/build_test")
 async def build_test(
-        repo_dir: str = Form(description="repo directory folder"),
+        final_artifact: CodeFileList
 ):
-    return await run_python_tests(repo_dir)
-
-
-
-
+    return await process_changes(final_artifact)

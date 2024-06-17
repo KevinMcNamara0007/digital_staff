@@ -14,3 +14,13 @@ class Artifacts(BaseModel):
 class RequestModel(BaseModel):
     prompt_instructions: str
     artifacts: Artifacts
+
+
+class CodeFile(BaseModel):
+    FILE_NAME: str
+    FILE_CODE: str
+
+
+class CodeFileList(BaseModel):
+    repo_dir: str
+    produced_code: List[CodeFile]
