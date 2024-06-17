@@ -1,4 +1,3 @@
-import asyncio
 import importlib
 import os
 import platform
@@ -82,6 +81,14 @@ async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_
 
 
 async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
+    """
+    Runs the python tests if any are found otherwise just returns success message if the tests are ran or if no tests
+    are found.
+    :param repo_dir:
+    :param present_venv_name:
+    :param tries:
+    :return:
+    """
     unique_venv_name = present_venv_name or f"{uuid.uuid4().hex[:6].upper()}"
 
     # Create virtual environment
@@ -105,7 +112,8 @@ async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
     results = await run_pytest_and_analyze(repo_dir, path_to_python_exec)
     print(results)
     # Check for missing packages or code errors and attempt to fix them
-    await failure_repair(results["missing_packages"], results["code_errors"], results["syntax_errors"], results["general_errors"], repo_dir, unique_venv_name, tries)
+    await failure_repair(results["missing_packages"], results["code_errors"], results["syntax_errors"],
+                         results["general_errors"], repo_dir, unique_venv_name, tries)
 
     # If the tests pass, clean up
     await cleanup_post_test(unique_venv_name, repo_dir)
@@ -114,6 +122,12 @@ async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
 
 
 async def run_pytest_and_analyze(repo_dir, path_to_python_exec):
+    """
+    Runs the pytest command and checks output for any errors, captures those errors and returns them as a dict
+    :param repo_dir:
+    :param path_to_python_exec:
+    :return:
+    """
     stdout, stderr = await cmd_popen(
         repo_dir=repo_dir,
         command_to_run=f"{path_to_python_exec} -m pytest -p no:cacheprovider --no-cov",
@@ -145,6 +159,11 @@ async def run_pytest_and_analyze(repo_dir, path_to_python_exec):
 
 
 def parse_pytest_output(output):
+    """
+    Checks the pytest output for errors through pattern revision.
+    :param output:
+    :return:
+    """
     missing_package_pattern = re.compile(r"No module named '(\S+)'")
     code_error_pattern = re.compile(r'File "(.+)", line (\d+), in (\S+)', re.MULTILINE)
     syntax_error_pattern = re.compile(r'SyntaxError: (.+)', re.MULTILINE)
@@ -181,6 +200,11 @@ def parse_pytest_output(output):
 
 
 def find_package_from_import(import_name):
+    """
+    Attempts to identify a package by its import name.
+    :param import_name:
+    :return:
+    """
     try:
         distribution = importlib.metadata.distribution(import_name)
         return distribution.metadata["Name"]
@@ -190,6 +214,17 @@ def find_package_from_import(import_name):
 
 
 async def failure_repair(missing_packages, code_errors, syntax_errors, general_errors, repo_dir, venv_name, tries=3):
+    """
+    Attempts to repair issues in code that were observed in the pytest output.
+    :param missing_packages:
+    :param code_errors:
+    :param syntax_errors:
+    :param general_errors:
+    :param repo_dir:
+    :param venv_name:
+    :param tries:
+    :return:
+    """
     if missing_packages:
         validated_packages = []
         for package in missing_packages:
@@ -228,6 +263,11 @@ async def failure_repair(missing_packages, code_errors, syntax_errors, general_e
 
 
 async def validate_package(package):
+    """
+    Ensures the validity of the package names to avoid attempting to import non-existing packages from pypi.
+    :param package:
+    :return:
+    """
     url = f"https://pypi.org/pypi/{package}/json"
     try:
         async with aiohttp.ClientSession() as session:
@@ -239,12 +279,25 @@ async def validate_package(package):
 
 
 async def update_requirements_file(repo_dir, packages):
+    """
+    Appends to the requirement's file.
+    :param repo_dir:
+    :param packages:
+    :return:
+    """
     requirements_path = os.path.join(repo_dir, 'requirements.txt')
     with open(requirements_path, "a") as f:
         f.write('\n' + '\n'.join(packages) + '\n')
 
 
 async def retry_tests(repo_dir, venv_name, tries):
+    """
+    Retries running python tests for x number of tries.
+    :param repo_dir:
+    :param venv_name:
+    :param tries:
+    :return:
+    """
     if tries > 0:
         return await run_python_tests(repo_dir, venv_name, tries)
     else:
@@ -252,6 +305,14 @@ async def retry_tests(repo_dir, venv_name, tries):
 
 
 async def handle_code_error(file_path, line_number, error_message, context_lines=5):
+    """
+    Handles the code errors by attempting to change code line by line.
+    :param file_path:
+    :param line_number:
+    :param error_message:
+    :param context_lines:
+    :return:
+    """
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
@@ -282,6 +343,12 @@ async def handle_code_error(file_path, line_number, error_message, context_lines
 
 
 async def cleanup_post_test(venv_name, repo_dir):
+    """
+    Cleans up the venv and any pytest files.
+    :param venv_name:
+    :param repo_dir:
+    :return:
+    """
     venv_path = os.path.join(repo_dir, venv_name)
     if os.path.exists(venv_path):
         shutil.rmtree(venv_path)
@@ -291,6 +358,11 @@ async def cleanup_post_test(venv_name, repo_dir):
 
 
 async def check_code_language(code_changes):
+    """
+    Checks repo or incoming code for its language.
+    :param code_changes:
+    :return:
+    """
     if len(code_changes.produced_code) < 1:
         file_list = await repo_file_list(code_changes.repo_dir)
         print(file_list)
@@ -306,6 +378,11 @@ async def check_code_language(code_changes):
 
 
 async def process_changes(final_artifact):
+    """
+    Decision engine to pass incoming changes to the right language framework.
+    :param final_artifact:
+    :return:
+    """
     code_language = await check_code_language(final_artifact)
     if "N/A" in code_language:
         return "Unsupported language"
@@ -315,6 +392,12 @@ async def process_changes(final_artifact):
 
 
 async def add_files_to_local_repo(code_files, repo_dir):
+    """
+    Adds files to the cloned repo.
+    :param code_files:
+    :param repo_dir:
+    :return:
+    """
     for file in code_files:
         file_path = os.path.join(repo_dir, file.FILE_NAME)
         directory = os.path.dirname(file_path)
