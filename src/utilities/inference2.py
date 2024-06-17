@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 import requests
@@ -29,78 +30,68 @@ def manager__development_agent_prompts(user_prompt, assets, software_type):
 async def agent_task(task, responses, code):
     print(f"Agent Task: {task}")
     print(f"Agent Response Token Amount: {check_token_count(responses)}")
-    prompt = (f"Instructions:"
-              f"1. This is your task: {task}."
-              f"2. If your task requires a previous agents response, these are the previous agents responses: {responses}."
-              f"3. If your task requires original code, use these files and their code as reference: {code}."
-              f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE.")
+    prompt = (
+        f"Instructions:\n"
+        f"1. This is your task: {task}.\n"
+        f"2. If your task requires a previous agent's response, these are the previous agents' responses: {responses}.\n"
+        f"3. If your task requires original code, use these files and their code as reference: {code}.\n"
+        f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE."
+    )
     print(f"Token Amount: {check_token_count(prompt)}")
-    return customized_response(prompt)
+    return await call_openai(prompt)
 
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
     prompt = (
-        "Instructions:"
-        "1. You are an expert programmer."
-        "2. You will compile all agent code for each corresponding file and place it into a JSON format."
-        "3. You will only respond using this JSON format: [{\"FILE_NAME\":\"file_name1\", \"FILE_CODE\":\"file_code1\"}, {\"FILE_NAME\":\"file_name2\", \"FILE_CODE\":\"file_code2\"}]."
-        "4. File code will only be the code of the file associated with it."
-        f"5. These are the original file names: {file_list}."
-        "6. Agents may have created new files. Please include new files into the JSON response as well."
-        f"7. Here are the agent responses you will reference: {agent_responses}"
-        "8. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code."
+        "Instructions:\n"
+        "1. You are an expert programmer.\n"
+        "2. Compile all agent code for each corresponding file and place it into a JSON format.\n"
+        "3. Respond using this JSON format: [{\"FILE_NAME\":\"file_name1\", \"FILE_CODE\":\"file_code1\"}, {\"FILE_NAME\":\"file_name2\", \"FILE_CODE\":\"file_code2\"}].\n"
+        "4. File code will only be the code of the file associated with it.\n"
+        f"5. These are the original file names: {file_list}.\n"
+        "6. Include new files created by agents in the JSON response.\n"
+        f"7. Reference these agent responses: {agent_responses}\n"
+        "8. Ensure the JSON is correctly formatted and includes all file names and their corresponding code."
     )
     print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
-    response = call_turbo(prompt)
+    response = await call_openai(prompt, model="gpt-4-0125-preview")
     print(f"Final solution OUTPUT: {check_token_count(response)}")
-    response = response.replace('""', '')
-    response = response.replace("```", '')
-    response = response.replace('json', '')
+    response = response.replace('""', '').replace("```", '').replace('json', '')
+
     try:
         response = json.loads(response)
-    except Exception as exc:
-        print(f'Could not parse String Into JSON ERROR Will Remove all formatting: {exc}')
-        response = response.replace('\n', '')
-        response = response.replace('\\', '')
+    except json.JSONDecodeError as exc:
+        print(f'Could not parse String Into JSON ERROR. Will Remove all formatting: {exc}')
+        response = response.replace('\n', '').replace('\\', '')
         try:
             response = json.loads(response)
-        except Exception as exc:
+        except json.JSONDecodeError:
             print("Removing Formatting Did not help final response, sending back regular string")
     return response
+
+
+async def call_openai(prompt, model="gpt-4"):
+    client = OpenAI(api_key=openai_key)
+    response = await asyncio.to_thread(client.chat.completions.create,
+                                       model=model,
+                                       messages=[{"role": "user", "content": prompt}])
+    return response.choices[0].message.content
 
 
 def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
     try:
         response = requests.post(
             url,
-            data={
-                "prompt": '[{"role": "system", "content":' + rules + '}, {"role": "user", "content":' + prompt + '}]',
+            json={
+                "prompt": [{"role": "system", "content": rules}, {"role": "user", "content": prompt}],
                 "temperature": 0.05
             }
         )
-        response = response.json()
-        return response["choices"][0]["message"]["content"]
-    except Exception as exc:
+        response.raise_for_status()  # Ensure we raise an error for bad responses
+        return response.json()["choices"][0]["message"]["content"]
+    except requests.RequestException as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
 
-def customized_response(prompt):
-    new_prompt = [{"role": "user", "content": prompt}]
-    client = OpenAI(api_key=openai_key)
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=new_prompt
-    )
-    content = response.choices[0].message.content
-    return content
-
-
-def call_turbo(prompt):
-    new_prompt = [{"role": "user", "content": prompt}]
-    client = OpenAI(api_key=openai_key)
-    response = client.chat.completions.create(
-        model="gpt-4-0125-preview",
-        messages=new_prompt
-    )
-    content = response.choices[0].message.content
-    return content
+async def customized_response(prompt):
+    return await call_openai(prompt, model="gpt-4")
