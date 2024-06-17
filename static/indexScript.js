@@ -57,6 +57,7 @@ function digitalAgentAPI(){
         let element = document.createElement('div')
         element.className = "session";
         element.innerText =  instruction;
+        element.id = "sesh" + current;
         element.onclick = function(){changeActive(current)};
         document.getElementById("sessions").appendChild(element)
 
