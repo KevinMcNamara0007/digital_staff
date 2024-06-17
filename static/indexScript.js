@@ -292,6 +292,5 @@ const resetColors = () => {
     document.getElementById("4").style.backgroundColor = "#1f1f1f";
     document.getElementById("5").style.backgroundColor = "#1f1f1f";
     document.getElementById("6").style.backgroundColor = "#1f1f1f";
-    document.getElementById("7").style.backgroundColor = "#1f1f1f";
     document.getElementById("final").style.backgroundColor = "#1f1f1f";
 }

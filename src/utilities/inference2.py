@@ -11,19 +11,11 @@ from src.utilities.general import manifest, llm_url, openai_key, check_token_cou
 def manager__development_agent_prompts(user_prompt, assets, software_type):
     return [
         f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code for: {assets}.",
-        # zero shot
-        f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code for: {assets}.",
-        # one shot
         f"Review the following for accuracy and completeness: {user_prompt}, produce ONLY complete code for: {assets}.",
-        # checks for completeness
         f"Review the following for bugs and vulnerabilities and code smells: {user_prompt}, produce ONLY complete code for: {assets}.",
-        # zero shot bugs and vulnerabilities and code smells
-        f"Review the following for unit tests: {assets}. If there is none, create units tests. produce ONLY complete code.",
-        # zero shot unit tests
-        f"Add inline code comments for all key variables and methods, produce ONLY complete code for: {assets}.",
-        # zero shot unit tests
-        f"You are an expert {software_type}. Inspect and optimize code and unit test, correct where needed and produce complete code for: {assets}."
-        # zero shot unit tests
+        f"Review the following for unit tests: {assets}. If there are none, create unit tests. Produce ONLY complete code.",
+        f"Add inline code comments for all key variables and methods. Produce ONLY complete code for: {assets}.",
+        f"You are an expert {software_type}. Inspect and optimize code and unit tests, correct where needed and produce complete code for: {assets}."
     ]
 
 
