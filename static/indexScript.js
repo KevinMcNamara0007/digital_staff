@@ -230,6 +230,11 @@ const displayAlert = msg => {
 const changeActive = (index) => {
     console.log(index)
     if(index !== -1){
+        // Remove color
+        document.getElementById("sesh" + active).style.backgroundColor = "#1f1f1f";
+        // Highlight session
+        document.getElementById("sesh"+index).style.backgroundColor = "#00477b"
+        //Reset Colors
         active = index;
     }
     //Display Manager Plan
@@ -246,6 +251,7 @@ const loadSessions = () => {
         let index = history.indexOf(item)
         let element = document.createElement('div')
         element.className = "session";
+        element.id = "sesh" + index;
         element.innerText =  item.title;
         element.onclick = function(){changeActive(index)};
         document.getElementById("sessions").appendChild(element)

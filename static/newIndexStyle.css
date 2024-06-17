@@ -52,7 +52,7 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
             text-align: center;
         }
         & .session:hover{
-            background: #00477b;
+            background: #00477b !important;
         }
         &::-webkit-scrollbar{
             width: 4px;
