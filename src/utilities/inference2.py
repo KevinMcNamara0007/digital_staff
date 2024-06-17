@@ -35,15 +35,15 @@ async def agent_task(task, responses, code):
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
     prompt = (
-        "Instructions:\n"
-        "1. You are an expert programmer.\n"
-        "2. Compile all agent code for each corresponding file and place it into a JSON format.\n"
-        "3. Respond using this JSON format: [{\"FILE_NAME\":\"file_name1\", \"FILE_CODE\":\"file_code1\"}, {\"FILE_NAME\":\"file_name2\", \"FILE_CODE\":\"file_code2\"}].\n"
-        "4. File code will only be the code of the file associated with it.\n"
-        f"5. These are the original file names: {file_list}.\n"
-        "6. Include new files created by agents in the JSON response.\n"
-        f"7. Reference these agent responses: {agent_responses}\n"
-        "8. Ensure the JSON is correctly formatted and includes all file names and their corresponding code."
+        "Instructions:"
+        "1. You are an expert programmer."
+        "2. You will compile all agent code for each corresponding file and place it into a JSON format."
+        "3. You will only respond using this JSON format: [{\"FILE_NAME\":\"file_name1\", \"FILE_CODE\":\"file_code1\"}, {\"FILE_NAME\":\"file_name2\", \"FILE_CODE\":\"file_code2\"}]."
+        "4. File code will only be the code of the file associated with it."
+        f"5. These are the original file names: {file_list}."
+        "6. Agents may have created new files such as unit test files. Please include new files into the JSON response as well."
+        f"7. Here are the agent responses you will reference: {agent_responses}"
+        "8. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code."
     )
     print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
     response = await call_openai(prompt, model="gpt-4-0125-preview")
@@ -62,7 +62,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     return response
 
 
-async def call_openai(prompt, model="gpt-4"):
+async def call_openai(prompt, model="gpt-4o"):
     client = OpenAI(api_key=openai_key)
     response = await asyncio.to_thread(client.chat.completions.create,
                                        model=model,
@@ -86,4 +86,4 @@ def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
 
 
 async def customized_response(prompt):
-    return await call_openai(prompt, model="gpt-4")
+    return await call_openai(prompt, model="gpt-4o")
