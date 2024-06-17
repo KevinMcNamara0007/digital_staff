@@ -182,9 +182,11 @@ def parse_pytest_output(output):
 
     syntax_errors = [
         {
-            'message': syntax_error_match.group(1)
+            'file': match.group(1),
+            'line': match.group(2),
+            'message': match.group(3)
         }
-        for syntax_error_match in syntax_error_pattern.finditer(output)
+        for match in code_error_pattern.finditer(output)
     ]
 
     general_errors = [
@@ -228,11 +230,11 @@ async def failure_repair(missing_packages, code_errors, syntax_errors, general_e
     if missing_packages:
         validated_packages = []
         for package in missing_packages:
-            if await validate_package(package):
+            is_valid = await validate_package(package)
+            if is_valid:
                 validated_packages.append(package)
             else:
-                print(f"Package {package} is not valid and will not be added to requirements.txt")
-
+                print(f"Package '{package}' is not valid or not found on PyPI.")
         if validated_packages:
             await update_requirements_file(repo_dir, validated_packages)
         return await retry_tests(repo_dir, venv_name, tries)
@@ -247,8 +249,10 @@ async def failure_repair(missing_packages, code_errors, syntax_errors, general_e
 
     if syntax_errors:
         for error in syntax_errors:
-            print(f"Syntax error detected: {error['message']}")
-            # Here you can implement logic to handle syntax errors if needed
+            file_path = error['file']
+            line_number = int(error['line'])
+            error_message = f"Syntax error: {error['message']}"
+            await handle_code_error(file_path, line_number, error_message)
         return await retry_tests(repo_dir, venv_name, tries - 1)
 
     if general_errors:
@@ -256,7 +260,8 @@ async def failure_repair(missing_packages, code_errors, syntax_errors, general_e
             print(f"General error detected: {error['error']}")
             if error.get('traceback'):
                 print(f"Traceback: {error['traceback']}")
-            # Here you can implement logic to handle general errors if needed
+            # Handle specific known general errors
+            await handle_general_error(error)
         return await retry_tests(repo_dir, venv_name, tries - 1)
 
     return None
@@ -408,3 +413,37 @@ async def add_files_to_local_repo(code_files, repo_dir):
         # Write to the file
         with open(file_path, "w") as f:  # Use "w" to overwrite if the file exists
             f.write(file.FILE_CODE)
+
+
+async def handle_general_error(error):
+    """
+    Handles general errors by analyzing and attempting to resolve known issues.
+    :param error:
+    :return:
+    """
+    error_message = error.get('error', '')
+    traceback = error.get('traceback', '')
+
+    if "FileNotFoundError" in error_message:
+        missing_file_path = re.search(r"File '(.+)' not found", traceback)
+        if missing_file_path:
+            print(f"Missing file detected: {missing_file_path.group(1)}. Please ensure this file exists.")
+            # Logic to handle missing file, e.g., create a dummy file or notify the user
+            open(missing_file_path.group(1), 'w').close()  # Create an empty file as a placeholder
+        else:
+            print("File not found error, but no file path identified.")
+
+    elif "PermissionError" in error_message:
+        file_path = re.search(r"Permission denied: '(.+)'", traceback)
+        if file_path:
+            print(f"Permission error detected for file: {file_path.group(1)}. Please check file permissions.")
+            # Logic to handle permission error, e.g., change file permissions
+            os.chmod(file_path.group(1), 0o644)  # Change permissions to read/write for user
+        else:
+            print("Permission error, but no file path identified.")
+
+    else:
+        print(f"General error: {error_message}")
+        if traceback:
+            print(f"Traceback: {traceback}")
+        # Additional logic to handle or report other types of general errors
