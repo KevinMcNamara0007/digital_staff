@@ -8,3 +8,4 @@ pydantic~=2.7.3
 virtualenv
 openai~=1.33.0
 aiohttp
+asynchio
