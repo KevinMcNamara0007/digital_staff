@@ -3,6 +3,7 @@ let history = localStorage.getItem("digitalHistory")
     : [];
 let active = 0;
 let current = 0;
+let repo = false;
 
 window.onload = function () {
     loadSessions()
@@ -10,6 +11,57 @@ window.onload = function () {
 
 function showRepoSettings(){
     document.getElementById("repoSettings").style.display = "block";
+}
+
+function flowChecker(){
+    let repoInput = document.getElementById("repo").value;
+    if(repoInput === ""){
+        repo = false;
+        resetColors();
+        //HIDE REPO SETTINGS
+        document.getElementById("repoSettings").style.display = "none";
+
+        active = history.length;
+        current = history.length;
+        // new history object
+        let object = {
+            "title": instruction,
+            "plan": "loader",
+            "agent1": "loader",
+            "agent2": "loader",
+            "agent3": "loader",
+            "agent4": "loader",
+            "agent5": "loader",
+            "agent6": "loader",
+            "agent7": "loader",
+            "solution": []
+        }
+        history.push(object)
+
+        // Create new session div
+        let element = document.createElement('div')
+        element.className = "session";
+        element.innerText =  document.getElementById("instruction").value;
+        element.id = "sesh" + current;
+        element.onclick = function(){changeActive(current)};
+        document.getElementById("sessions").appendChild(element)
+
+        // Empty Response Div
+        document.getElementById("codeBlocks").innerHTML = ""
+
+        //Create Base formdata
+        let formData = new FormData();
+        formData.append("user_prompt", document.getElementById("instruction").value);
+        formData.append("https_clone_link", "none");
+        formData.append("original_code_branch", "none");
+        formData.append("new_branch_name", "none");
+        formData.append("flow", "no")
+        // Call Manager API
+        managerTasksAPI(formData,"none","none")
+    }else{
+        repo = true;
+        digitalAgentAPI()
+    }
 }
 
 function digitalAgentAPI(){
@@ -84,37 +136,72 @@ function managerTasksAPI(prevData, files, directory){
         }
         return response.json();
     }).then(async data => {
-        //Get Entire Manager Plan
-        let completeString = "";
-        data.forEach(function (prompt, index) {
-            completeString = completeString + "\n\nAgent " + (index+1) + "\n\n" + prompt;
-            index++;
-        });
-        //Update Manager Plan in history
-        history[current].plan = "Files to use:\n\n" + files + "\n\n" + completeString;
-        //Display Manager Plan
-        // Create new session div
-        let element = document.createElement('div')
-        element.className = "response";
-        element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[current].plan + '</div>';
-        document.getElementById("codeBlocks").appendChild(element)
+        if(repo === true){
+            //Get Entire Manager Plan
+            let completeString = "";
+            data.forEach(function (prompt, index) {
+                completeString = completeString + "\n\nAgent " + (index+1) + "\n\n" + prompt;
+                index++;
+            });
+            //Update Manager Plan in history
+            history[current].plan = "Files to use:\n\n" + files + "\n\n" + completeString;
+            //Display Manager Plan
+            // Create new session div
+            let element = document.createElement('div')
+            element.className = "response";
+            element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[current].plan + '</div>';
+            document.getElementById("codeBlocks").appendChild(element)
 
-        previousAgentResponse = ""
-        let index = 0;
-        for (const prompt of data) {
-            index++;
-            if(index === 1){
-                document.getElementById("1").style.backgroundColor = "#e37508";
-            }else{
-                console.log((index-1).toString())
-                document.getElementById((index-1).toString()).style.backgroundColor = "#3b7c35";
-                document.getElementById((index).toString()).style.backgroundColor = "#e37508";
+            previousAgentResponse = ""
+            let index = 0;
+            for (const prompt of data) {
+                index++;
+                if(index === 1){
+                    document.getElementById("1").style.backgroundColor = "#e37508";
+                }else{
+                    console.log((index-1).toString())
+                    document.getElementById((index-1).toString()).style.backgroundColor = "#3b7c35";
+                    document.getElementById((index).toString()).style.backgroundColor = "#e37508";
+                }
+                await agentTaskAPI(prevData, ("agent " + (index)), prompt, previousAgentResponse, index)
             }
-            await agentTaskAPI(prevData, ("agent " + (index)), prompt, previousAgentResponse, index)
+            // Final Solution
+            document.getElementById((index).toString()).style.backgroundColor = "#3b7c35";
+            await getFinalSolution(prevData, previousAgentResponse, "");
+        }else{
+            //Get Entire Manager Plan
+            let manager_plan = data.MANAGER_PLAN;
+            let completeString = "\n" + "Files:\n\n" + data.CODE_FOUNDATION.FILE_NAMES;
+            manager_plan.forEach(function (prompt, index) {
+                completeString = completeString + "\n\nAgent " + (index+1) + "\n\n" + prompt;
+                index++;
+            });
+            //Update Manager Plan in history
+            history[current].plan = completeString;
+            //Display Manager Plan
+            // Create new session div
+            let element = document.createElement('div')
+            element.className = "response";
+            element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[current].plan + '</div>';
+            document.getElementById("codeBlocks").appendChild(element)
+
+            previousAgentResponse = ""
+            let index = 0;
+            for (const prompt of manager_plan) {
+                index++;
+                if(index === 1){
+                    document.getElementById("1").style.backgroundColor = "#e37508";
+                }else{
+                    console.log((index-1).toString())
+                    document.getElementById((index-1).toString()).style.backgroundColor = "#3b7c35";
+                    document.getElementById((index).toString()).style.backgroundColor = "#e37508";
+                }
+                await agentTaskAPI(prevData, ("agent " + (index)), prompt, previousAgentResponse, index, JSON.stringify(data.CODE_FOUNDATION.ALL_CODE))
+            }
+            // Final Solution
+            document.getElementById((index).toString()).style.backgroundColor = "#3b7c35";
+            await getFinalSolution(prevData, previousAgentResponse, "");
         }
-        // Final Solution
-        document.getElementById((index).toString()).style.backgroundColor = "#3b7c35";
-        await getFinalSolution(prevData, previousAgentResponse, "");
     }).catch(error =>{
         console.log(error)
         displayAlert("Manager Task API has failed" + error)
@@ -122,9 +209,10 @@ function managerTasksAPI(prevData, files, directory){
 }
 
 let previousAgentResponse = "";
-async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, index){
+async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, index, code){
     prevFormData.append("agent_task", agentTask)
     prevFormData.append("agent_responses", agentResponses)
+    prevFormData.append("code", code)
 
     await fetch("/Tasks/agent_task", {
         method: 'POST',
