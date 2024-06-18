@@ -49,7 +49,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         response = json.loads(response)
     except json.JSONDecodeError as exc:
         print(f'Could not parse String Into JSON ERROR. Will Remove all formatting: {exc}')
-        response = response.replace('\n', '').replace('\\', '')
+        response = response.replace('\\n', '').replace('\\', '')
         try:
             response = json.loads(response)
         except json.JSONDecodeError:
