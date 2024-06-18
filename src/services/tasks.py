@@ -119,8 +119,8 @@ async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
     results = await run_pytest_and_analyze(repo_dir, path_to_python_exec)
     print(results)
     # Check for missing packages or code errors and attempt to fix them
-    await failure_repair(results["missing_packages"], results["code_errors"], results["syntax_errors"],
-                         results["general_errors"], repo_dir, unique_venv_name, tries)
+    await failure_repair(results["missing_packages"], results["code_errors"], results["general_errors"], repo_dir,
+                         unique_venv_name, tries)
 
     # If the tests pass, clean up
     await cleanup_post_test(unique_venv_name, repo_dir)
@@ -143,7 +143,7 @@ async def run_pytest_and_analyze(repo_dir, path_to_python_exec):
     )
     output = stdout + stderr
 
-    missing_packages, code_errors, syntax_errors, general_errors = parse_pytest_output(output)
+    missing_packages, code_errors, general_errors = parse_pytest_output(output)
 
     known_packages = []
     unknown_packages = []
@@ -157,7 +157,6 @@ async def run_pytest_and_analyze(repo_dir, path_to_python_exec):
     results = {
         'missing_packages': known_packages,
         'code_errors': code_errors,
-        'syntax_errors': syntax_errors,
         'general_errors': general_errors,
         'unknown_packages': unknown_packages
     }
@@ -173,7 +172,6 @@ def parse_pytest_output(output):
     """
     missing_package_pattern = re.compile(r"No module named '(\S+)'")
     code_error_pattern = re.compile(r'File "(.+)", line (\d+), in (\S+)', re.MULTILINE)
-    syntax_error_pattern = re.compile(r'SyntaxError: (.+)', re.MULTILINE)
     general_error_pattern = re.compile(r'ERROR (.+)', re.MULTILINE)
     traceback_pattern = re.compile(r'Traceback \(most recent call last\):(.+?)\n\n', re.DOTALL)
 
@@ -187,15 +185,6 @@ def parse_pytest_output(output):
         for match in code_error_pattern.finditer(output)
     ]
 
-    syntax_errors = [
-        {
-            'file': match.group(1),
-            'line': match.group(2),
-            'message': match.group(3)
-        }
-        for match in code_error_pattern.finditer(output)
-    ]
-
     general_errors = [
         {
             'error': general_error_match.group(1),
@@ -205,7 +194,7 @@ def parse_pytest_output(output):
         for general_error_match in general_error_pattern.finditer(output)
     ]
 
-    return missing_packages, code_errors, syntax_errors, general_errors
+    return missing_packages, code_errors, general_errors
 
 
 def find_package_from_import(import_name):
@@ -222,12 +211,11 @@ def find_package_from_import(import_name):
         return None
 
 
-async def failure_repair(missing_packages, code_errors, syntax_errors, general_errors, repo_dir, venv_name, tries=3):
+async def failure_repair(missing_packages, code_errors, general_errors, repo_dir, venv_name, tries=3):
     """
     Attempts to repair issues in code that were observed in the pytest output.
     :param missing_packages:
     :param code_errors:
-    :param syntax_errors:
     :param general_errors:
     :param repo_dir:
     :param venv_name:
@@ -251,14 +239,6 @@ async def failure_repair(missing_packages, code_errors, syntax_errors, general_e
             file_path = error['file']
             line_number = int(error['line'])
             error_message = f"Error in function {error['function']}"
-            await handle_code_error(file_path, line_number, error_message)
-        return await retry_tests(repo_dir, venv_name, tries - 1)
-
-    if syntax_errors:
-        for error in syntax_errors:
-            file_path = error['file']
-            line_number = int(error['line'])
-            error_message = f"Syntax error: {error['message']}"
             await handle_code_error(file_path, line_number, error_message)
         return await retry_tests(repo_dir, venv_name, tries - 1)
 
@@ -311,7 +291,7 @@ async def retry_tests(repo_dir, venv_name, tries):
     :return:
     """
     if tries > 0:
-        return await run_python_tests(repo_dir, venv_name, tries)
+        return await run_python_tests(repo_dir, venv_name, tries - 1)
     else:
         raise RuntimeError("Exceeded maximum retry attempts")
 
@@ -342,7 +322,7 @@ async def handle_code_error(file_path, line_number, error_message, context_lines
         f"Please provide a fix for this error."
     )
 
-    response = customized_response(prompt)
+    response = await customized_response(prompt)
 
     fix_suggestion = response.strip()
 
