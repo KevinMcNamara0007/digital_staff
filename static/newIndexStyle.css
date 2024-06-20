@@ -215,6 +215,20 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
         & button:hover{
             background: #fcfcfc;
         }
+        & .gitRepo{
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+        & .gitRepo{
+            right: 30px;
+            position: relative;
+            width: 40px;
+            height: 40px;
+        }
+        & .gitRepo:hover{
+            background: #fcfcfc;
+        }
     }
 }
 

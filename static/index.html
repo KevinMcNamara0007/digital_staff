@@ -19,7 +19,7 @@
             <label>
                 <input id="branch" type="text" title="Repo Branch" placeholder="Enter your branch here"/>
             </label>
-            <button onclick="flowChecker()">Continue</button>
+            <button onclick="hideRepo()">Continue</button>
         </div>
     </div>
     <div id="popup" class="popup">
@@ -56,10 +56,11 @@
 
         </div>
         <div class="promptContainer">
+            <div onclick="showRepoSettings()"><img title="Git Repo Settings" class="gitRepo" src="./images/gitIcon.svg"/></div>
             <label>
                 <input id="instruction" type="text" title="instruction" placeholder="Enter your instructions here"/>
             </label>
-            <button onclick="showRepoSettings()"><img alt="search" src="./images/arrowIcon.svg"/></button>
+            <button onclick="flowChecker()"><img alt="search" src="./images/arrowIcon.svg"/></button>
         </div>
     </div>
 </body>

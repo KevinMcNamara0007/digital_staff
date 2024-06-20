@@ -389,3 +389,7 @@ const resetColors = () => {
     document.getElementById("6").style.backgroundColor = "#1f1f1f";
     document.getElementById("final").style.backgroundColor = "#1f1f1f";
 }
+
+const hideRepo = () => {
+    document.getElementById("repoSettings").style.display = "none";
+}
