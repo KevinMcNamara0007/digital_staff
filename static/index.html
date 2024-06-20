@@ -60,7 +60,11 @@
             <label>
                 <input id="instruction" type="text" title="instruction" placeholder="Enter your instructions here"/>
             </label>
-            <button onclick="flowChecker()"><img alt="search" src="./images/arrowIcon.svg"/></button>
+            <label class="diagramImage" title="Diagram or Flowchart Image">
+                <img alt="input image" src="./images/flowChartIcon.svg"/>
+                <input id="image" type="file" accept="image/png, image/gif, image/jpeg"/>
+            </label>
+            <button class="searchImage" onclick="flowChecker()"><img alt="search" src="./images/arrowIcon.svg"/></button>
         </div>
     </div>
 </body>

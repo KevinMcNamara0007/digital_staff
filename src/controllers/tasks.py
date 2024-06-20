@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, UploadFile, File
 from pydantic import parse_obj_as
 from src.models.request_models import CodeFileList
 from src.services.no_repo_tasks import manager_development_base_service, no_repo_agent_task_service, \
@@ -49,12 +49,13 @@ async def manager_plan(
         original_code_branch: str = Form(default=default_branch, description="The branch you want to work on."),
         new_branch_name: str = Form(default=default_new_branch, description="Name for the new branch where changes will be reflected."),
         flow: str = Form(default=default_flow, description="Automated process flow yes/no"),
-        repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder")
+        repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder"),
+        file: UploadFile = File(default=None, description="The file attached")
 ):
     if file_list != "none":
         return await create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow)
     else:
-        return await manager_development_base_service(user_prompt)
+        return await manager_development_base_service(user_prompt, file)
 
 
 @tasks.post("/agent_task")

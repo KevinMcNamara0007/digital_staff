@@ -25,7 +25,7 @@ function flowChecker(){
         current = history.length;
         // new history object
         let object = {
-            "title": instruction,
+            "title": document.getElementById("instruction").value,
             "plan": "loader",
             "agent1": "loader",
             "agent2": "loader",
@@ -51,6 +51,9 @@ function flowChecker(){
 
         //Create Base formdata
         let formData = new FormData();
+        if($("#image")[0].files[0]){
+            formData.append("file", $("#image")[0].files[0]);
+        }
         formData.append("user_prompt", document.getElementById("instruction").value);
         formData.append("https_clone_link", "none");
         formData.append("original_code_branch", "none");
