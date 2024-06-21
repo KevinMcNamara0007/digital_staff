@@ -82,7 +82,7 @@ def file_filter(file_list):
     ]
 
 
-async def cleanup_post_test(venv_name, repo_dir):
+async def cleanup_cloned_repo(venv_name, repo_dir):
     """
     Remove all evidence of running tests on the repo to prevent adding files not recognized by the user.
 
@@ -116,3 +116,12 @@ def check_token_count(history):
     """
     encoding = tiktoken.encoding_for_model("gpt-4-0125-preview")
     return len(encoding.encode(history))
+
+
+async def delete_folder(repo_dir):
+    try:
+        shutil.rmtree(repo_dir)
+    except Exception as exc:
+        error_message = f"Error deleting folder: {exc}"
+        print(error_message)
+        raise HTTPException(status_code=500, detail=error_message)

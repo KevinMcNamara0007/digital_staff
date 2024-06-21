@@ -1,5 +1,4 @@
 import os.path
-from fastapi import HTTPException
 from src.utilities.cli import cmd_popen, cmd_run
 
 
@@ -55,3 +54,26 @@ async def show_repo_changes(repo_dir):
     )
     return stdout
 
+
+async def add_changes_to_branch(repo_dir):
+    stdout, stderr = await cmd_popen(
+        repo_dir=repo_dir,
+        command_to_run="git add ."
+    )
+    return stdout
+
+
+async def commit_repo_changes(repo_dir, message="Auto repo updates"):
+    stdout, sterr = await cmd_popen(
+        repo_dir=repo_dir,
+        command_to_run=f"git commit -m {message}"
+    )
+    return stdout
+
+
+async def push_changes_to_repo(repo_dir):
+    stdout, sterr = await cmd_popen(
+        repo_dir=repo_dir,
+        command_to_run="git push"
+    )
+    return stdout

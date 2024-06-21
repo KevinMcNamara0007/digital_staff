@@ -6,13 +6,13 @@ import shutil
 import uuid
 from importlib import metadata
 import aiohttp
-from src.utilities.general import file_filter, accepted_code_file_extensions
+from src.utilities.general import file_filter, accepted_code_file_extensions, cleanup_cloned_repo
 from src.utilities.git import (
     clone_repo,
     check_current_branch,
     checkout_and_rebranch,
     repo_file_list,
-    show_file_contents, show_repo_changes,
+    show_file_contents, show_repo_changes, add_changes_to_branch, commit_repo_changes, push_changes_to_repo,
 )
 from src.utilities.cli import cmd_popen, cmd_run
 from src.utilities.inference2 import (
@@ -111,7 +111,7 @@ async def run_python_tests(repo_dir, present_venv_name=None, tries=3):
                          unique_venv_name, tries)
 
     # If the tests pass, clean up
-    await cleanup_post_test(unique_venv_name, repo_dir)
+    await cleanup_cloned_repo(unique_venv_name, repo_dir)
     return "Success"
 
 
@@ -137,7 +137,7 @@ async def run_pytest_and_analyze(repo_dir, path_to_python_exec):
         'general_errors': general_errors,
         'unknown_packages': unknown_packages,
     }
-
+    return results
 
 def parse_pytest_output(output):
     """
@@ -274,15 +274,6 @@ async def handle_general_errors(errors):
                 print(f"Traceback: {traceback}")
 
 
-async def cleanup_post_test(venv_name, repo_dir):
-    venv_path = os.path.join(repo_dir, venv_name)
-    if os.path.exists(venv_path):
-        shutil.rmtree(venv_path)
-    pytest_cache_dir = os.path.join(repo_dir, '.pytest_cache')
-    if os.path.exists(pytest_cache_dir):
-        shutil.rmtree(pytest_cache_dir)
-
-
 async def check_code_language(code_changes):
     if not code_changes.produced_code:
         file_list = await repo_file_list(code_changes.repo_dir)
@@ -316,3 +307,9 @@ async def add_files_to_local_repo(code_files, repo_dir):
 async def show_all_changes(final_artifact):
     await add_files_to_local_repo(final_artifact.produced_code, final_artifact.repo_dir)
     return await show_repo_changes(final_artifact.repo_dir)
+
+async def add_commit_push(commit_message, repo_dir):
+    await add_changes_to_branch(repo_dir)
+    await commit_repo_changes(repo_dir, commit_message)
+    return await push_changes_to_repo(repo_dir)
+

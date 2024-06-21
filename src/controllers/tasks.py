@@ -1,5 +1,5 @@
 from typing import List
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, BackgroundTasks
 from pydantic import parse_obj_as
 from src.models.request_models import CodeFileList
 from src.services.tasks import (
@@ -7,8 +7,9 @@ from src.services.tasks import (
     create_plan_service,
     agent_task_service,
     produce_solution_service,
-    process_changes, show_all_changes
+    process_changes, show_all_changes, add_commit_push
 )
+from src.utilities.general import cleanup_cloned_repo, delete_folder
 
 tasks = APIRouter(
     prefix="/Tasks",
@@ -87,10 +88,20 @@ async def produce_solution(
 
 
 @tasks.post("/show_diff")
-async def show_changes(
+async def diff(
         final_artifact: CodeFileList
 ):
     return await show_all_changes(final_artifact)
+
+@tasks.post("/push_changes")
+async def push(
+        bg_task: BackgroundTasks,
+        commit_message: str = Form(default="Commit by Digital Staff"),
+        repo_dir: str = Form(description="The repo directory as stored in efs/repos/<repo>")
+):
+    push_status = await add_commit_push(commit_message, repo_dir)
+    bg_task.add_task(delete_folder, repo_dir)
+    return push_status
 
 
 @tasks.post("/build_test")
