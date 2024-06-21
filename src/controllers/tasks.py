@@ -93,6 +93,7 @@ async def diff(
 ):
     return await show_all_changes(final_artifact)
 
+
 @tasks.post("/push_changes")
 async def push(
         bg_task: BackgroundTasks,
@@ -100,7 +101,7 @@ async def push(
         repo_dir: str = Form(description="The repo directory as stored in efs/repos/<repo>")
 ):
     push_status = await add_commit_push(commit_message, repo_dir)
-    bg_task.add_task(delete_folder, repo_dir)
+    # bg_task.add_task(delete_folder, repo_dir)
     return push_status
 
 
