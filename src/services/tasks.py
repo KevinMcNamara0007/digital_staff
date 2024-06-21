@@ -12,10 +12,9 @@ from src.utilities.git import (
     check_current_branch,
     checkout_and_rebranch,
     repo_file_list,
-    show_file_contents,
-    cmd_popen,
-    cmd_run,
+    show_file_contents, show_repo_changes,
 )
+from src.utilities.cli import cmd_popen, cmd_run
 from src.utilities.inference2 import (
     manager_development_agent_prompts,
     agent_task,
@@ -312,3 +311,8 @@ async def add_files_to_local_repo(code_files, repo_dir):
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, "w") as f:
             f.write(file.FILE_CODE)
+
+
+async def show_all_changes(final_artifact):
+    await add_files_to_local_repo(final_artifact.produced_code, final_artifact.repo_dir)
+    return await show_repo_changes(final_artifact.repo_dir)

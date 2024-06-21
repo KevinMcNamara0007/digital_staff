@@ -55,15 +55,18 @@ accepted_code_file_extensions = {
 # Define excluded file types
 exclude_file_types = [
     '__init__.py', 'cpython', '.h5', '.xml', '.doc', '.docx', '.dot', '.xml', '.db', '.sqlite', '.bmp',
-    '.wav', '.jpg', '.zip', '.png', '.pdf', '.tar', '.csv', '.xls', '.xlsx', '.xlsm', '.xlt', '.xltx', 
+    '.wav', '.jpg', '.zip', '.png', '.pdf', '.tar', '.csv', '.xls', '.xlsx', '.xlsm', '.xlt', '.xltx',
     '.ppt', '.pptx', '.txt', '.tsv', '.json', '.sql', ".log", ".tmp", ".bak", ".swp", ".DS_Store",
-    ".pyc", ".pyo", "__pycache__/", ".pyd", ".class", ".jar", ".war", ".ear", ".iml", "node_modules/", 
-    ".o", ".obj", ".exe", ".dll", ".so", ".dylib", ".a", ".lib", ".out", ".pdb", ".mdb", ".gem", 
-    ".bundle/", ".config/", ".yardoc", "_yardoc/", ".rvmrc", ".xcodeproj", ".xcworkspace", ".xcuserdata", 
-    ".xcuserstate", "target/", ".rlib", ".tsbuildinfo", ".hi", ".bs", ".aux", ".bbl", ".blg", ".brf", 
-    ".idx", ".ilg", ".ind", ".lof", ".log", ".lot", ".nav", ".out", ".snm", ".toc", ".vrb", ".git/", 
+    ".pyc", ".pyo", "__pycache__/", ".pyd", ".class", ".jar", ".war", ".ear", ".iml", "node_modules/",
+    ".o", ".obj", ".exe", ".dll", ".so", ".dylib", ".a", ".lib", ".out", ".pdb", ".mdb", ".gem",
+    ".bundle/", ".config/", ".yardoc", "_yardoc/", ".rvmrc", ".xcodeproj", ".xcworkspace", ".xcuserdata",
+    ".xcuserstate", "target/", ".rlib", ".tsbuildinfo", ".hi", ".bs", ".aux", ".bbl", ".blg", ".brf",
+    ".idx", ".ilg", ".ind", ".lof", ".log", ".lot", ".nav", ".out", ".snm", ".toc", ".vrb", ".git/",
     ".svn/", ".hg/"
 ]
+
+java_build_tools = {'pom.xml': 'Maven', 'build.gradle': 'Gradle'}
+
 
 def file_filter(file_list):
     """
@@ -77,6 +80,7 @@ def file_filter(file_list):
         file for file in file_list
         if file.endswith(accepted_extensions) and not any(excl in file for excl in exclude_file_types)
     ]
+
 
 async def cleanup_post_test(venv_name, repo_dir):
     """
@@ -101,6 +105,7 @@ async def cleanup_post_test(venv_name, repo_dir):
         error_message = f"Error during cleanup: {exc}"
         print(error_message)
         raise HTTPException(status_code=500, detail=error_message)
+
 
 def check_token_count(history):
     """
