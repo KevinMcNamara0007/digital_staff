@@ -39,11 +39,13 @@ async def repo_file_list(repo_dir):
 
 
 async def show_file_contents(version, file_path, repo_dir):
-    stdout, stderr = await cmd_popen(
-        repo_dir=repo_dir,
-        command_to_run=f"git show {version}:{file_path}"
-    )
-    return stdout or stderr
+    if os.path.exists(f"{repo_dir}/{file_path}"):
+        stdout, stderr = await cmd_popen(
+            repo_dir=repo_dir,
+            command_to_run=f"git show {version}:{file_path}"
+        )
+        return stdout or stderr
+    raise RuntimeError(f"Invalid filename: {repo_dir}/{file_path}")
 
 
 async def show_repo_changes(repo_dir):
