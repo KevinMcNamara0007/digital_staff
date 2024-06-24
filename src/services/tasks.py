@@ -338,7 +338,7 @@ async def git_add_commit_push(repo_dir, commit_message, branch='main', remote='o
         print("Files added to the staging area.")
 
         # Step 3: Commit the changes
-        stdout = await cmd_run(f'git -C {repo_dir} commit -m', tries=3, opts=commit_message)
+        stdout = await cmd_run(f'git -C {repo_dir} commit -m', tries=3, opts=f'"{commit_message}"')
         results['commit'] = {'stdout': stdout, 'stderr': ''}
         print("Changes committed.")
 
