@@ -8,7 +8,7 @@ async def clone_repo(repo_link):
         output = await cmd_run(
             command_to_run=f"git clone https://{repo_link.replace('https://', '')} {dest_folder}"
         )
-        return output
+    return dest_folder
 
 
 async def check_current_branch(repo_dir):

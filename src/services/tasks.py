@@ -2,7 +2,6 @@ import os
 import asyncio
 import platform
 import re
-import shutil
 import uuid
 from importlib import metadata
 import aiohttp
@@ -12,8 +11,7 @@ from src.utilities.git import (
     check_current_branch,
     checkout_and_rebranch,
     repo_file_list,
-    show_file_contents, show_repo_changes, add_changes_to_branch, commit_repo_changes, push_changes_to_repo,
-    check_git_status,
+    show_file_contents, show_repo_changes
 )
 from src.utilities.cli import cmd_popen, cmd_run
 from src.utilities.inference2 import (
@@ -330,32 +328,24 @@ async def git_add_commit_push(repo_dir, commit_message, branch='main', remote='o
         repo_dir = os.path.abspath(repo_dir)
 
         # Step 1: Check git status before running add command
-        stdout, stderr_output = await cmd_popen(repo_dir, "git status", shelled=True, stderr=True)
-        results['status'] = {'stdout': stdout, 'stderr': stderr_output}
+        stdout = await cmd_run(f"git -C {repo_dir} status", tries=3)
+        results['status'] = {'stdout': stdout, 'stderr': ''}
         print("Git status checked.")
-        if stderr_output:
-            raise RuntimeError(f"Git status check failed: {stderr_output}")
 
         # Step 2: Add files to the staging area, forcing addition of ignored files
-        stdout, stderr_output = await cmd_popen(repo_dir, "git add -f .", shelled=True, stderr=True)
-        results['add'] = {'stdout': stdout, 'stderr': stderr_output}
+        stdout = await cmd_run(f"git -C {repo_dir} add -f .", tries=3)
+        results['add'] = {'stdout': stdout, 'stderr': ''}
         print("Files added to the staging area.")
-        if stderr_output:
-            raise RuntimeError(f"Add failed: {stderr_output}")
 
         # Step 3: Commit the changes
-        stdout, stderr_output = await cmd_popen(repo_dir, f'git commit -m "{commit_message}"', shelled=True, stderr=True)
-        results['commit'] = {'stdout': stdout, 'stderr': stderr_output}
+        stdout = await cmd_run(f'git -C {repo_dir} commit -m', tries=3, opts=commit_message)
+        results['commit'] = {'stdout': stdout, 'stderr': ''}
         print("Changes committed.")
-        if stderr_output:
-            raise RuntimeError(f"Commit failed: {stderr_output}")
 
         # Step 4: Push the changes
-        stdout, stderr_output = await cmd_popen(repo_dir, f'git push {remote} {branch}', shelled=True, stderr=True)
-        results['push'] = {'stdout': stdout, 'stderr': stderr_output}
+        stdout = await cmd_run(f'git -C {repo_dir} push {remote} {branch}', tries=3)
+        results['push'] = {'stdout': stdout, 'stderr': ''}
         print("Changes pushed to the remote repository.")
-        if stderr_output:
-            raise RuntimeError(f"Push failed: {stderr_output}")
     except RuntimeError as e:
         print(f"Error during git operations: {e}")
         results['error'] = str(e)
