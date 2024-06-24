@@ -33,9 +33,8 @@ async def repo_file_list(repo_dir):
         repo_dir=repo_dir,
         command_to_run="git ls-tree -r HEAD --name-only"
     )
-    if stderr:
-        raise RuntimeError(str(stderr))
-    return stdout or stderr
+    file_list = stdout.split('\n')
+    return [file for file in file_list if len(file) > 1]
 
 
 async def show_file_contents(version, file_path, repo_dir):
