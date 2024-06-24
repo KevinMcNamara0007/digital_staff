@@ -16,9 +16,8 @@ async def check_current_branch(repo_dir):
         repo_dir=repo_dir,
         command_to_run="git branch --show-current"
     )
-    if stderr:
-        raise RuntimeError(str(stderr))
-    return stdout or stderr
+    branch_name = stdout or stderr
+    return branch_name.strip()
 
 
 async def checkout_and_rebranch(new_branch_name, branch_to_fork_from, repo_dir):
