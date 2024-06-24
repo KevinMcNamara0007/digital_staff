@@ -325,6 +325,7 @@ const displayAlert = msg => {
 }
 
 const changeActive = (index) => {
+    console.log(running)
     console.log(index)
     if(running !== true){
         if(index !== -1){
@@ -449,3 +450,6 @@ const hideRepo = () => {
     document.getElementById("repoSettings").style.display = "none";
 }
 
+const toggleLightDarkMode = () => {
+    document.body.classList.toggle("darkModeBoth");
+}

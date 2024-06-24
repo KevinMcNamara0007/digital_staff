@@ -6,9 +6,11 @@
     --black: #000000;
     --blue: #0C63E7;
     --light-black: #252525;
+    --lighter-black: #282828;
     --light-gray: rgba(70, 70, 70, 0.89);
     --dark-gray: rgba(50, 58, 58, 0.7);
     --gray: #8896AB;
+    --lighter-gray: #e0e0e0;
     --dark-green: #1A232C;
     --green: #31fc00;
     --red: #fc0000;
@@ -26,6 +28,10 @@
 }
 
 body{
+    & img{
+        filter: invert(24%) sepia(82%) saturate(4560%) hue-rotate(212deg) brightness(98%) contrast(91%);
+    }
+
     margin: 0;
     width: 100%;
     background: var(--white);
@@ -37,7 +43,90 @@ body{
 div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placeholder{
     font-family: Amplitude,Arial,Halvetica,sans-serif;
     color: var(--black);
-    font-weight: 500 !important;
+    font-weight: 500;
+}
+.darkModeBoth{
+    color: var(--white) !important;
+    background: var(--light-black) !important;
+
+    & img{
+        filter: invert(24%) sepia(82%) saturate(4560%) hue-rotate(212deg) brightness(98%) contrast(91%);
+    }
+
+    & .menuContainer{
+        background: var(--light-black);
+
+        & .menuHero{
+            color: var(--white) !important;
+
+            & h3{
+                color: var(--white) !important;
+            }
+        }
+        & .menuSessions{
+            background: var(--light-black);
+            box-shadow: rgb(73, 73, 73) 0px 0px 10px -12px inset, rgb(105, 105, 105) 0px 2px 36px -18px inset;
+            & .session{
+                color: var(--white);
+            }
+            & .session:hover{
+                background: var(--blue-gradient) !important;
+                color: var(--white)
+            }
+        }
+        & .menuSettings{
+            color: var(--white);
+            & .setting{
+                color: var(--white);
+            }
+            & .setting:hover{
+                transform: scale(110%);
+            }
+        }
+    }
+    .mainContainer{
+        & .steps{
+            & .step{
+                color: var(--white);
+            }
+            & .hideStep{
+                color: var(--light-black) !important;
+            }
+            & .step:hover{
+                background: var(--blue-gradient) !important;
+                color: var(--white) !important;
+            }
+            & #1:hover, & #2:hover, & #3:hover, & #4:hover , & #5:hover, & #6:hover, & #7:hover & #final:hover{
+                background: var(--blue-gradient) !important;
+                color: var(--white) !important;
+            }
+        }
+        & .progress{
+
+        }
+        & .blocks{
+            background: var(--lighter-black);
+            box-shadow: rgb(73, 73, 73) 0px 0px 10px -12px inset, rgb(105, 105, 105) 0px 2px 36px -18px inset;
+            & .response{
+                & .answer{
+                    color: var(--white);
+                }
+                & .agentAnswer{
+                    color: var(--white);
+                }
+            }
+
+        }
+        & .promptContainer{
+            ::placeholder {
+                color: var(--white);
+            }
+            & input[type="text"]{
+                background: transparent;
+                color: var(--white);
+            }
+        }
+    }
 }
 
 .menuContainer{
@@ -52,6 +141,7 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
         width: 100%;
         height: 100px;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
     }
@@ -464,4 +554,113 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
             transparent 25%, transparent 50%,
             var(--red) 50%, var(--red) 75%,
             transparent 75%, transparent);
+}
+
+/*Slider*/
+
+.toggle_switch{
+    width: 100px;
+    height: 45px;
+    position: relative;
+}
+
+input[type="checkbox"].switch_3{
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    outline: 0;
+    z-index: 1;
+}
+
+svg.checkbox .outer-ring{
+    stroke-dasharray: 375;
+    stroke-dashoffset: 375;
+    -webkit-animation: resetRing .35s ease-in-out forwards;
+    animation: resetRing .35s ease-in-out forwards;
+}
+
+input[type="checkbox"].switch_3:checked + svg.checkbox .outer-ring{
+    -webkit-animation: animateRing .35s ease-in-out forwards;
+    animation: animateRing .35s ease-in-out forwards;
+}
+
+input[type="checkbox"].switch_3:checked + svg.checkbox .is_checked{
+    opacity: 1;
+    -webkit-transform: translateX(0) rotate(0deg);
+    transform: translateX(0) rotate(0deg);
+}
+
+input[type="checkbox"].switch_3:checked + svg.checkbox .is_unchecked{
+    opacity: 0;
+    -webkit-transform: translateX(-200%) rotate(180deg);
+    transform: translateX(-200%) rotate(180deg);
+}
+
+
+svg.checkbox{
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+svg.checkbox .is_checked{
+    opacity: 0;
+    fill: yellow;
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    -webkit-transform: translateX(200%) rotate(45deg);
+    transform: translateX(200%) rotate(45deg);
+    -webkit-transition: all .35s;
+    transition: all .35s;
+}
+
+svg.checkbox .is_unchecked{
+    opacity: 1;
+    fill: var(--light-black);
+    -webkit-transform-origin: 50% 50%;
+    transform-origin: 50% 50%;
+    -webkit-transform: translateX(0) rotate(0deg);
+    transform: translateX(0) rotate(0deg);
+    -webkit-transition: all .35s;
+    transition: all .35s;
+}
+
+@-webkit-keyframes animateRing{
+    to{
+        stroke-dashoffset: 0;
+        stroke: #b0aa28;
+    }
+}
+
+@keyframes animateRing{
+    to{
+        stroke-dashoffset: 0;
+        stroke: #b0aa28;
+    }
+}
+
+@-webkit-keyframes resetRing{
+    to{
+        stroke-dashoffset: 0;
+        stroke: var(--light-black);
+    }
+}
+
+@keyframes resetRing{
+    to{
+        stroke-dashoffset: 0;
+        stroke: var(--light-black);
+    }
 }
