@@ -25,7 +25,7 @@ from src.utilities.inference2 import (
 async def get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name, flow="n"):
     repo_dir = await clone_repo(https_clone_link)
     cur_branch = await check_current_branch(repo_dir)
-    if cur_branch not in new_branch_name or new_branch_name not in cur_branch:
+    if cur_branch != new_branch_name.strip():
         await checkout_and_rebranch(new_branch_name, original_code_branch, repo_dir)
     file_list = file_filter(await repo_file_list(repo_dir))
     # GET SPECIFIC FILES FROM LIST BASED ON USER_PROMPT
@@ -33,7 +33,6 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
               f"2. RESPOND ONLY IN FORMAT: filename1,filename2,filename3 ."
               f"3. THESE ARE THE FILES RELEVANT TO THE ASK: {await get_all_code(file_list, repo_dir, new_branch_name)}.")
     file_list = await call_openai(prompt)
-    print(file_list)
     # API FLOW
     if flow == "y":
         return await create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow)

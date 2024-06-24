@@ -12,6 +12,7 @@ from src.services.tasks import (
     process_changes, show_all_changes, git_add_commit_push
 )
 from src.utilities.general import cleanup_cloned_repo, delete_folder
+from src.utilities.git import show_file_contents
 
 tasks = APIRouter(
     prefix="/Tasks",
@@ -121,3 +122,11 @@ async def push(
 @tasks.post("/build_test")
 async def build_test(final_artifact: CodeFileList):
     return await process_changes(final_artifact)
+
+
+@tasks.post("/show_file_tested")
+async def file_show_test(
+        repo_dir: str = Form(description="The repo directory as stored in efs/repos/<repo>"),
+        new_branch_name: str = Form(default=default_new_branch, description="The branch to push into.")
+):
+    return await show_file_contents(new_branch_name, "general.py", repo_dir)
