@@ -28,4 +28,4 @@ digital_staff.add_middleware(
 
 @digital_staff.get("/", include_in_schema=False)
 async def docs_redirect():
-    return RedirectResponse(url="/docs")
+    return RedirectResponse(url="/digital_staff")

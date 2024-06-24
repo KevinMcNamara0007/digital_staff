@@ -9,7 +9,7 @@ from src.services.tasks import (
     create_plan_service,
     agent_task_service,
     produce_solution_service,
-    process_changes, show_all_changes, add_commit_push
+    process_changes, show_all_changes, git_add_commit_push
 )
 from src.utilities.general import cleanup_cloned_repo, delete_folder
 
@@ -77,7 +77,7 @@ async def agent_tasks(
     if repo_dir != "none":
         parsed_file_list = parse_obj_as(List[str], file_list.split(','))
         return await agent_task_service(agent_task, user_prompt, parsed_file_list, repo_dir, new_branch_name, "",
-                                    agent_responses, flow)
+                                        agent_responses, flow)
     return await no_repo_agent_task_service(agent_task, agent_responses, code)
 
 
@@ -94,7 +94,8 @@ async def produce_solution(
 ):
     if repo_dir != "none":
         parsed_file_list = parse_obj_as(List[str], file_list.split(','))
-        return await produce_solution_service(user_prompt, parsed_file_list, repo_dir, new_branch_name, agent_responses, "", flow)
+        return await produce_solution_service(user_prompt, parsed_file_list, repo_dir, new_branch_name, agent_responses,
+                                              "", flow)
     return await no_repo_produce_solution(user_prompt, file_list, agent_responses, code)
 
 
@@ -109,11 +110,13 @@ async def diff(
 async def push(
         bg_task: BackgroundTasks,
         commit_message: str = Form(default="Commit by Digital Staff"),
-        repo_dir: str = Form(description="The repo directory as stored in efs/repos/<repo>")
+        repo_dir: str = Form(description="The repo directory as stored in efs/repos/<repo>"),
+        new_branch_name: str = Form(default=default_new_branch, description="The branch to push into.")
 ):
-    push_status = await add_commit_push(commit_message, repo_dir)
+    push_status = await git_add_commit_push(repo_dir, commit_message, branch=new_branch_name)
     # bg_task.add_task(delete_folder, repo_dir)
     return push_status
+
 
 @tasks.post("/build_test")
 async def build_test(final_artifact: CodeFileList):
