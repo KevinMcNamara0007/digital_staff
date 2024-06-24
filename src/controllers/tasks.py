@@ -1,7 +1,9 @@
 from typing import List
-from fastapi import APIRouter, Form, BackgroundTasks
+from fastapi import APIRouter, Form, BackgroundTasks, UploadFile, File
 from pydantic import parse_obj_as
 from src.models.request_models import CodeFileList
+from src.services.no_repo_tasks import manager_development_base_service, no_repo_agent_task_service, \
+    no_repo_produce_solution
 from src.services.tasks import (
     get_repo_service,
     create_plan_service,
@@ -51,9 +53,13 @@ async def manager_plan(
         new_branch_name: str = Form(default=default_new_branch,
                                     description="Name for the new branch where changes will be reflected."),
         flow: str = Form(default=default_flow, description="Automated process flow yes/no"),
-        repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder")
+        repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder"),
+        file: UploadFile = File(default=None, description="The file attached")
 ):
-    return await create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow)
+    if file_list != "none":
+        return await create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow)
+    else:
+        return await manager_development_base_service(user_prompt, file)
 
 
 @tasks.post("/agent_task")
@@ -65,11 +71,14 @@ async def agent_tasks(
                                     description="Name for the new branch where changes will be reflected."),
         flow: str = Form(default=default_flow, description="Automated process flow yes/no"),
         repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder"),
-        agent_responses: str = Form(default=default_agent_responses, description="Agent responses")
+        agent_responses: str = Form(default=default_agent_responses, description="Agent responses"),
+        code: str = Form(default="", description="Generated Code If there is no repo")
 ):
-    parsed_file_list = parse_obj_as(List[str], file_list.split(','))
-    return await agent_task_service(agent_task, user_prompt, parsed_file_list, repo_dir, new_branch_name, "",
+    if repo_dir != "none":
+        parsed_file_list = parse_obj_as(List[str], file_list.split(','))
+        return await agent_task_service(agent_task, user_prompt, parsed_file_list, repo_dir, new_branch_name, "",
                                     agent_responses, flow)
+    return await no_repo_agent_task_service(agent_task, agent_responses, code)
 
 
 @tasks.post("/produce_solution")
@@ -80,11 +89,13 @@ async def produce_solution(
                                     description="Name for the new branch where changes will be reflected."),
         flow: str = Form(default=default_flow, description="Automated process flow yes/no"),
         repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder"),
-        agent_responses: str = Form(default=default_agent_responses, description="Agent responses")
+        agent_responses: str = Form(default=default_agent_responses, description="Agent responses"),
+        code: str = Form(default="", description="Generated Code If there is no repo")
 ):
-    parsed_file_list = parse_obj_as(List[str], file_list.split(','))
-    return await produce_solution_service(user_prompt, parsed_file_list, repo_dir, new_branch_name, agent_responses, "",
-                                          flow)
+    if repo_dir != "none":
+        parsed_file_list = parse_obj_as(List[str], file_list.split(','))
+        return await produce_solution_service(user_prompt, parsed_file_list, repo_dir, new_branch_name, agent_responses, "", flow)
+    return await no_repo_produce_solution(user_prompt, file_list, agent_responses, code)
 
 
 @tasks.post("/show_diff")
@@ -103,7 +114,6 @@ async def push(
     push_status = await add_commit_push(commit_message, repo_dir)
     # bg_task.add_task(delete_folder, repo_dir)
     return push_status
-
 
 @tasks.post("/build_test")
 async def build_test(final_artifact: CodeFileList):

@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import json
 import requests
 from fastapi import HTTPException
@@ -49,7 +50,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         response = json.loads(response)
     except json.JSONDecodeError as exc:
         print(f'Could not parse String Into JSON ERROR. Will Remove all formatting: {exc}')
-        response = response.replace('\\n', '').replace('\\', '')
+        response = response.replace('\n', '').replace('\\', '')
         try:
             response = json.loads(response)
         except json.JSONDecodeError:
@@ -79,3 +80,29 @@ def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
 
 async def customized_response(prompt):
     return await call_openai(prompt, model="gpt-4o")
+
+def encode_image(image):
+    return base64.b64encode(image.file.read()).decode('utf-8')
+
+async def image_to_text(prompt, image):
+    base64_image = encode_image(image)
+    client = OpenAI(api_key=openai_key)
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}",
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=2000,
+    )
+    return response.choices[0].message.content

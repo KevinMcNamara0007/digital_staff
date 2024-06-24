@@ -19,7 +19,7 @@
             <label>
                 <input id="branch" type="text" title="Repo Branch" placeholder="Enter your branch here"/>
             </label>
-            <button onclick="digitalAgentAPI()">Continue</button>
+            <button onclick="hideRepo()">Continue</button>
         </div>
     </div>
     <div id="popup" class="popup">
@@ -51,15 +51,28 @@
             <div id="5" class="step" onclick="loadAgent('agent5', 5)"> Agent 5 </div>
             <div id="6" class="step" onclick="loadAgent('agent6', 6)"> Agent 6 </div>
             <div id="final" class="step" onclick="loadSolution()"> Solution </div>
+            <div id="progPlan" class="container"><div class="progress progress-striped"><div id="progressBarPlan" class="progress-bar2"></div></div></div>
+            <div id="prog1" class="container"><div class="progress progress-striped"><div id="progressBar1" class="progress-bar2"></div></div></div>
+            <div id="prog2" class="container"><div class="progress progress-striped"><div id="progressBar2" class="progress-bar2"></div></div></div>
+            <div id="prog3" class="container"><div class="progress progress-striped"><div id="progressBar3" class="progress-bar2"></div></div></div>
+            <div id="prog4" class="container"><div class="progress progress-striped"><div id="progressBar4" class="progress-bar2"></div></div></div>
+            <div id="prog5" class="container"><div class="progress progress-striped"><div id="progressBar5" class="progress-bar2"></div></div></div>
+            <div id="prog6" class="container"><div class="progress progress-striped"><div id="progressBar6" class="progress-bar2"></div></div></div>
+            <div id="progFinal" class="container"><div class="progress progress-striped"><div id="progressBarFinal" class="progress-bar2"></div></div></div>
         </div>
         <div class="blocks" id="codeBlocks">
 
         </div>
         <div class="promptContainer">
+            <div onclick="showRepoSettings()"><img title="Git Repo Settings" class="gitRepo" src="./images/gitIcon.svg"/></div>
             <label>
                 <input id="instruction" type="text" title="instruction" placeholder="Enter your instructions here"/>
             </label>
-            <button onclick="showRepoSettings()"><img alt="search" src="./images/arrowIcon.svg"/></button>
+            <label class="diagramImage" title="Diagram or Flowchart Image">
+                <img alt="input image" src="./images/flowChartIcon.svg"/>
+                <input id="image" type="file" accept="image/png, image/gif, image/jpeg"/>
+            </label>
+            <button class="searchImage" onclick="flowChecker()"><img alt="search" src="./images/arrowIcon.svg"/></button>
         </div>
     </div>
 </body>
