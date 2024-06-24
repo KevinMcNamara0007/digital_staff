@@ -76,7 +76,7 @@ function digitalAgentAPI(){
     formData.append("user_prompt", instruction);
     formData.append("https_clone_link", document.getElementById("repo").value);
     formData.append("original_code_branch", document.getElementById("branch").value);
-    formData.append("new_branch_name", document.getElementById("branch").value);
+    formData.append("new_branch_name", document.getElementById("newBranch").value);
     formData.append("flow", "no")
 
     // Call API
