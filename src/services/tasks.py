@@ -13,6 +13,7 @@ from src.utilities.git import (
     checkout_and_rebranch,
     repo_file_list,
     show_file_contents, show_repo_changes, add_changes_to_branch, commit_repo_changes, push_changes_to_repo,
+    check_git_status,
 )
 from src.utilities.cli import cmd_popen, cmd_run
 from src.utilities.inference2 import (
@@ -138,6 +139,7 @@ async def run_pytest_and_analyze(repo_dir, path_to_python_exec):
         'unknown_packages': unknown_packages,
     }
     return results
+
 
 def parse_pytest_output(output):
     """
@@ -308,8 +310,54 @@ async def show_all_changes(final_artifact):
     await add_files_to_local_repo(final_artifact.produced_code, final_artifact.repo_dir)
     return await show_repo_changes(final_artifact.repo_dir)
 
-async def add_commit_push(commit_message, repo_dir):
-    await add_changes_to_branch(repo_dir)
-    await commit_repo_changes(repo_dir, commit_message)
-    return await push_changes_to_repo(repo_dir)
 
+async def git_add_commit_push(repo_dir, commit_message, branch='main', remote='origin'):
+    """
+    Adds, commits, and pushes changes to a cloned repository.
+
+    :param repo_dir: Directory of the cloned repository.
+    :param commit_message: Commit message for the changes.
+    :param branch: Branch to push the changes to (default is 'main').
+    :param remote: Remote to push the changes to (default is 'origin').
+    """
+    results = {}
+    try:
+        # Ensure the repository directory exists
+        if not os.path.isdir(repo_dir):
+            raise RuntimeError(f"Repository directory '{repo_dir}' does not exist.")
+
+        # Ensure that the repo_dir is an absolute path
+        repo_dir = os.path.abspath(repo_dir)
+
+        # Step 1: Check git status before running add command
+        stdout, stderr_output = await cmd_popen(repo_dir, "git status", shelled=True, stderr=True)
+        results['status'] = {'stdout': stdout, 'stderr': stderr_output}
+        print("Git status checked.")
+        if stderr_output:
+            raise RuntimeError(f"Git status check failed: {stderr_output}")
+
+        # Step 2: Add files to the staging area, forcing addition of ignored files
+        stdout, stderr_output = await cmd_popen(repo_dir, "git add -f .", shelled=True, stderr=True)
+        results['add'] = {'stdout': stdout, 'stderr': stderr_output}
+        print("Files added to the staging area.")
+        if stderr_output:
+            raise RuntimeError(f"Add failed: {stderr_output}")
+
+        # Step 3: Commit the changes
+        stdout, stderr_output = await cmd_popen(repo_dir, f'git commit -m "{commit_message}"', shelled=True, stderr=True)
+        results['commit'] = {'stdout': stdout, 'stderr': stderr_output}
+        print("Changes committed.")
+        if stderr_output:
+            raise RuntimeError(f"Commit failed: {stderr_output}")
+
+        # Step 4: Push the changes
+        stdout, stderr_output = await cmd_popen(repo_dir, f'git push {remote} {branch}', shelled=True, stderr=True)
+        results['push'] = {'stdout': stdout, 'stderr': stderr_output}
+        print("Changes pushed to the remote repository.")
+        if stderr_output:
+            raise RuntimeError(f"Push failed: {stderr_output}")
+    except RuntimeError as e:
+        print(f"Error during git operations: {e}")
+        results['error'] = str(e)
+
+    return results
