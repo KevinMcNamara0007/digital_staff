@@ -229,7 +229,7 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
     bottom: 0;
     & .steps{
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         height: 60px;
         & .step{
             display: flex;
