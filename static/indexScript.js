@@ -247,6 +247,7 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, inde
 }
 
 async function getFinalSolution(prevFormData, code){
+    $("#image").val(null)
     prevFormData.append("agent_responses", previousAgentResponse)
 
     document.getElementById("final").className = "step";
@@ -407,6 +408,12 @@ const clearHistory = () => {
     //Clear Response DIV
     document.getElementById("codeBlocks").innerHTML = "";
     document.getElementById("sessions").innerHTML = '<h3>Sessions</h3>';
+    // Clear All Input Values
+    document.getElementById("instruction").value = "";
+    document.getElementById("repo").value = "";
+    document.getElementById("branch").value = "";
+    document.getElementById("newBranch").value = "";
+    $("#image").val(null)
 }
 
 const hideAll = () => {
