@@ -5,6 +5,8 @@ let active = 0;
 let current = -1;
 let repo = false;
 let running = false;
+let activeList = [];
+let activeRepo = [];
 
 window.onload = function () {
     hideAll();
@@ -288,6 +290,10 @@ async function getFinalSolution(prevFormData, code){
                 console.log(history)
                 localStorage.setItem("digitalHistory", JSON.stringify(history));
                 document.getElementById("progressBarFinal").className = "progress-bar2";
+                //Show Differences
+                if(prevFormData.get("repo_dir") !== "none"){
+                    displayDifferences(prevFormData, data)
+                }
             }else{
                 document.getElementById("progressBarFinal").className = "progress-bar3";
                 //Clear Response DIV
@@ -313,6 +319,42 @@ async function getFinalSolution(prevFormData, code){
         displayAlert("Error on Final Solution")
     })
     running = false;
+}
+
+
+async function displayDifferences(prevFormData, code){
+
+    document.getElementById("differences").className = "step";
+    document.getElementById("progDifferences").style.display = "block";
+    document.getElementById("progressBarDifferences").className = "progress-bar";
+
+    await fetch("/Tasks/show_diff", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({"repo_dir": prevFormData.get("repo_dir"), "produced_code": code})
+    }).then(async response => {
+        console.log(response)
+        if (!response.ok) {
+            displayAlert("Error on Comparison")
+            document.getElementById("progressBarDifferences").className = "progress-bar3";
+        }else{
+            document.getElementById("progressBarDifferences").className = "progress-bar2";
+            const jsonResponse = await response.json();
+            console.log(jsonResponse)
+            //Clear Response DIV
+            document.getElementById("codeBlocks").innerHTML = "";
+            // Create new element to display
+            let element = document.createElement('div')
+            element.className = "response";
+            element.innerHTML =  '<div class="title">Code Comparison ' + '</div>' + '<div class="agentAnswer">' + await jsonResponse + '</div>';
+            document.getElementById("codeBlocks").appendChild(element)
+        }
+    }).catch(error =>{
+        document.getElementById("progressBarDifferences").className = "progress-bar3";
+        displayAlert("Compare Task has failed")
+    })
 }
 
 
@@ -425,6 +467,7 @@ const hideAll = () => {
     document.getElementById("4").className = "hideStep";
     document.getElementById("5").className = "hideStep";
     document.getElementById("final").className = "hideStep";
+    document.getElementById("differences").className = "hideStep";
     document.getElementById("progPlan").style.display = "none";
     document.getElementById("prog1").style.display = "none";
     document.getElementById("prog2").style.display = "none";
@@ -432,6 +475,7 @@ const hideAll = () => {
     document.getElementById("prog4").style.display = "none";
     document.getElementById("prog5").style.display = "none";
     document.getElementById("progFinal").style.display = "none";
+    document.getElementById("progDifferences").style.display = "none";
 }
 const showAll = () => {
     document.getElementById("plan").className = "step";

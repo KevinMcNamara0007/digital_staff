@@ -229,7 +229,7 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
     bottom: 0;
     & .steps{
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
+        grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr;
         height: 60px;
         & .step{
             display: flex;
@@ -664,3 +664,11 @@ svg.checkbox .is_unchecked{
         stroke: var(--light-black);
     }
 }
+
+.diff { font-family: monospace; white-space: pre; }
+.diff-header { font-weight: bold; }
+.diff-index { font-weight: bold; }
+.diff-file { font-weight: bold; }
+.diff-hunk { color: #36f; }
+.diff-added { color: #2e8b57; }
+.diff-removed { color: #a52a2a; }

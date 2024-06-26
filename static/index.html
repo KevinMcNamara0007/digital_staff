@@ -7,6 +7,13 @@
     <link rel="stylesheet" href="loader.css" />
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="indexScript.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"></script>
+    <link
+            rel="stylesheet"
+            type="text/css"
+            href="https://cdn.jsdelivr.net/npm/diff2html/bundles/css/diff2html.min.css"
+    />
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/diff2html/bundles/js/diff2html-ui.min.js"></script>
 </head>
 <body>
     <div id="repoSettings" class="repoSettingsPopup">
@@ -64,6 +71,7 @@
             <div id="4" class="step" onclick="loadAgent('agent4', 4)"> Agent 4 </div>
             <div id="5" class="step" onclick="loadAgent('agent5', 5)"> Agent 5 </div>
             <div id="final" class="step" onclick="loadSolution()"> Solution </div>
+            <div id="differences" class="step">Differences</div>
             <div id="progPlan" class="container"><div class="progress progress-striped"><div id="progressBarPlan" class="progress-bar2"></div></div></div>
             <div id="prog1" class="container"><div class="progress progress-striped"><div id="progressBar1" class="progress-bar2"></div></div></div>
             <div id="prog2" class="container"><div class="progress progress-striped"><div id="progressBar2" class="progress-bar2"></div></div></div>
@@ -71,6 +79,7 @@
             <div id="prog4" class="container"><div class="progress progress-striped"><div id="progressBar4" class="progress-bar2"></div></div></div>
             <div id="prog5" class="container"><div class="progress progress-striped"><div id="progressBar5" class="progress-bar2"></div></div></div>
             <div id="progFinal" class="container"><div class="progress progress-striped"><div id="progressBarFinal" class="progress-bar2"></div></div></div>
+            <div id="progDifferences" class="container"><div class="progress progress-striped"><div id="progressBarDifferences" class="progress-bar2"></div></div></div>
         </div>
         <div class="blocks" id="codeBlocks">
 
