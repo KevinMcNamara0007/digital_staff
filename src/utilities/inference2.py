@@ -58,13 +58,14 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     return response
 
 async def call_openai(prompt, model="gpt-4o"):
-    client = OpenAI(api_key=openai_key)
-    response = await asyncio.to_thread(client.chat.completions.create,
-                                       model=model,
-                                       messages=[{"role": "user", "content": prompt}])
-    return response.choices[0].message.content
+    await call_llm(prompt)
+    # client = OpenAI(api_key=openai_key)
+    # response = await asyncio.to_thread(client.chat.completions.create,
+    #                                    model=model,
+    #                                    messages=[{"role": "user", "content": prompt}])
+    # return response.choices[0].message.content
 
-def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
+async def call_llm(prompt, rules=" ", url=llm_url):
     try:
         response = requests.post(
             url,
@@ -74,7 +75,7 @@ def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
             }
         )
         response.raise_for_status()  # Ensure we raise an error for bad responses
-        return response.json()["choices"][0]["message"]["content"]
+        return await response.json()["choices"][0]["message"]["content"]
     except requests.RequestException as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
