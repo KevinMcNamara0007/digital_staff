@@ -231,8 +231,13 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, inde
             // Update current history
             console.log(index)
             history[current]["agent" + (index)] = jsonResponse;
-            // Update Agent LOG
-            previousAgentResponse = previousAgentResponse + "{" + jsonResponse + "}"
+            if(index === 4){
+                // Update Agent LOG
+                previousAgentResponse = "{" + jsonResponse + "}"
+            }else{
+                // Update Agent LOG
+                previousAgentResponse = previousAgentResponse + "{" + jsonResponse + "}"
+            }
             return jsonResponse;
         }
     }).catch(error =>{
