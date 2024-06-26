@@ -18,7 +18,6 @@ def manager_development_agent_prompts(user_prompt, assets, software_type):
 
 async def agent_task(task, responses, code):
     print(f"Agent Task: {task}")
-    print(f"Agent Response Token Amount: {check_token_count(responses)}")
     prompt = (
         f"Instructions:\n"
         f"1. This is your task: {task}.\n"
@@ -26,8 +25,10 @@ async def agent_task(task, responses, code):
         f"3. If your task requires original code, use these files and their code as reference: {code}.\n"
         f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE."
     )
-    print(f"Token Amount: {check_token_count(prompt)}")
-    return await call_openai(prompt)
+    print(f"Agent Input Token Amount: {check_token_count(prompt)}")
+    response = await call_openai(prompt)
+    print(f"Agent Output Token Amount: {check_token_count(response)}")
+    return response
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
     prompt = (
