@@ -69,10 +69,7 @@ async def call_llm(prompt, rules=" ", url=llm_url):
     try:
         response = requests.post(
             url,
-            json={
-                "prompt": [{"role": "system", "content": rules}, {"role": "user", "content": prompt}],
-                "temperature": 0.05
-            }
+            data={"prompt": prompt}
         )
         response.raise_for_status()  # Ensure we raise an error for bad responses
         return await response.json()["choices"][0]["message"]["content"]
