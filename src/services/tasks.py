@@ -306,25 +306,26 @@ async def add_files_to_local_repo(code_files, repo_dir):
 async def show_all_changes(final_artifact):
     await add_files_to_local_repo(final_artifact.produced_code, final_artifact.repo_dir)
     changes = await show_repo_changes(final_artifact.repo_dir)
-    print(changes)
     clean_changes = re.sub(r'\x1b\[.*?m', '', changes)
-    files = clean_changes.split('No newline at end of file')
+    files = clean_changes.split('\\No newline at end of file')
+    html_output = ''
     for file in files:
-        html_output = ''
         lines = file.split("\n")
         for line in lines:
-            if "diff --git" in line:
-                html_output += f'<div class="diff-header">{line}</div>\n'
+                if "diff --git" in line:
+                    html_output += f'<div class="diff-header">{line}</div>\n'
                 if "index" in line:
                     html_output += f'<div class="diff-index">{line}</div>\n'
-                elif "---" in line or "+++" in line:
-                    html_output += f'<div class="diff-file">{line}</div>\n'
+                elif "---" in line:
+                    html_output += f'<div class="diff-file left">{line}</div>\n'
+                elif "+++" in line:
+                    html_output += f'<div class="diff-file right">{line}</div>\n'
                 elif "@@" in line:
                     html_output += f'<div class="diff-hunk">{line}</div>\n'
                 elif line.startswith('+') and not line.startswith('+++'):
-                    html_output += f'<div class="diff-added">{line}</div>\n'
+                    html_output += f'<span class="diff-added right">{line}</span>\n'
                 elif line.startswith('-') and not line.startswith('---'):
-                    html_output += f'<div class="diff-removed">{line}</div>\n'
+                    html_output += f'<span class="diff-removed left">{line}</span>\n'
                 else:
                     html_output += f'<div>{line}</div>\n'
     return html_output

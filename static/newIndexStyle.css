@@ -108,6 +108,16 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
             background: var(--lighter-black);
             box-shadow: rgb(73, 73, 73) 0px 0px 10px -12px inset, rgb(105, 105, 105) 0px 2px 36px -18px inset;
             & .response{
+                & .diff { font-family: monospace; white-space: pre; }
+                & .diff-header { font-weight: bold; color: var(--white); }
+                & .diff-index { font-weight: bold; color: var(--blue)}
+                & .diff-file { font-weight: bold; color: var(--white)}
+                & .diff-hunk { color: #36f; }
+                & .diff-added { color: #4dff97; }
+                & .diff-removed { color: #ff5050; }
+                & .right{position: relative; float: right; text-align: right;}
+                & .right{position: relative; float: left; text-align: left;}
+                & div{color: white;}
                 & .answer{
                     color: var(--white);
                 }
@@ -282,6 +292,16 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
             background: var(--light-gray);
         }
         & .response{
+            & .diff { font-family: monospace; white-space: pre; }
+            & .diff-header { font-weight: bold; }
+            & .diff-index { font-weight: bold; }
+            & .diff-file { font-weight: bold; }
+            & .diff-hunk { color: #36f; }
+            & .diff-added { color: #2e8b57; }
+            & .diff-removed { color: #a52a2a; }
+            & .right{position: relative; float: right; text-align: right;}
+            & .right{position: relative; float: left; text-align: left;}
+
             & .title{
                 color: var(--blue) !important;
                 font-weight: 600 !important;
@@ -664,11 +684,3 @@ svg.checkbox .is_unchecked{
         stroke: var(--light-black);
     }
 }
-
-.diff { font-family: monospace; white-space: pre; }
-.diff-header { font-weight: bold; }
-.diff-index { font-weight: bold; }
-.diff-file { font-weight: bold; }
-.diff-hunk { color: #36f; }
-.diff-added { color: #2e8b57; }
-.diff-removed { color: #a52a2a; }

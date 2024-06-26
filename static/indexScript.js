@@ -33,7 +33,9 @@ function flowChecker(){
             "agent3": "loader",
             "agent4": "loader",
             "agent5": "loader",
-            "solution": []
+            "solution": [],
+            "repo_dir": null,
+            "differences": ""
         }
         history.push(object)
 
@@ -102,7 +104,9 @@ function digitalAgentAPI(){
             "agent3": "loader",
             "agent4": "loader",
             "agent5": "loader",
-            "solution": []
+            "solution": [],
+            "repo_dir": data.repo_dir,
+            "differences": ""
         }
         history.push(object)
 
@@ -292,7 +296,7 @@ async function getFinalSolution(prevFormData, code){
                 document.getElementById("progressBarFinal").className = "progress-bar2";
                 //Show Differences
                 if(prevFormData.get("repo_dir") !== "none"){
-                    displayDifferences(prevFormData, data)
+                    displayDifferences(prevFormData.get("repo_dir"), data)
                 }
             }else{
                 document.getElementById("progressBarFinal").className = "progress-bar3";
@@ -322,7 +326,7 @@ async function getFinalSolution(prevFormData, code){
 }
 
 
-async function displayDifferences(prevFormData, code){
+async function displayDifferences(repo_dir, code){
 
     document.getElementById("differences").className = "step";
     document.getElementById("progDifferences").style.display = "block";
@@ -333,7 +337,7 @@ async function displayDifferences(prevFormData, code){
         headers: {
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({"repo_dir": prevFormData.get("repo_dir"), "produced_code": code})
+        body: JSON.stringify({"repo_dir": repo_dir, "produced_code": code})
     }).then(async response => {
         console.log(response)
         if (!response.ok) {
@@ -343,6 +347,8 @@ async function displayDifferences(prevFormData, code){
             document.getElementById("progressBarDifferences").className = "progress-bar2";
             const jsonResponse = await response.json();
             console.log(jsonResponse)
+            history[current].differences = await jsonResponse;
+            localStorage.setItem("digitalHistory", JSON.stringify(history));
             //Clear Response DIV
             document.getElementById("codeBlocks").innerHTML = "";
             // Create new element to display
@@ -448,6 +454,7 @@ const loadSolution = () => {
 const clearHistory = () => {
     localStorage.removeItem("digitalHistory");
     history = [];
+    hideAll();
     //Clear Response DIV
     document.getElementById("codeBlocks").innerHTML = "";
     document.getElementById("sessions").innerHTML = '<h3>Sessions</h3>';
@@ -485,6 +492,7 @@ const showAll = () => {
     document.getElementById("4").className = "step";
     document.getElementById("5").className = "step";
     document.getElementById("final").className = "step";
+    document.getElementById("differences").className = "step";
     document.getElementById("progPlan").style.display = "block";
     document.getElementById("prog1").style.display = "block";
     document.getElementById("prog2").style.display = "block";
@@ -492,6 +500,7 @@ const showAll = () => {
     document.getElementById("prog4").style.display = "block";
     document.getElementById("prog5").style.display = "block";
     document.getElementById("progFinal").style.display = "block";
+    document.getElementById("progDifferences").style.display = "block";
 }
 
 const hideRepo = () => {
@@ -500,4 +509,13 @@ const hideRepo = () => {
 
 const toggleLightDarkMode = () => {
     document.body.classList.toggle("darkModeBoth");
+}
+
+const showDifferences = () => {
+    document.getElementById("codeBlocks").innerHTML = "";
+    // Create new element to display
+    let element = document.createElement('div')
+    element.className = "response";
+    element.innerHTML =  '<div class="title">Code Comparison ' + '</div>' + '<div class="agentAnswer">' + history[active].differences + '</div>';
+    document.getElementById("codeBlocks").appendChild(element);
 }
