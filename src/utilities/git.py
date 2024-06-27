@@ -50,7 +50,7 @@ async def show_file_contents(version, file_path, repo_dir):
 async def show_repo_changes(repo_dir):
     stdout, stderr = await cmd_popen(
         repo_dir=repo_dir,
-        command_to_run="git diff --color-words"
+        command_to_run="git diff"
     )
     return stdout or stderr
 
