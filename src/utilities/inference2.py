@@ -44,7 +44,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
     response = await call_openai(prompt, model="gpt-4-0125-preview")
     print(f"Final solution OUTPUT: {check_token_count(response)}")
-    response = response.replace('"""', '').replace("```", '').replace('json', '')
+    response = response.replace('"""', '').replace("```json", '').replace("```", '')
     try:
         response = json.loads(response)
         response = await create_unit_tests(response)
@@ -73,7 +73,7 @@ async def create_unit_test_for_file(file):
         print(f"UNIT TEST CREATION FOR:\n{file.get('FILE_NAME')}\nINPUT TOKEN AMOUNT: {check_token_count(prompt)}")
         response = await call_openai(prompt, "gpt-4o")
         print(f"OUTPUT TOKEN AMOUNT: {check_token_count(response)}")
-        response = response.replace('"""', '').replace("```", '').replace('json', '')
+        response = response.replace('"""', '').replace("```json", '').replace("```", '')
         try:
             response = json.loads(response)
             return response

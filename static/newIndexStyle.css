@@ -111,12 +111,13 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
                 & .diff { font-family: monospace; white-space: pre; }
                 & .diff-header { font-weight: bold; color: var(--white); }
                 & .diff-index { font-weight: bold; color: var(--blue)}
-                & .diff-file { font-weight: bold; color: var(--white)}
+                & .diff-file-left { color: #4dff97;  font-weight: bold; display: flex; text-align: start; justify-content: start; }
+                & .diff-file-right { color: #ff5050; font-weight: bold; display: flex; text-align: end; justify-content: end;}
                 & .diff-hunk { color: #36f; }
                 & .diff-added { color: #4dff97; }
                 & .diff-removed { color: #ff5050; }
-                & .right{position: relative; float: right; text-align: right;}
-                & .right{position: relative; float: left; text-align: left;}
+                & .right{}
+                & .left{}
                 & div{color: white;}
                 & .answer{
                     color: var(--white);
@@ -295,12 +296,13 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
             & .diff { font-family: monospace; white-space: pre; }
             & .diff-header { font-weight: bold; }
             & .diff-index { font-weight: bold; }
-            & .diff-file { font-weight: bold; }
+            & .diff-file-left { font-weight: bold; display: flex; text-align: start; justify-content: start; }
+            & .diff-file-right { font-weight: bold; display: flex; text-align: end; justify-content: end;}
             & .diff-hunk { color: #36f; }
-            & .diff-added { color: #2e8b57; }
-            & .diff-removed { color: #a52a2a; }
-            & .right{position: relative; float: right; text-align: right;}
-            & .right{position: relative; float: left; text-align: left;}
+            & .diff-added { color: #2e8b57; display: flex; text-align: start; justify-content: start; }
+            & .diff-removed { color: #a52a2a; display: flex; text-align: end; justify-content: end;}
+            & .right{}
+            & .right{}
 
             & .title{
                 color: var(--blue) !important;
