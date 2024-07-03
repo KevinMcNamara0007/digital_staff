@@ -208,13 +208,13 @@ function managerTasksAPI(prevData, files, directory){
 let previousAgentResponse = "";
 let prevAgentLists = []
 async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, index, code){
-    prevFormData.append("agent_task", agentTask)
+    prevFormData.set("agent_task", agentTask)
     if(history[current].big_repo === true){
         prevFormData.set("agent_responses", JSON.stringify(prevAgentLists))
     }else{
-        prevFormData.append("agent_responses", agentResponses)
+        prevFormData.set("agent_responses", agentResponses)
     }
-    prevFormData.append("code", code)
+    prevFormData.set("code", code)
 
     document.getElementById(index.toString()).className = "step";
     document.getElementById("prog"+index).style.display = "block";
