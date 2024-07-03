@@ -1,11 +1,12 @@
 import os
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import platform
 import re
 import uuid
 from importlib import metadata
 import aiohttp
-from src.utilities.general import file_filter, accepted_code_file_extensions, cleanup_cloned_repo
+from src.utilities.general import file_filter, accepted_code_file_extensions, cleanup_cloned_repo, check_token_count
 from src.utilities.git import (
     clone_repo,
     check_current_branch,
@@ -18,7 +19,7 @@ from src.utilities.inference2 import (
     manager_development_agent_prompts,
     agent_task,
     produce_final_solution,
-    customized_response, call_openai,
+    customized_response, call_openai, compile_agent_code, produce_final_solution_for_large_repo,
 )
 
 
@@ -29,14 +30,23 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
         await checkout_and_rebranch(new_branch_name, original_code_branch, repo_dir)
     file_list = file_filter(await repo_file_list(repo_dir))
     # GET SPECIFIC FILES FROM LIST BASED ON USER_PROMPT
-    prompt = (f"Instructions: 1. RESPOND WITH ONLY USING THE FILES NEEDED TO COMPLETE THE USER ASK: {user_prompt}."
-              f"2. RESPOND ONLY IN FORMAT: filename1,filename2,filename3 ."
-              f"3. THESE ARE THE FILES RELEVANT TO THE ASK: {await get_all_code(file_list, repo_dir, new_branch_name)}.")
-    file_list = await call_openai(prompt)
+    required_files = []
+    for file in file_list:
+        file_code = await get_code(file, repo_dir, new_branch_name)
+        prompt = ("INSTRUCTIONS:"
+                  f"1. You are an expert programmer. \n"
+                  f"2. You will determine if this file is relevant"
+                  f"3. The user ask will assist you in determining the files relevancy to the prompt: {user_prompt}.\n"
+                  f"3. YOU WILL ONLY RESPOND WITH 'YES' IF IT IS Relevant, OR 'NO' IF IT IS NOT relevant.\n "
+                  f"4. A file is relevant if you can add code to fulfill the task. Here is the code related to the file: {file_code}")
+        response = await call_openai(prompt)
+        print(f"File: {file} , needed: {response}")
+        if 'YES' in response:
+            required_files.append(file)
     # API FLOW
     if flow == "y":
-        return await create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow)
-    return {"user_prompt": user_prompt, "files": file_list, "repo_dir": repo_dir}
+        return await create_plan_service(user_prompt, required_files, repo_dir, new_branch_name, flow)
+    return {"user_prompt": user_prompt, "files": required_files, "repo_dir": repo_dir}
 
 
 async def create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow="n"):
@@ -67,7 +77,41 @@ async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_
     if flow == "y":
         return await agent_task(task, response, code)
     all_code = await get_all_code(file_list, repo_dir, new_branch_name)
-    return await agent_task(task, response, all_code)
+    print(f"Total Code Token Count: {check_token_count(all_code)}")
+    if check_token_count(all_code) < 2000:
+        shot1, shot2 = await asyncio.gather(
+            agent_task(task, response, all_code),
+            agent_task(task, response, all_code)
+        )
+        compiled_code = await compile_agent_code(task, shot1, shot2, all_code)
+        return {"agent_response": compiled_code}
+    print(f"Token Count exceeds maximum, going to per file approach")
+    return await agent_task_per_file(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", flow="n")
+
+
+async def process_file(task, file, repo_dir, new_branch_name, response):
+    file_code = await get_code(file, repo_dir, new_branch_name)
+    shot1, shot2 = await asyncio.gather(
+        agent_task(task, response, file_code),
+        agent_task(task, response, file_code)
+    )
+    compiled_code = await compile_agent_code(task, shot1, shot2, file_code)
+    print(f"File: {file}  completed.")
+    return {"FILE_NAME": file, "FILE_CODE": compiled_code}
+
+
+async def agent_task_per_file(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", flow="n"):
+    tasks = [
+        process_file(task, file, repo_dir, new_branch_name, response)
+        for file in file_list
+    ]
+    file_code_list = await asyncio.gather(*tasks)
+    return {"agent_response_list": file_code_list}
+
+
+async def get_code(file, repo_dir, new_branch_name):
+    code = await show_file_contents(new_branch_name, file, repo_dir)
+    return f"### *File Name: {file}* *File Code: {code}*###"
 
 
 async def get_all_code(file_list, repo_dir, new_branch_name):
@@ -77,14 +121,15 @@ async def get_all_code(file_list, repo_dir, new_branch_name):
 
 
 async def get_software_type(assets):
-    prompt = f"Respond only with the type of developer made these files {assets}"
+    prompt = f"Respond only with the type of developer that made these files {assets}"
     return await customized_response(prompt)
 
 
-async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, agent_responses, code="",
-                                   flow="n"):
+async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, agent_responses, code="", flow="n"):
     if not code:
         code = await get_all_code(file_list, repo_dir, new_branch_name)
+        if check_token_count(code) > 2000:
+            return await produce_final_solution_for_large_repo(user_prompt, file_list, agent_responses, code)
     return await produce_final_solution(user_prompt, file_list, agent_responses, code)
 
 
@@ -309,6 +354,7 @@ async def show_all_changes(final_artifact):
     clean_changes = re.sub(r'\x1b\[.*?m', '', changes)
     files = clean_changes.split('No newline at end of file')
     html_output = ''
+    print(files)
     for file in files:
         lines = file.split("\n")
         for line in lines:

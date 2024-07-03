@@ -1,7 +1,7 @@
 let history = localStorage.getItem("digitalHistory")
     ? JSON.parse(localStorage.getItem("digitalHistory"))
     : [];
-let active = 0;
+let active = -1;
 let current = -1;
 let repo = false;
 let running = false;
@@ -48,7 +48,6 @@ function flowChecker(){
         document.getElementById("sessions").appendChild(element)
 
         changeActive(current);
-        active = history.length;
         running = true;
 
         // Empty Response Div
@@ -93,7 +92,6 @@ function digitalAgentAPI(){
         }
         return response.json();
     }).then(data => {
-        active = history.length;
         current = history.length;
         // new history object
         let object = {
@@ -106,6 +104,7 @@ function digitalAgentAPI(){
             "agent5": "loader",
             "solution": [],
             "repo_dir": data.repo_dir,
+            "big_repo": false,
             "differences": ""
         }
         history.push(object)
@@ -207,9 +206,15 @@ function managerTasksAPI(prevData, files, directory){
 }
 
 let previousAgentResponse = "";
+let prevAgentLists = []
 async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, index, code){
     prevFormData.append("agent_task", agentTask)
-    prevFormData.append("agent_responses", agentResponses)
+    if(history[current].big_repo === true){
+        console.log(prevAgentLists)
+        prevFormData.append("agent_responses", prevAgentLists)
+    }else{
+        prevFormData.append("agent_responses", agentResponses)
+    }
     prevFormData.append("code", code)
 
     document.getElementById(index.toString()).className = "step";
@@ -227,22 +232,46 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, inde
         }else{
             document.getElementById("progressBar"+index).className = "progress-bar2";
             const jsonResponse = await response.json();
-            //Clear Response DIV
-            document.getElementById("codeBlocks").innerHTML = "";
-            // Create new element to display
-            let element = document.createElement('div')
-            element.className = "response";
-            element.innerHTML =  '<div class="title">Agent ' + (index) +'</div>' + '<div class="agentAnswer '+ (index+1) + '">' + await jsonResponse + '</div>';
-            document.getElementById("codeBlocks").appendChild(element)
-            // Update current history
-            console.log(index)
-            history[current]["agent" + (index)] = jsonResponse;
-            if(index === 4){
-                // Update Agent LOG
-                previousAgentResponse = "{" + jsonResponse + "}"
-            }else{
-                // Update Agent LOG
-                previousAgentResponse = previousAgentResponse + "{" + jsonResponse + "}"
+            // Low Token Approach
+            if(jsonResponse.agent_response){
+                //Clear Response DIV
+                document.getElementById("codeBlocks").innerHTML = "";
+                // Create new element to display
+                let element = document.createElement('div')
+                element.className = "response";
+                element.innerHTML =  '<div class="title">Agent ' + (index) +'</div>' + '<div class="agentAnswer '+ (index+1) + '">' + await jsonResponse.agent_response + '</div>';
+                document.getElementById("codeBlocks").appendChild(element)
+                // Update current history
+                console.log(index)
+                history[current]["agent" + (index)] = jsonResponse.agent_response;
+                if(index === 4){
+                    // Update Agent LOG
+                    previousAgentResponse = "\"agent\" + (index)" + jsonResponse.agent_response + "}"
+                }else{
+                    // Update Agent LOG
+                    previousAgentResponse = previousAgentResponse + "{" + jsonResponse.agent_response + "}"
+                }
+            }
+            if(jsonResponse.agent_response_list){
+                //Clear Response DIV
+                document.getElementById("codeBlocks").innerHTML = "";
+                let element = document.createElement('div')
+                element.className = "response";
+                element.innerHTML = ""
+                for (const fileObject of jsonResponse.agent_response_list){
+                    element.innerHTML = element.innerHTML + '<div class="title">' + fileObject.FILE_NAME + '</div>' + '<div class="answer">' + fileObject.FILE_CODE + '</div>';
+                    document.getElementById("codeBlocks").appendChild(element)
+                }
+                // Update current history
+                history[current]["agent" + (index)] = jsonResponse.agent_response_list;
+                history[current].big_repo = true;
+                if(index === 4){
+                    // Update Agent LOG
+                    prevAgentLists = jsonResponse.agent_response_list
+                }else{
+                    // Update Agent LOG
+                    prevAgentLists = jsonResponse.agent_response_list
+                }
             }
             return jsonResponse;
         }
@@ -374,13 +403,26 @@ const displayAlert = msg => {
     })
 }
 
+
+const changeToPlan = () => {
+    //Display Manager Plan
+    document.getElementById("codeBlocks").innerHTML = "";
+    // Create new session div
+    let element = document.createElement('div');
+    element.className = "response";
+    element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[active].plan + '</div>';
+    document.getElementById("codeBlocks").appendChild(element);
+}
+
 const changeActive = (index) => {
     console.log(running)
     console.log(index)
-    if(running !== true){
+    if(running === false){
         if(index !== -1){
             // Remove color
-            document.getElementById("sesh" + active).className = "session";
+            if(active !== -1){
+                document.getElementById("sesh" + active).className = "session";
+            }
             // Highlight session
             document.getElementById("sesh"+index).className = "activeSession";
             //Reset Colors
@@ -391,19 +433,12 @@ const changeActive = (index) => {
                 showAll();
             }
         }
-        if(index === -1){
-            //Display Manager Plan
-            document.getElementById("codeBlocks").innerHTML = "";
-            // Create new session div
-            let element = document.createElement('div')
-            element.className = "response";
-            element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[active].plan + '</div>';
-            document.getElementById("codeBlocks").appendChild(element)
-        }
     }
     if(running === true && index === current){
         // Remove color
-        document.getElementById("sesh" + active).className = "session";
+        if(active !== -1){
+            document.getElementById("sesh" + active).className = "session";
+        }
         // Highlight session
         document.getElementById("sesh"+index).className = "activeSession";
         //Reset Colors
