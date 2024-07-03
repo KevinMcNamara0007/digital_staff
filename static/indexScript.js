@@ -210,8 +210,7 @@ let prevAgentLists = []
 async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, index, code){
     prevFormData.append("agent_task", agentTask)
     if(history[current].big_repo === true){
-        console.log(prevAgentLists)
-        prevFormData.append("agent_responses", prevAgentLists)
+        prevFormData.set("agent_responses", JSON.stringify(prevAgentLists))
     }else{
         prevFormData.append("agent_responses", agentResponses)
     }
@@ -284,7 +283,11 @@ async function agentTaskAPI(prevFormData, agent, agentTask, agentResponses, inde
 
 async function getFinalSolution(prevFormData, code){
     $("#image").val(null)
-    prevFormData.append("agent_responses", previousAgentResponse)
+    if(history[current].big_repo === true){
+        prevFormData.set("agent_responses", JSON.stringify(prevAgentLists))
+    }else{
+        prevFormData.append("agent_responses", previousAgentResponse)
+    }
 
     document.getElementById("final").className = "step";
     document.getElementById("progFinal").style.display = "block";
@@ -465,8 +468,16 @@ const loadAgent = (agent, agentNumber) => {
         // Create new element to display
         let element = document.createElement('div')
         element.className = "response";
-        element.innerHTML =  '<div class="title">Agent ' + (agentNumber) +'</div>' + '<div class="agentAnswer '+ (agentNumber) + '">' + history[active][agent] + '</div>';
-        document.getElementById("codeBlocks").appendChild(element)
+        if(!Array.isArray(history[active][agent])){
+            element.innerHTML =  '<div class="title">Agent ' + (agentNumber) +'</div>' + '<div class="agentAnswer '+ (agentNumber) + '">' + history[active][agent] + '</div>';
+            document.getElementById("codeBlocks").appendChild(element)
+        }else{
+            element.innerHTML = ""
+            for (const fileObject of history[active][agent]){
+                element.innerHTML = element.innerHTML + '<div class="title">' + fileObject.FILE_NAME + '</div>' + '<div class="answer">' + fileObject.FILE_CODE + '</div>';
+                document.getElementById("codeBlocks").appendChild(element)
+            }
+        }
     }
 }
 
