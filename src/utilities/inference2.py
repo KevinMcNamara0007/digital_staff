@@ -90,10 +90,10 @@ async def produce_final_solution_for_file(file, agent_responses):
     return response.replace("```java", "").replace("```python", "").replace("```","")
 
 
-async def process_file(file, agent_responses, agent_response_list):
+async def process_file(file, agent_response_list):
     responses_for_file = find_file_by_name(agent_response_list, file)
     if responses_for_file is not None:
-        file_solution = await produce_final_solution_for_file(file, agent_responses)
+        file_solution = await produce_final_solution_for_file(file, responses_for_file)
         obj = {"FILE_NAME": file, "FILE_CODE": file_solution}
         file_test = await create_unit_test_for_file(obj)
         return [obj] + ([file_test] if file_test is not None else [])
@@ -104,7 +104,7 @@ async def produce_final_solution_for_large_repo(user_prompt, file_list, agent_re
     final_list = []
     try:
         agent_response_list = json.loads(agent_responses)
-        tasks = [process_file(file, agent_responses, agent_response_list) for file in file_list]
+        tasks = [process_file(file, agent_response_list) for file in file_list]
         results = await asyncio.gather(*tasks)
         for result in results:
             final_list.extend(result)
