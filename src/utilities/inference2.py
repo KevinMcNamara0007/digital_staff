@@ -7,6 +7,7 @@ from openai import OpenAI
 from src.utilities.general import llm_url, openai_key, check_token_count
 import re
 
+
 def manager_development_agent_prompts(user_prompt, assets, software_type):
     return [
         f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code.",
@@ -15,6 +16,7 @@ def manager_development_agent_prompts(user_prompt, assets, software_type):
         f"Add inline code comments for all key variables and methods. Produce ONLY complete code.",
         f"You are an expert {software_type}. Inspect and optimize code, correct where needed and produce complete code."
     ]
+
 
 async def agent_task(task, responses, code):
     print(f"Agent Task: {task}")
@@ -26,9 +28,10 @@ async def agent_task(task, responses, code):
         f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE."
     )
     print(f"Agent Input Token Amount: {check_token_count(prompt)}")
-    response = await call_openai(prompt)
+    response = await call_llm(prompt)
     print(f"Agent Output Token Amount: {check_token_count(response)}")
     return response
+
 
 async def compile_agent_code(task, shot1, shot2, original_code):
     print(f"Compile Agent Shots")
@@ -42,9 +45,10 @@ async def compile_agent_code(task, shot1, shot2, original_code):
         f"4. Version 2 code: {shot2}.\n"
     )
     print(f"Compile Input Token Amount: {check_token_count(prompt)}")
-    response = await call_openai(prompt)
+    response = await call_llm(prompt)
     print(f"Compile Output Token Amount: {check_token_count(response)}")
     return response
+
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
     prompt = (
@@ -58,7 +62,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         "7. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code."
     )
     print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
-    response = await call_openai(prompt, model="gpt-4-0125-preview")
+    response = await call_openai(prompt, model="gpt-4o")
     print(f"Final solution OUTPUT: {check_token_count(response)}")
     response = response.replace('"""', '').replace("```json", '').replace("```", '')
     try:
@@ -74,7 +78,8 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
             return response
         except json.JSONDecodeError:
             print("Removing Formatting Did not help final response, trying again...")
-            return await produce_final_solution(user_prompt, file_list, agent_responses, original_code)
+            return await response
+
 
 async def produce_final_solution_for_file(file, agent_responses):
     prompt = (
@@ -85,9 +90,9 @@ async def produce_final_solution_for_file(file, agent_responses):
         f"4. Here are the agent responses you will reference when making the final version of the code: {agent_responses}\n"
     )
     print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
-    response = await call_openai(prompt)
+    response = await call_llm(prompt)
     print(f"Final solution OUTPUT: {check_token_count(response)}")
-    return response.replace("```java", "").replace("```python", "").replace("```","")
+    return response.replace("```java", "").replace("```python", "").replace("```", "")
 
 
 async def process_file(file, agent_response_list):
@@ -125,7 +130,7 @@ async def create_unit_test_for_file(file):
         '1. You will be creating a unit test file based on file code.'
         '2. You will only respond in JSON Format: {"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"} .'
         f'3. You will name the test file "test_" + the filename using this file: {file.get("FILE_NAME")}.'
-        f'4. You will create unit tests based on this code: {file.get("FILE_CODE")},'
+        f'4.FILE_CODE MUST ONLY BE CODE. You will create unit tests based on this code: {file.get("FILE_CODE")},'
     )
     try:
         print(f"UNIT TEST CREATION FOR:\n{file.get('FILE_NAME')}\nINPUT TOKEN AMOUNT: {check_token_count(prompt)}")
@@ -169,13 +174,16 @@ async def call_openai(prompt, model="gpt-4o"):
                                        messages=[{"role": "user", "content": prompt}])
     return response.choices[0].message.content
 
-def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
+
+async def call_llm(prompt, output_tokens=2000, url=llm_url):
     try:
         response = requests.post(
             url,
-            json={
-                "prompt": [{"role": "system", "content": rules}, {"role": "user", "content": prompt}],
-                "temperature": 0.05
+            data={
+                "prompt": prompt,
+                "temperature": 0.05,
+                "max_output_tokens": output_tokens,
+                "messages": ""
             }
         )
         response.raise_for_status()  # Ensure we raise an error for bad responses
@@ -183,11 +191,14 @@ def call_llm(prompt, rules="You are a Digital Assistant.", url=llm_url):
     except requests.RequestException as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
+
 async def customized_response(prompt):
     return await call_openai(prompt, model="gpt-4o")
 
+
 def encode_image(image):
     return base64.b64encode(image.file.read()).decode('utf-8')
+
 
 async def image_to_text(prompt, image):
     base64_image = encode_image(image)
