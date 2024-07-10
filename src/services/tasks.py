@@ -33,18 +33,18 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
     required_files = []
     for file in file_list:
         file_code = await get_code(file, repo_dir, new_branch_name)
-        prompt = ("INSTRUCTIONS:"
-                  f"1. You are an expert programmer. \n"
-                  f"2. You will determine if this file is relevant.\n"
-                  f"3. The user ask will assist you in determining the files relevancy to the prompt: {user_prompt}.\n"
-                  f"3. YOU WILL ONLY RESPOND WITH 'YES' IF IT IS Relevant, OR 'NO' IF IT IS NOT relevant. !DO NOT INCLUDE ANY FILENAME OR EXPLANATION OR ANYTHING ELSE OTHER THEN YES OR NO!\n"
-                  f"4. A file is relevant if you can add code to fulfill the task. Here is the code related to the file: {file_code} .\n")
+        prompt = ("[INST]You are a expert programming assistant who will be only respondibng with 'yes' or 'no' based on the users ask."
+                  "You will say 'yes' to a file if it can be modified or adjusted to fulfil the users ask."
+                  "Respond with just 'YES' OR 'NO'. DO NOT INCLUDE ANY DETAILS OR EXPLANATION![/INST]"
+                  f"This is the user's request: {user_prompt}."
+                  f"This is the user's file code: {file_code}")
         response = await call_llm(prompt, 100)
         print(f"File: {file} , needed: {response}")
         if 'YES' in response.upper():
             required_files.append(file)
     # API FLOW
     if flow == "y":
+        return await create_plan_service(user_prompt, required_files, repo_dir, new_branch_name, flow)
         return await create_plan_service(user_prompt, required_files, repo_dir, new_branch_name, flow)
     return {"user_prompt": user_prompt, "files": required_files, "repo_dir": repo_dir}
 
