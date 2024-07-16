@@ -33,18 +33,17 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
     required_files = []
     for file in file_list:
         file_code = await get_code(file, repo_dir, new_branch_name)
-        prompt = ("[INST]You are a expert programming assistant who will be only respondibng with 'yes' or 'no' based on the users ask."
+        prompt = ("<|im_start|>You are a expert programming assistant who will only respond with 'yes' or 'no' based on the users ask."
                   "You will say 'yes' to a file if it can be modified or adjusted to fulfil the users ask."
-                  "Respond with just 'YES' OR 'NO'. DO NOT INCLUDE ANY DETAILS OR EXPLANATION![/INST]"
+                  "Respond with either 'YES' OR 'NO' only."
                   f"This is the user's request: {user_prompt}."
-                  f"This is the user's file code: {file_code}")
+                  f"This is the user's file code: {file_code}<|im_end|>")
         response = await call_llm(prompt, 100)
         print(f"File: {file} , needed: {response}")
         if 'YES' in response.upper():
             required_files.append(file)
     # API FLOW
     if flow == "y":
-        return await create_plan_service(user_prompt, required_files, repo_dir, new_branch_name, flow)
         return await create_plan_service(user_prompt, required_files, repo_dir, new_branch_name, flow)
     return {"user_prompt": user_prompt, "files": required_files, "repo_dir": repo_dir}
 

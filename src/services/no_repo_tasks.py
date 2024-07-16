@@ -2,19 +2,23 @@ import json
 
 from src.utilities.general import file_filter
 from src.utilities.inference2 import call_openai, manager_development_agent_prompts, agent_task, produce_final_solution, \
-    image_to_text
+    image_to_text, call_cpp
 
 
 async def manager_development_base_service(user_prompt, file):
     # Create Code Project
-    prompt = (f'Instructions: 1. You will create a code project based on this user ask: {user_prompt}'
-              '2. RESPOND ONLY IN JSON FORMAT: {"FILE_NAMES": [filename1,filename2],"ALL_CODE": "","CODE_LANGUAGE": ""}')
+    code_foundation = ""
+    prompt = (f'<|im_start|> Instructions: 1. You will create a code project based on this user ask: {user_prompt}.'
+              '2. RESPOND ONLY IN THIS JSON FORMAT: {"FILE_NAMES": [filename1,filename2],"ALL_CODE": "","CODE_LANGUAGE": ""}'
+              '3. DO NOT INCLUDE ANY EXPLANATION. give files names yourself for FILE_NAMES, produce only code for ALL_CODE, and give the language of the program for CODE_LANGUAGE. <|im_end|>')
     if file is None:
-        code_foundation = await call_openai(prompt)
+        code_foundation = await call_cpp(prompt)
+        code_foundation = code_foundation.replace("```", '').replace('json', '').replace("assistant", "").replace("<|im_start|>", "").replace("\n", "")
     else:
         code_foundation = await image_to_text(prompt, file)
-    code_foundation = code_foundation.replace("```", '').replace('json', '')
+        code_foundation = code_foundation.replace("```", '').replace('json', '').replace("assistant", "").replace("<|im_start|>", "").replace("\n", "")
     try:
+        print(code_foundation)
         parsed_foundation = json.loads(code_foundation)
         return {"CODE_FOUNDATION": parsed_foundation, "MANAGER_PLAN": manager_development_agent_prompts(user_prompt, file_filter(parsed_foundation.get("FILE_NAMES")), parsed_foundation.get("CODE_LANGUAGE"))}
     except json.JSONDecodeError as exc:
