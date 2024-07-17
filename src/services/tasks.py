@@ -77,16 +77,12 @@ async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_
         return await agent_task(task, response, code)
     all_code = await get_all_code(file_list, repo_dir, new_branch_name)
     print(f"Total Code Token Count: {check_token_count(all_code)}")
-    if check_token_count(all_code) < 2000:
-        shot1, shot2 = await asyncio.gather(
-            agent_task(task, response, all_code),
-            agent_task(task, response, all_code)
-        )
-        compiled_code = await compile_agent_code(task, shot1, shot2, all_code)
-        return {"agent_response": compiled_code}
-    print(f"Token Count exceeds maximum, going to per file approach")
-    return await agent_task_per_file(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", flow="n")
-
+    shot1, shot2 = await asyncio.gather(
+        agent_task(task, response, all_code),
+        agent_task(task, response, all_code)
+    )
+    compiled_code = await compile_agent_code(task, shot1, shot2, all_code)
+    return {"agent_response": compiled_code}
 
 async def process_file(task, file, repo_dir, new_branch_name, response):
     file_code = await get_code(file, repo_dir, new_branch_name)
@@ -127,8 +123,8 @@ async def get_software_type(assets):
 async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, agent_responses, code="", flow="n"):
     if not code:
         code = await get_all_code(file_list, repo_dir, new_branch_name)
-        if check_token_count(code) > 2000:
-            return await produce_final_solution_for_large_repo(user_prompt, file_list, agent_responses, code)
+        # if check_token_count(code) > 2000:
+        #     return await produce_final_solution_for_large_repo(user_prompt, file_list, agent_responses, code)
     return await produce_final_solution(user_prompt, file_list, agent_responses, code)
 
 

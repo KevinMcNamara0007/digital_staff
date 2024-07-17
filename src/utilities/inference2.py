@@ -59,9 +59,11 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         f'4. FILE_CODE will only be the code of the FILE_NAME associated with it.\n'
         f'5. These are the original file names: [{file_list}], and all file code: [{original_code}].\n'
         f'6. Here are the agent responses you will reference to update the code: {agent_responses}\n'
-        '7. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code.<|im_end|>'
+        '7. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code.'
+        '8. DO NOT INCLUDE ANY EXPLANATION, ONLY RESPOND WITH THE JSON FORMAT REQUESTED. <|im_end|>'
     )
-    print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
+    tokens = check_token_count(prompt)
+    print(f"Final Solution Token Amount INPUT: {tokens}")
     # response = await call_openai(prompt, model="gpt-4o")
     response = await call_cpp(prompt)
     print(f"Final solution OUTPUT: {check_token_count(response)}")
@@ -197,13 +199,13 @@ async def call_llm(prompt, output_tokens=2000, url=llm_url):
     #     raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
 
-async def call_cpp(prompt, output_tokens=7999, url="http://127.0.0.1:8001/completion"):
+async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
     try:
         response = requests.post(
             url,
             json={
                 "prompt": prompt,
-                "temperature": 0.10,
+                "temperature": 0.50,
                 "max_output_tokens": output_tokens,
                 "messages": ""
             }
