@@ -79,8 +79,16 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
             response = await create_unit_tests(response)
             return response
         except json.JSONDecodeError:
-            print("Removing Formatting Did not help final response, trying again...")
-            return await produce_final_solution(user_prompt, file_list, agent_responses, original_code)
+            response = await call_openai(prompt)
+            response = response.replace('"""', '').replace("```json", '').replace("```", '')
+            try:
+                response = json.loads(response)
+                response = await create_unit_tests(response)
+                return response
+            except json.JSONDecodeError:
+                print("Removing Formatting Did not help final response, trying again...")
+                return response
+                # return await produce_final_solution(user_prompt, file_list, agent_responses, original_code)
 
 
 async def produce_final_solution_for_file(file, agent_responses):
