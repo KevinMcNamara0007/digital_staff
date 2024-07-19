@@ -178,6 +178,11 @@ def clean_json_response(input_string):
     # Correctly escape the remaining newline characters
     input_string = input_string.replace('\n', '\\n')
     input_string = re.sub(r'""', '\\"', input_string)
+    # Fix issues with single backslashes by replacing them with double backslashes
+    input_string = input_string.replace('\\', '\\\\')
+
+    # Ensure that embedded double quotes are correctly escaped
+    input_string = input_string.replace('"', '\\"')
     # Parse the cleaned string as JSON
     return input_string
 
