@@ -177,6 +177,7 @@ def clean_json_response(input_string):
         input_string = input_string.replace(substring, "")
     # Correctly escape the remaining newline characters
     input_string = input_string.replace('\n', '\\n')
+    input_string = re.sub(r'""', '\\"', input_string)
     # Parse the cleaned string as JSON
     return input_string
 
@@ -201,7 +202,7 @@ async def call_llm(prompt, output_tokens=2000, url=llm_url):
             }
         )
         response.raise_for_status()  # Ensure we raise an error for bad responses
-        return response.json()["choices"][0]["message"]["content"]
+        return response.json()["choices"][0]["message"]["content"].replace("<|im_end|>", "").replace("<|im_start|>", "").replace("assistant", " ")
     except requests.RequestException as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 

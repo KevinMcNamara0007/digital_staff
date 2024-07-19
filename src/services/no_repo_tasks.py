@@ -2,7 +2,7 @@ import json
 
 from src.utilities.general import file_filter
 from src.utilities.inference2 import call_openai, manager_development_agent_prompts, agent_task, produce_final_solution, \
-    image_to_text, call_llm
+    image_to_text, call_llm, clean_json_response
 
 
 async def manager_development_base_service(user_prompt, file):
@@ -14,6 +14,7 @@ async def manager_development_base_service(user_prompt, file):
     if file is None:
         code_foundation = await call_llm(prompt)
         code_foundation = code_foundation.replace("```", '').replace('json', '').replace("assistant", "").replace("<|im_start|>", "").replace("\n", "")
+        clean_json_response(code_foundation)
     else:
         code_foundation = await image_to_text(prompt, file)
         code_foundation = code_foundation.replace("```", '').replace('json', '').replace("assistant", "").replace("<|im_start|>", "").replace("\n", "")
