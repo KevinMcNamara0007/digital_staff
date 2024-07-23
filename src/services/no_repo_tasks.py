@@ -19,6 +19,8 @@ async def manager_development_base_service(user_prompt, file):
         code_foundation = await image_to_text(prompt, file)
         code_foundation = code_foundation.replace("```", '').replace('json', '').replace("assistant", "").replace("<|im_start|>", "").replace("\n", "")
     try:
+        index = code_foundation.index("{")
+        code_foundation = code_foundation[index:]
         print(code_foundation)
         parsed_foundation = json.loads(code_foundation)
         return {"CODE_FOUNDATION": parsed_foundation, "MANAGER_PLAN": manager_development_agent_prompts(user_prompt, file_filter(parsed_foundation.get("FILE_NAMES")), parsed_foundation.get("CODE_LANGUAGE"))}
