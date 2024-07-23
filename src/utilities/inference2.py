@@ -196,20 +196,21 @@ async def call_openai(prompt, model="gpt-4o"):
 
 
 async def call_llm(prompt, output_tokens=2000, url=llm_url):
-    try:
-        response = requests.post(
-            url,
-            data={
-                "prompt": prompt,
-                "temperature": 0.50,
-                "max_output_tokens": output_tokens,
-                "messages": ""
-            }
-        )
-        response.raise_for_status()  # Ensure we raise an error for bad responses
-        return response.json()["choices"][0]["message"]["content"].replace("<|im_end|>", "").replace("<|im_start|>", "").replace("assistant", " ")
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
+    return await call_cpp(prompt, output_tokens)
+    # try:
+    #     response = requests.post(
+    #         url,
+    #         data={
+    #             "prompt": prompt,
+    #             "temperature": 0.50,
+    #             "max_output_tokens": output_tokens,
+    #             "messages": ""
+    #         }
+    #     )
+    #     response.raise_for_status()  # Ensure we raise an error for bad responses
+    #     return response.json()["choices"][0]["message"]["content"].replace("<|im_end|>", "").replace("<|im_start|>", "").replace("assistant", " ")
+    # except requests.RequestException as exc:
+    #     raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
 
 async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
