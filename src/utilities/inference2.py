@@ -1,6 +1,8 @@
 import asyncio
 import base64
 import json
+import time
+
 import requests
 from fastapi import HTTPException
 from openai import OpenAI
@@ -27,8 +29,9 @@ async def agent_task(task, responses, code):
         f"3. If your task requires original code, use these files and their code as reference: {code}.\n"
         f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE.<|im_end|>"
     )
-    print(f"Agent Input Token Amount: {check_token_count(prompt)}")
-    response = await call_llm(prompt, 10000)
+    tokens = check_token_count(prompt)
+    print(f"Agent Input Token Amount: {tokens}")
+    response = await call_llm(prompt, tokens*1.7)
     print(f"Agent Output Token Amount: {check_token_count(response)}")
     return response
 
@@ -44,8 +47,9 @@ async def compile_agent_code(task, shot1, shot2, original_code):
         f"3. Version 1 code: {shot1}.\n"
         f"4. Version 2 code: {shot2}.\n<|im_end|>"
     )
-    print(f"Compile Input Token Amount: {check_token_count(prompt)}")
-    response = await call_llm(prompt, 10000)
+    tokens = check_token_count(prompt)
+    print(f"Compile Input Token Amount: {tokens}")
+    response = await call_llm(prompt, tokens*1.7)
     print(f"Compile Output Token Amount: {check_token_count(response)}")
     return response
 
@@ -65,8 +69,10 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     tokens = check_token_count(prompt)
     print(f"Final Solution Token Amount INPUT: {tokens}")
     # response = await call_openai(prompt, model="gpt-4o")
-    response = await call_llm(prompt, 10000)
+    response = await call_llm(prompt, tokens*1.8)
     print(f"Final solution OUTPUT: {check_token_count(response)}")
+    index = response.index("[")
+    response = response[index:]
     try:
         response = json.loads(clean_json_response(response))
         response = await create_unit_tests(response)
@@ -99,8 +105,9 @@ async def produce_final_solution_for_file(file, agent_responses):
         "3. You will respond only with the completed compiled and merged code.\n"
         f"4. Here are the agent responses you will reference when making the final version of the code: {agent_responses}\n<|im_end|>"
     )
-    print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
-    response = await call_llm(prompt, 2000)
+    tokens = check_token_count(prompt)
+    print(f"Final Solution Token Amount INPUT: {tokens}")
+    response = await call_llm(prompt, tokens*1.8)
     print(f"Final solution OUTPUT: {check_token_count(response)}")
     return response.replace("```java", "").replace("```python", "").replace("```", "")
 
@@ -140,14 +147,18 @@ async def create_unit_test_for_file(file):
         '1. You will be creating a unit test file based on file code.'
         '2. You will only respond in JSON Format: {"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"} .'
         f'3. FILE_NAME will be "test_" + {file.get("FILE_NAME")}.'
-        f'4.FILE_CODE MUST ONLY BE UNIT TEST CODE. You will create unit tests based on this code: {file.get("FILE_CODE")}<|im_end|>'
+        f'4.FILE_CODE MUST ONLY BE THE FILE CODE FOR UNIT TESTS. You will create test code based on this code: {file.get("FILE_CODE")}<|im_end|>'
     )
     try:
         print(f"UNIT TEST CREATION FOR:\n{file.get('FILE_NAME')}\nINPUT TOKEN AMOUNT: {check_token_count(prompt)}")
-        response = await call_llm(prompt, 2000)
+        response = await call_llm(prompt, 3000)
+        print(response)
+        index = response.index("{")
+        response = response[index:]
+        response.replace('"""', '"')
         print(f"OUTPUT TOKEN AMOUNT: {check_token_count(response)}")
         try:
-            response = json.loads(clean_json_response(response))
+            response = json.loads(response)
             return response
         except json.JSONDecodeError as exc:
             print(f'JSON ERROR FOR TEST FILE {file.get("FILE_NAME")}. Will not add due to: {exc}')
@@ -196,6 +207,7 @@ async def call_openai(prompt, model="gpt-4o"):
 
 
 async def call_llm(prompt, output_tokens=2000, url=llm_url):
+    time.sleep(3)
     return await call_cpp(prompt, output_tokens)
     # try:
     #     response = requests.post(
@@ -214,6 +226,7 @@ async def call_llm(prompt, output_tokens=2000, url=llm_url):
 
 
 async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
+    time.sleep(3)
     try:
         response = requests.post(
             url,
