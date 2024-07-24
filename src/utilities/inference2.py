@@ -226,7 +226,7 @@ async def call_llm(prompt, output_tokens=2000, url=llm_url):
 
 
 async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
-    time.sleep(3)
+    time.sleep(5)
     try:
         response = requests.post(
             url,
