@@ -144,7 +144,7 @@ def find_file_by_name(agent_response_list, file_name):
 async def create_unit_test_for_file(file):
     prompt = (
         '<|im_start|>INSTRUCTIONS: '
-        '1. You will be creating a unit test file based on file code.'
+        '1. You will be creating a unit test file based on file code. DO NOT INCLUDE ANY EXPLANATION.'
         '2. You will only respond in JSON Format: {"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"} .'
         f'3. FILE_NAME will be "test_" + {file.get("FILE_NAME")}.'
         f'4.FILE_CODE MUST ONLY BE THE FILE CODE FOR UNIT TESTS. You will create test code based on this code: {file.get("FILE_CODE")}<|im_end|>'
