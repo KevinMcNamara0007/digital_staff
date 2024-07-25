@@ -18,7 +18,7 @@ async def manager_development_base_service(user_prompt, file):
         parsed_foundation = json.loads(code_foundation)
         return {"CODE_FOUNDATION": parsed_foundation, "MANAGER_PLAN": manager_development_agent_prompts(user_prompt, file_filter(parsed_foundation.get("FILE_NAMES")), parsed_foundation.get("CODE_LANGUAGE"))}
     except json.JSONDecodeError as exc:
-        print(f"Failed to Parse, code fondation corrupt due to: {exc}")
+        print(f"Failed to Parse, code foundation corrupt due to: {exc}")
 
 async def no_repo_agent_task_service(task, responses, code):
     return {"agent_response": await agent_task(task, responses, code)}

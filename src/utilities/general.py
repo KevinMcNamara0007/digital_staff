@@ -114,7 +114,7 @@ def check_token_count(history):
     :param history: History string.
     :return: Number of tokens.
     """
-    encoding = tiktoken.encoding_for_model("gpt-4-0125-preview")
+    encoding = tiktoken.encoding_for_model("gpt-4o")
     return len(encoding.encode(history))
 
 

@@ -58,7 +58,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         "7. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code."
     )
     print(f"Final Solution Token Amount INPUT: {check_token_count(prompt)}")
-    response = await call_openai(prompt, model="gpt-4-0125-preview")
+    response = await call_openai(prompt, model="gpt-4o")
     print(f"Final solution OUTPUT: {check_token_count(response)}")
     response = response.replace('"""', '').replace("```json", '').replace("```", '')
     try:
