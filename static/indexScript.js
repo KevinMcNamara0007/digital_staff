@@ -185,7 +185,7 @@ function managerTasksAPI(prevData, files, directory){
             // Create new session div
             let element = document.createElement('div')
             element.className = "response";
-            element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[current].plan + '</div>';
+            element.innerHTML =  '<div class="title">Developer Plan</div>' + '<div class="agentAnswer">' + history[current].plan + '\nCODE FOUNDATION\n' + data.CODE_FOUNDATION.ALL_CODE + '</div>';
             document.getElementById("codeBlocks").appendChild(element)
             document.getElementById("progressBarPlan").className = "progress-bar2";
 
