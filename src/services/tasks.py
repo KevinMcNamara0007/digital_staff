@@ -33,11 +33,11 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
     required_files = []
     for file in file_list:
         file_code = await get_code(file, repo_dir, new_branch_name)
-        prompt = ("<|im_start|>You are a expert programming assistant who will only respond with 'yes' or 'no' based on the users ask."
+        prompt = ("You are a expert programming assistant who will only respond with 'yes' or 'no' based on the users ask."
                   "You will say 'yes' to a file if it can be modified or adjusted to fulfil the users ask."
                   "Respond with either 'YES' OR 'NO' only."
                   f"This is the user's request: {user_prompt}."
-                  f"This is the user's file code: {file_code}<|im_end|>")
+                  f"This is the user's file code: {file_code}")
         response = await call_llm(prompt, 100)
         print(f"File: {file} , needed: {response}")
         if 'YES' in response.upper():
@@ -77,20 +77,13 @@ async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_
         return await agent_task(task, response, code)
     all_code = await get_all_code(file_list, repo_dir, new_branch_name)
     print(f"Total Code Token Count: {check_token_count(all_code)}")
-    shot1, shot2 = await asyncio.gather(
-        agent_task(task, response, all_code),
-        agent_task(task, response, all_code)
-    )
-    compiled_code = await compile_agent_code(task, shot1, shot2, all_code)
+
+    compiled_code = await agent_task(task, response, all_code)
     return {"agent_response": compiled_code}
 
 async def process_file(task, file, repo_dir, new_branch_name, response):
     file_code = await get_code(file, repo_dir, new_branch_name)
-    shot1, shot2 = await asyncio.gather(
-        agent_task(task, response, file_code),
-        agent_task(task, response, file_code)
-    )
-    compiled_code = await compile_agent_code(task, shot1, shot2, file_code)
+    compiled_code = await agent_task(task, response, file_code)
     print(f"File: {file}  completed.")
     return {"FILE_NAME": file, "FILE_CODE": compiled_code}
 

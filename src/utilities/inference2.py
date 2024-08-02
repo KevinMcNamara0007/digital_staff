@@ -13,9 +13,8 @@ import re
 def manager_development_agent_prompts(user_prompt, assets, software_type):
     return [
         f"You are an expert {software_type} developer. {user_prompt}, produce ONLY complete code.",
-        f"Review the following for accuracy and completeness: {user_prompt}, produce ONLY complete code.",
-        f"Review the following for bugs and vulnerabilities and code smells: {user_prompt}, produce ONLY complete code.",
-        f"Add inline code comments for all key variables and methods. Produce ONLY complete code.",
+        f"Review the following code for accuracy and completeness and add inline code comments, produce and return ONLY complete code.",
+        f"correct the following code for bugs and vulnerabilities. produce and return ONLY complete code.",
         f"You are an expert {software_type}. Inspect and optimize code, correct where needed and produce complete code."
     ]
 
@@ -23,11 +22,11 @@ def manager_development_agent_prompts(user_prompt, assets, software_type):
 async def agent_task(task, responses, code):
     print(f"Agent Task: {task}")
     prompt = (
-        f"<|im_start|>Instructions:\n"
+        f"Instructions:\n"
         f"1. This is your task: {task}.\n"
         f"2. If your task requires a previous agent's response, these are the previous agents' responses: {responses}.\n"
         f"3. If your task requires original code, use these files and their code as reference: {code}.\n"
-        f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE.<|im_end|>"
+        f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE."
     )
     tokens = check_token_count(prompt)
     print(f"Agent Input Token Amount: {tokens}")
@@ -39,13 +38,13 @@ async def agent_task(task, responses, code):
 async def compile_agent_code(task, shot1, shot2, original_code):
     print(f"Compile Agent Shots")
     prompt = (
-        f"<|im_start|>Instructions:\n"
+        f"Instructions:\n"
         f"1. Version 1 and Version 2 are two different outputs of the task.\n"
         f"2. Compile and Merge both versions into one singular best answer based on the task.\n"
         f"2. Ensure the task was fulfilled: {task} .\n"
         f"2. ONLY RESPOND WITH BEST OUTPUT CODE.\n"
         f"3. Version 1 code: {shot1}.\n"
-        f"4. Version 2 code: {shot2}.\n<|im_end|>"
+        f"4. Version 2 code: {shot2}.\n"
     )
     tokens = check_token_count(prompt)
     print(f"Compile Input Token Amount: {tokens}")
@@ -56,7 +55,7 @@ async def compile_agent_code(task, shot1, shot2, original_code):
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
     prompt = (
-        '<|im_start|>Instructions:\n'
+        'Instructions:\n'
         '1. You are an expert programmer.\n'
         '2. You will compile all agent code for each corresponding file and place it into a JSON format.\n'
         '3. You will only respond using this JSON format: [{"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"}, {"FILE_NAME":"file_name2", "FILE_CODE":"file_code2"}].\n'
@@ -64,16 +63,16 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         f'5. These are the original file names: [{file_list}], and all file code: [{original_code}].\n'
         f'6. Here are the agent responses you will reference to update the code: {agent_responses}\n'
         '7. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code.'
-        '8. DO NOT INCLUDE ANY EXPLANATION, ONLY RESPOND WITH THE JSON FORMAT REQUESTED. <|im_end|>'
+        '8. DO NOT INCLUDE ANY EXPLANATION, ONLY RESPOND WITH THE JSON FORMAT REQUESTED. '
     )
     tokens = check_token_count(prompt)
     print(f"Final Solution Token Amount INPUT: {tokens}")
     # response = await call_openai(prompt, model="gpt-4o")
     response = await call_llm(prompt, tokens*1.8)
     print(f"Final solution OUTPUT: {check_token_count(response)}")
-    index = response.index("[")
-    response = response[index:]
     try:
+        index = response.index("[")
+        response = response[index:]
         response = json.loads(clean_json_response(response))
         response = await create_unit_tests(response)
         return response
@@ -85,25 +84,17 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
             response = await create_unit_tests(response)
             return response
         except json.JSONDecodeError:
-            response = await call_openai(prompt)
-            response = response.replace('"""', '').replace("```json", '').replace("```", '')
-            try:
-                response = json.loads(response)
-                response = await create_unit_tests(response)
-                return response
-            except json.JSONDecodeError:
-                print("Removing Formatting Did not help final response, trying again...")
-                return response
+            return response
                 # return await produce_final_solution(user_prompt, file_list, agent_responses, original_code)
 
 
 async def produce_final_solution_for_file(file, agent_responses):
     prompt = (
-        "<|im_start|>Instructions:\n"
+        "Instructions:\n"
         "1. You are an expert programmer.\n"
         f"2. You will compile all agent code for the following file {file}.\n"
         "3. You will respond only with the completed compiled and merged code.\n"
-        f"4. Here are the agent responses you will reference when making the final version of the code: {agent_responses}\n<|im_end|>"
+        f"4. Here are the agent responses you will reference when making the final version of the code: {agent_responses}\n"
     )
     tokens = check_token_count(prompt)
     print(f"Final Solution Token Amount INPUT: {tokens}")
@@ -143,11 +134,11 @@ def find_file_by_name(agent_response_list, file_name):
 
 async def create_unit_test_for_file(file):
     prompt = (
-        '<|im_start|>INSTRUCTIONS: '
+        'INSTRUCTIONS: '
         '1. You will be creating a unit test file based on file code. DO NOT INCLUDE ANY EXPLANATION.'
         '2. You will only respond in JSON Format: {"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"} .'
         f'3. FILE_NAME will be "test_" + {file.get("FILE_NAME")}.'
-        f'4.FILE_CODE MUST ONLY BE THE FILE CODE FOR UNIT TESTS. You will create test code based on this code: {file.get("FILE_CODE")}<|im_end|>'
+        f'4.FILE_CODE MUST ONLY BE THE FILE CODE FOR UNIT TESTS. You will create test code based on this code: {file.get("FILE_CODE")}'
     )
     try:
         print(f"UNIT TEST CREATION FOR:\n{file.get('FILE_NAME')}\nINPUT TOKEN AMOUNT: {check_token_count(prompt)}")
@@ -206,23 +197,27 @@ async def call_openai(prompt, model="gpt-4o"):
     return response.choices[0].message.content
 
 
-async def call_llm(prompt, output_tokens=2000, url=llm_url):
-    time.sleep(3)
-    return await call_cpp(prompt, output_tokens)
-    # try:
-    #     response = requests.post(
-    #         url,
-    #         data={
-    #             "prompt": prompt,
-    #             "temperature": 0.50,
-    #             "max_output_tokens": output_tokens,
-    #             "messages": ""
-    #         }
-    #     )
-    #     response.raise_for_status()  # Ensure we raise an error for bad responses
-    #     return response.json()["choices"][0]["message"]["content"].replace("<|im_end|>", "").replace("<|im_start|>", "").replace("assistant", " ")
-    # except requests.RequestException as exc:
-    #     raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
+async def call_llm(prompt, output_tokens=6000, url=llm_url):
+    print(check_token_count(prompt))
+    # return await call_cpp(prompt, output_tokens)
+    try:
+        response = requests.post(
+            url,
+            data={
+                "prompt": prompt,
+                "rules": "You are a friendly virtual assistant. Your role is to answer the user questions and follow their instructions. Be concise and accurate.",
+                "temperature": 0.50,
+                "top_k": 40,
+                "top_p": 0.95
+            }
+        )
+        print(response)
+        response.raise_for_status()  # Ensure we raise an error for bad responses
+        print(response.json()["choices"][0]["message"]["content"])
+        print(check_token_count(response.json()["choices"][0]["message"]["content"]))
+        return response.json()["choices"][0]["message"]["content"].replace("<|im_end|>", "").replace("<|im_start|>", "").replace("assistant", " ")
+    except requests.RequestException as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
 
 async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
