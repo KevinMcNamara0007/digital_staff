@@ -32,7 +32,6 @@ function flowChecker(){
             "agent2": "loader",
             "agent3": "loader",
             "agent4": "loader",
-            "agent5": "loader",
             "solution": [],
             "repo_dir": null,
             "differences": ""
@@ -101,7 +100,6 @@ function digitalAgentAPI(){
             "agent2": "loader",
             "agent3": "loader",
             "agent4": "loader",
-            "agent5": "loader",
             "solution": [],
             "repo_dir": data.repo_dir,
             "big_repo": false,
@@ -518,7 +516,6 @@ const hideAll = () => {
     document.getElementById("2").className = "hideStep";
     document.getElementById("3").className = "hideStep";
     document.getElementById("4").className = "hideStep";
-    document.getElementById("5").className = "hideStep";
     document.getElementById("final").className = "hideStep";
     document.getElementById("differences").className = "hideStep";
     document.getElementById("progPlan").style.display = "none";
@@ -526,7 +523,6 @@ const hideAll = () => {
     document.getElementById("prog2").style.display = "none";
     document.getElementById("prog3").style.display = "none";
     document.getElementById("prog4").style.display = "none";
-    document.getElementById("prog5").style.display = "none";
     document.getElementById("progFinal").style.display = "none";
     document.getElementById("progDifferences").style.display = "none";
 }
@@ -536,7 +532,6 @@ const showAll = () => {
     document.getElementById("2").className = "step";
     document.getElementById("3").className = "step";
     document.getElementById("4").className = "step";
-    document.getElementById("5").className = "step";
     document.getElementById("final").className = "step";
     document.getElementById("differences").className = "step";
     document.getElementById("progPlan").style.display = "block";
@@ -544,7 +539,6 @@ const showAll = () => {
     document.getElementById("prog2").style.display = "block";
     document.getElementById("prog3").style.display = "block";
     document.getElementById("prog4").style.display = "block";
-    document.getElementById("prog5").style.display = "block";
     document.getElementById("progFinal").style.display = "block";
     document.getElementById("progDifferences").style.display = "block";
 }
