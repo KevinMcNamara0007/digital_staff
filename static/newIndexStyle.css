@@ -141,12 +141,16 @@ div, p, h4, h3, h2, h1, button, input[type="text"], input[type="text"]::placehol
 }
 
 #switch {
+    margin-bottom: 10px;
     display: inline-block;
     padding: 10px 20px;
-    background-color: #007BFF;
+    background-color: var(--blue);
     color: white;
     cursor: pointer;
     user-select: none;
+}
+#switch:hover{
+    background-color: var(--black);
 }
 
 .menuContainer{
