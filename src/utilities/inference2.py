@@ -24,9 +24,9 @@ async def agent_task(task, responses, code):
     prompt = (
         f"Instructions:\n"
         f"1. This is your task: {task}.\n"
-        f"2. If your task requires a previous agent's response, these are the previous agents' responses: {responses}.\n"
-        f"3. If your task requires original code, use these files and their code as reference: {code}.\n"
-        f"4. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE."
+        f"2. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE."
+        f"3. If your task requires a previous agent's response, these are the previous agents' responses: {responses}.\n"
+        f"4. If your task requires original code, use these files and their code as reference: {code}.\n"
     )
     tokens = check_token_count(prompt)
     print(f"Agent Input Token Amount: {tokens}")
@@ -57,13 +57,12 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     prompt = (
         'Instructions:\n'
         '1. You are an expert programmer.\n'
-        '2. You will compile all agent code for each corresponding file and place it into a JSON format.\n'
+        '2. You will compile all agent code for each corresponding file and place it into a JSON format.'
+        ' DO NOT INCLUDE ANY EXPLANATION, ONLY RESPOND WITH THE JSON FORMAT REQUESTED.\n'
         '3. You will only respond using this JSON format: [{"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"}, {"FILE_NAME":"file_name2", "FILE_CODE":"file_code2"}].\n'
         f'4. FILE_CODE will only be the code of the FILE_NAME associated with it.\n'
-        f'5. These are the original file names: [{file_list}], and all file code: [{original_code}].\n'
+        f'5. These are the original file names: [{file_list}], and all original file code: [{original_code}].\n'
         f'6. Here are the agent responses you will reference to update the code: {agent_responses}\n'
-        '7. Ensure that the JSON is correctly formatted and includes all file names and their corresponding code.'
-        '8. DO NOT INCLUDE ANY EXPLANATION, ONLY RESPOND WITH THE JSON FORMAT REQUESTED. '
     )
     tokens = check_token_count(prompt)
     print(f"Final Solution Token Amount INPUT: {tokens}")
@@ -73,7 +72,8 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     try:
         index = response.index("[")
         response = response[index:]
-        response = json.loads(clean_json_response(response))
+        response = response.replace("```","")
+        response = json.loads(response)
         response = await create_unit_tests(response)
         return response
     except json.JSONDecodeError as exc:
@@ -98,7 +98,8 @@ async def produce_final_solution_for_file(file, agent_responses):
     )
     tokens = check_token_count(prompt)
     print(f"Final Solution Token Amount INPUT: {tokens}")
-    response = await call_llm(prompt, tokens*1.8)
+    time.sleep(5)
+    response = await call_llm(prompt, tokens*1.5)
     print(f"Final solution OUTPUT: {check_token_count(response)}")
     return response.replace("```java", "").replace("```python", "").replace("```", "")
 
@@ -201,6 +202,9 @@ async def call_llm(prompt, output_tokens=6000, url=llm_url):
     print(check_token_count(prompt))
     # return await call_cpp(prompt, output_tokens)
     try:
+        headers = {
+            'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
+        }
         response = requests.post(
             url,
             data={
@@ -209,13 +213,18 @@ async def call_llm(prompt, output_tokens=6000, url=llm_url):
                 "temperature": 0.50,
                 "top_k": 40,
                 "top_p": 0.95
-            }
+            },
+            headers=headers
         )
-        print(response)
         response.raise_for_status()  # Ensure we raise an error for bad responses
         print(response.json()["choices"][0]["message"]["content"])
-        print(check_token_count(response.json()["choices"][0]["message"]["content"]))
-        return response.json()["choices"][0]["message"]["content"].replace("<|im_end|>", "").replace("<|im_start|>", "").replace("assistant", " ")
+        print(response.json()["choices"][0]["finish_reason"])
+        print(response.json()["timings"]["predicted_n"])
+        response = (response.json()["choices"][0]["message"]["content"]
+                    .replace("<|im_end|>", "")
+                    .replace("<|im_start|>", "").replace("assistant", " ")
+                    .replace('}, {"role": "User", "content": ', ''))
+        return response
     except requests.RequestException as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
