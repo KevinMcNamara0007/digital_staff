@@ -31,7 +31,7 @@ async def agent_task(task, responses, code, model="oai"):
     time.sleep(2)
     tokens = check_token_count(prompt)
     print(f"Agent Input Token Amount: {tokens}")
-    if model =="oai":
+    if model == "oai":
         response = await call_openai(prompt)
     else:
         response = await call_llm(prompt, tokens*1.7)

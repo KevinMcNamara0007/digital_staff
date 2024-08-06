@@ -100,7 +100,7 @@ async def produce_solution(
     if repo_dir != "none":
         parsed_file_list = parse_obj_as(List[str], file_list.split(','))
         return await produce_solution_service(user_prompt, parsed_file_list, repo_dir, new_branch_name, agent_responses,
-                                              "", flow)
+                                              "",model, flow)
     return await no_repo_produce_solution(user_prompt, file_list, agent_responses, code, model)
 
 
