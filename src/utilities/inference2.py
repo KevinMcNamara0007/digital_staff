@@ -28,6 +28,7 @@ async def agent_task(task, responses, code):
         f"3. If your task requires a previous agent's response, these are the previous agents' responses: {responses}.\n"
         f"4. If your task requires original code, use these files and their code as reference: {code}.\n"
     )
+    time.sleep(2)
     tokens = check_token_count(prompt)
     print(f"Agent Input Token Amount: {tokens}")
     response = await call_llm(prompt, tokens*1.7)
@@ -76,7 +77,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         response = json.loads(response)
         response = await create_unit_tests(response)
         return response
-    except json.JSONDecodeError as exc:
+    except Exception as exc:
         print(f'Could not parse String Into JSON ERROR. Will Remove all formatting: {exc}')
         response = clean_json_response(response)
         try:
