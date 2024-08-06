@@ -94,13 +94,14 @@ async def produce_solution(
         flow: str = Form(default=default_flow, description="Automated process flow yes/no"),
         repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder"),
         agent_responses: str = Form(default=default_agent_responses, description="Agent responses"),
-        code: str = Form(default="", description="Generated Code If there is no repo")
+        code: str = Form(default="", description="Generated Code If there is no repo"),
+        model: str = Form(default="oai", description="Model")
 ):
     if repo_dir != "none":
         parsed_file_list = parse_obj_as(List[str], file_list.split(','))
         return await produce_solution_service(user_prompt, parsed_file_list, repo_dir, new_branch_name, agent_responses,
                                               "", flow)
-    return await no_repo_produce_solution(user_prompt, file_list, agent_responses, code)
+    return await no_repo_produce_solution(user_prompt, file_list, agent_responses, code, model)
 
 
 @tasks.post("/show_diff")

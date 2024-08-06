@@ -15,8 +15,7 @@ window.onload = function () {
 }
 
 function toggleModel(){
-    console.log(model)
-    if(model === "aoi"){
+    if(model === "oai"){
         model = "elf"
         document.getElementById('switch').innerText = "ELF"
     }else{
