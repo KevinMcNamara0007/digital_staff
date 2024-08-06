@@ -41,9 +41,10 @@ async def repo_task(
         original_code_branch: str = Form(default=default_branch, description="The branch you want to work on."),
         new_branch_name: str = Form(default=default_new_branch,
                                     description="Name for the new branch where changes will be reflected."),
+        model: str = Form(default="oai", description="Model"),
         flow: str = Form(default=default_flow, description="Automated process flow yes/no")
 ):
-    return await get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name, flow)
+    return await get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name, model, flow)
 
 
 @tasks.post("/manager_plan")
@@ -55,12 +56,13 @@ async def manager_plan(
                                     description="Name for the new branch where changes will be reflected."),
         flow: str = Form(default=default_flow, description="Automated process flow yes/no"),
         repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder"),
+        model: str = Form(default="oai", description="Model"),
         file: UploadFile = File(default=None, description="The file attached")
 ):
     if file_list != "none":
         return await create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow)
     else:
-        return await manager_development_base_service(user_prompt, file)
+        return await manager_development_base_service(user_prompt, file, model)
 
 
 @tasks.post("/agent_task")
@@ -73,13 +75,14 @@ async def agent_tasks(
         flow: str = Form(default=default_flow, description="Automated process flow yes/no"),
         repo_dir: str = Form(default=default_repo_dir, description="Repo directory folder"),
         agent_responses: str = Form(default=default_agent_responses, description="Agent responses"),
-        code: str = Form(default="", description="Generated Code If there is no repo")
+        code: str = Form(default="", description="Generated Code If there is no repo"),
+        model: str = Form(default="oai", description="Model"),
 ):
     if repo_dir != "none":
         parsed_file_list = parse_obj_as(List[str], file_list.split(','))
         return await agent_task_service(agent_task, user_prompt, parsed_file_list, repo_dir, new_branch_name, "",
-                                        agent_responses, flow)
-    return await no_repo_agent_task_service(agent_task, agent_responses, code)
+                                        agent_responses, model, flow)
+    return await no_repo_agent_task_service(agent_task, agent_responses, code, model)
 
 
 @tasks.post("/produce_solution")

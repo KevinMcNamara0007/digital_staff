@@ -19,7 +19,7 @@ def manager_development_agent_prompts(user_prompt, assets, software_type):
     ]
 
 
-async def agent_task(task, responses, code):
+async def agent_task(task, responses, code, model="oai"):
     print(f"Agent Task: {task}")
     prompt = (
         f"Instructions:\n"
@@ -31,30 +31,33 @@ async def agent_task(task, responses, code):
     time.sleep(2)
     tokens = check_token_count(prompt)
     print(f"Agent Input Token Amount: {tokens}")
-    response = await call_llm(prompt, tokens*1.7)
+    if model =="oai":
+        response = await call_openai(prompt)
+    else:
+        response = await call_llm(prompt, tokens*1.7)
     print(f"Agent Output Token Amount: {check_token_count(response)}")
     return response
 
 
-async def compile_agent_code(task, shot1, shot2, original_code):
-    print(f"Compile Agent Shots")
-    prompt = (
-        f"Instructions:\n"
-        f"1. Version 1 and Version 2 are two different outputs of the task.\n"
-        f"2. Compile and Merge both versions into one singular best answer based on the task.\n"
-        f"2. Ensure the task was fulfilled: {task} .\n"
-        f"2. ONLY RESPOND WITH BEST OUTPUT CODE.\n"
-        f"3. Version 1 code: {shot1}.\n"
-        f"4. Version 2 code: {shot2}.\n"
-    )
-    tokens = check_token_count(prompt)
-    print(f"Compile Input Token Amount: {tokens}")
-    response = await call_llm(prompt, tokens*1.7)
-    print(f"Compile Output Token Amount: {check_token_count(response)}")
-    return response
+# async def compile_agent_code(task, shot1, shot2, original_code):
+#     print(f"Compile Agent Shots")
+#     prompt = (
+#         f"Instructions:\n"
+#         f"1. Version 1 and Version 2 are two different outputs of the task.\n"
+#         f"2. Compile and Merge both versions into one singular best answer based on the task.\n"
+#         f"2. Ensure the task was fulfilled: {task} .\n"
+#         f"2. ONLY RESPOND WITH BEST OUTPUT CODE.\n"
+#         f"3. Version 1 code: {shot1}.\n"
+#         f"4. Version 2 code: {shot2}.\n"
+#     )
+#     tokens = check_token_count(prompt)
+#     print(f"Compile Input Token Amount: {tokens}")
+#     response = await call_llm(prompt, tokens*1.7)
+#     print(f"Compile Output Token Amount: {check_token_count(response)}")
+#     return response
 
 
-async def produce_final_solution(user_prompt, file_list, agent_responses, original_code):
+async def produce_final_solution(user_prompt, file_list, agent_responses, original_code, model="oai"):
     prompt = (
         'Instructions:\n'
         '1. You are an expert programmer.\n'
@@ -68,65 +71,68 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     tokens = check_token_count(prompt)
     print(f"Final Solution Token Amount INPUT: {tokens}")
     # response = await call_openai(prompt, model="gpt-4o")
-    response = await call_llm(prompt, tokens*1.8)
+    if model == "oai":
+        response = await call_openai(prompt)
+    else:
+        response = await call_llm(prompt, tokens*1.8)
     print(f"Final solution OUTPUT: {check_token_count(response)}")
     try:
         index = response.index("[")
         response = response[index:]
         response = response.replace("```","")
         response = json.loads(response)
-        response = await create_unit_tests(response)
+        response = await create_unit_tests(response, model)
         return response
     except Exception as exc:
         print(f'Could not parse String Into JSON ERROR. Will Remove all formatting: {exc}')
         response = clean_json_response(response)
         try:
             response = json.loads(response.replace("\n", ""))
-            response = await create_unit_tests(response)
+            response = await create_unit_tests(response, model)
             return response
         except json.JSONDecodeError:
             return response
                 # return await produce_final_solution(user_prompt, file_list, agent_responses, original_code)
 
 
-async def produce_final_solution_for_file(file, agent_responses):
-    prompt = (
-        "Instructions:\n"
-        "1. You are an expert programmer.\n"
-        f"2. You will compile all agent code for the following file {file}.\n"
-        "3. You will respond only with the completed compiled and merged code.\n"
-        f"4. Here are the agent responses you will reference when making the final version of the code: {agent_responses}\n"
-    )
-    tokens = check_token_count(prompt)
-    print(f"Final Solution Token Amount INPUT: {tokens}")
-    time.sleep(5)
-    response = await call_llm(prompt, tokens*1.5)
-    print(f"Final solution OUTPUT: {check_token_count(response)}")
-    return response.replace("```java", "").replace("```python", "").replace("```", "")
-
-
-async def process_file(file, agent_response_list):
-    responses_for_file = find_file_by_name(agent_response_list, file)
-    if responses_for_file is not None:
-        file_solution = await produce_final_solution_for_file(file, responses_for_file)
-        obj = {"FILE_NAME": file, "FILE_CODE": file_solution}
-        file_test = await create_unit_test_for_file(obj)
-        return [obj] + ([file_test] if file_test is not None else [])
-    return []
-
-
-async def produce_final_solution_for_large_repo(user_prompt, file_list, agent_responses, original_code):
-    final_list = []
-    try:
-        agent_response_list = json.loads(agent_responses)
-        tasks = [process_file(file, agent_response_list) for file in file_list]
-        results = await asyncio.gather(*tasks)
-        for result in results:
-            final_list.extend(result)
-        return final_list
-    except json.JSONDecodeError as exc:
-        print(f"Could not produce final solution: {exc}")
-        return "Fail"
+# async def produce_final_solution_for_file(file, agent_responses):
+#     prompt = (
+#         "Instructions:\n"
+#         "1. You are an expert programmer.\n"
+#         f"2. You will compile all agent code for the following file {file}.\n"
+#         "3. You will respond only with the completed compiled and merged code.\n"
+#         f"4. Here are the agent responses you will reference when making the final version of the code: {agent_responses}\n"
+#     )
+#     tokens = check_token_count(prompt)
+#     print(f"Final Solution Token Amount INPUT: {tokens}")
+#     time.sleep(5)
+#     response = await call_llm(prompt, tokens*1.5)
+#     print(f"Final solution OUTPUT: {check_token_count(response)}")
+#     return response.replace("```java", "").replace("```python", "").replace("```", "")
+#
+#
+# async def process_file(file, agent_response_list):
+#     responses_for_file = find_file_by_name(agent_response_list, file)
+#     if responses_for_file is not None:
+#         file_solution = await produce_final_solution_for_file(file, responses_for_file)
+#         obj = {"FILE_NAME": file, "FILE_CODE": file_solution}
+#         file_test = await create_unit_test_for_file(obj)
+#         return [obj] + ([file_test] if file_test is not None else [])
+#     return []
+#
+#
+# async def produce_final_solution_for_large_repo(user_prompt, file_list, agent_responses, original_code):
+#     final_list = []
+#     try:
+#         agent_response_list = json.loads(agent_responses)
+#         tasks = [process_file(file, agent_response_list) for file in file_list]
+#         results = await asyncio.gather(*tasks)
+#         for result in results:
+#             final_list.extend(result)
+#         return final_list
+#     except json.JSONDecodeError as exc:
+#         print(f"Could not produce final solution: {exc}")
+#         return "Fail"
 
 
 def find_file_by_name(agent_response_list, file_name):
@@ -134,7 +140,7 @@ def find_file_by_name(agent_response_list, file_name):
     return result[0] if result else None
 
 
-async def create_unit_test_for_file(file):
+async def create_unit_test_for_file(file, model="oai"):
     prompt = (
         'INSTRUCTIONS: '
         '1. You will be creating a unit test file based on file code. DO NOT INCLUDE ANY EXPLANATION.'
@@ -144,7 +150,10 @@ async def create_unit_test_for_file(file):
     )
     try:
         print(f"UNIT TEST CREATION FOR:\n{file.get('FILE_NAME')}\nINPUT TOKEN AMOUNT: {check_token_count(prompt)}")
-        response = await call_llm(prompt, 3000)
+        if model == "oai":
+            response = await call_openai(prompt)
+        else:
+            response = await call_llm(prompt, 3000)
         print(response)
         index = response.index("{")
         response = response[index:]
@@ -161,8 +170,8 @@ async def create_unit_test_for_file(file):
         return None
 
 
-async def create_unit_tests(file_list):
-    tasks = [create_unit_test_for_file(file) for file in file_list]
+async def create_unit_tests(file_list, model):
+    tasks = [create_unit_test_for_file(file, model) for file in file_list]
     responses = await asyncio.gather(*tasks)
     files = [response for response in responses if response is not None]
     return file_list + files
@@ -201,6 +210,7 @@ async def call_openai(prompt, model="gpt-4o"):
 
 async def call_llm(prompt, output_tokens=6000, url=llm_url):
     print(check_token_count(prompt))
+    # return await call_openai(prompt)
     # return await call_cpp(prompt, output_tokens)
     try:
         headers = {

@@ -7,10 +7,22 @@ let repo = false;
 let running = false;
 let activeList = [];
 let activeRepo = [];
+let model = "oai";
 
 window.onload = function () {
     hideAll();
     loadSessions()
+}
+
+function toggleModel(){
+    console.log(model)
+    if(model === "aoi"){
+        model = "elf"
+        document.getElementById('switch').innerText = "ELF"
+    }else{
+        model = "oai"
+        document.getElementById('switch').innerText = "OAI"
+    }
 }
 
 function showRepoSettings(){
@@ -62,6 +74,7 @@ function flowChecker(){
         formData.append("original_code_branch", "none");
         formData.append("new_branch_name", "none");
         formData.append("flow", "no")
+        formData.append("model", model)
         // Call Manager API
         managerTasksAPI(formData,"none","none")
     }else{
@@ -78,6 +91,7 @@ function digitalAgentAPI(){
     formData.append("original_code_branch", document.getElementById("branch").value);
     formData.append("new_branch_name", document.getElementById("newBranch").value);
     formData.append("flow", "no")
+    formData.append("model", model)
 
     // Call API
     fetch("/Tasks/repo_ops", {

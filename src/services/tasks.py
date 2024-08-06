@@ -19,11 +19,11 @@ from src.utilities.inference2 import (
     manager_development_agent_prompts,
     agent_task,
     produce_final_solution,
-    customized_response, call_openai, compile_agent_code, produce_final_solution_for_large_repo, call_llm,
+    customized_response, call_openai, call_llm,
 )
 
 
-async def get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name, flow="n"):
+async def get_repo_service(user_prompt, https_clone_link, original_code_branch, new_branch_name,model="oai", flow="n"):
     repo_dir = await clone_repo(https_clone_link)
     cur_branch = await check_current_branch(repo_dir)
     if cur_branch != new_branch_name.strip():
@@ -38,7 +38,10 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
                   "Respond with either 'YES' OR 'NO' only."
                   f"This is the user's request: {user_prompt}."
                   f"This is the user's file code: {file_code}")
-        response = await call_llm(prompt, 100)
+        if model == "oai":
+            response = await call_openai(prompt)
+        else:
+            response = await call_llm(prompt, 100)
         print(f"File: {file} , needed: {response}")
         if 'YES' in response.upper():
             required_files.append(file)
@@ -72,13 +75,13 @@ async def process_agent_tasks(tasks, user_prompt, file_list, repo_dir, new_branc
     return all_agent_responses
 
 
-async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", flow="n"):
+async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", model="oai", flow="n"):
     if flow == "y":
         return await agent_task(task, response, code)
     all_code = await get_all_code(file_list, repo_dir, new_branch_name)
     print(f"Total Code Token Count: {check_token_count(all_code)}")
 
-    compiled_code = await agent_task(task, response, all_code)
+    compiled_code = await agent_task(task, response, all_code, model)
     return {"agent_response": compiled_code}
 
 async def process_file(task, file, repo_dir, new_branch_name, response):
@@ -113,12 +116,12 @@ async def get_software_type(assets):
     return await call_openai(prompt)
 
 
-async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, agent_responses, code="", flow="n"):
+async def produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, agent_responses, code="", model="oai", flow="n"):
     if not code:
         code = await get_all_code(file_list, repo_dir, new_branch_name)
         # if check_token_count(code) > 2000:
         #     return await produce_final_solution_for_large_repo(user_prompt, file_list, agent_responses, code)
-    return await produce_final_solution(user_prompt, file_list, agent_responses, code)
+    return await produce_final_solution(user_prompt, file_list, agent_responses, code, model)
 
 
 async def run_python_tests(repo_dir, present_venv_name=None, tries=3):

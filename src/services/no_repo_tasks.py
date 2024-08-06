@@ -5,21 +5,30 @@ from src.utilities.inference2 import call_openai, manager_development_agent_prom
     image_to_text, call_llm, clean_json_response
 
 
-async def manager_development_base_service(user_prompt, file):
+async def manager_development_base_service(user_prompt, file, model="oai"):
     # Create Code Project
     if file is None:
         code_prompt = ("INSTRUCTIONS:"
                        f" 1. You will create only code based on the user ask: {user_prompt}."
                        f"2. Respond only with code. Do not include any reasoning or explanation.")
-        code = await call_llm(code_prompt, 7000)
+        if model == "oai":
+            code = await call_openai(code_prompt)
+        else:
+            code = await call_llm(code_prompt, 7000)
         file_prompt = (f"INSTRUCTIONS: "
                        f"1. Give this code a filename: {code}."
                        f"2. Respond only with the filename.")
-        file = await call_llm(file_prompt, 100)
+        if model == "oai":
+            file = await call_openai(file_prompt)
+        else:
+            file = await call_llm(file_prompt, 100)
         files = [file]
         language_prompt = ("INSTRUCTIONS: "
                            f"1. What is the programming language of this file: {str(files)}")
-        language = await call_llm(language_prompt, 100)
+        if model == "oai":
+            language = await call_openai(language_prompt)
+        else:
+            language = await call_llm(language_prompt, 100)
         code_foundation = {
             "FILE_NAMES": files,
             "ALL_CODE": code,
@@ -44,8 +53,8 @@ async def manager_development_base_service(user_prompt, file):
             return await manager_development_base_service(user_prompt, file)
 
 
-async def no_repo_agent_task_service(task, responses, code):
-    return {"agent_response": await agent_task(task, responses, code)}
+async def no_repo_agent_task_service(task, responses, code, model):
+    return {"agent_response": await agent_task(task, responses, code, model)}
 
-async def no_repo_produce_solution(user_prompt, file_list, responses, code):
+async def no_repo_produce_solution(user_prompt, file_list, responses, code, model):
     return await produce_final_solution(user_prompt, file_list, responses, code)
