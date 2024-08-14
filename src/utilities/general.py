@@ -3,7 +3,6 @@ import os
 import shutil
 from dotenv import load_dotenv
 from fastapi import HTTPException
-import tiktoken
 
 # Load environment variables
 env_file = f"config/{os.environ.get('ENV', '.env-dev')}"
@@ -107,15 +106,14 @@ async def cleanup_cloned_repo(venv_name, repo_dir):
         raise HTTPException(status_code=500, detail=error_message)
 
 
-def check_token_count(history):
+def check_token_count(string):
     """
     Checks the number of tokens in the given history string.
 
     :param history: History string.
     :return: Number of tokens.
     """
-    encoding = tiktoken.encoding_for_model("gpt-4-0125-preview")
-    return len(encoding.encode(history))
+    return len(string)/4
 
 
 async def delete_folder(repo_dir):

@@ -24,7 +24,8 @@ async def manager_development_base_service(user_prompt, file, model="oai"):
             file = await call_llm(file_prompt, 100)
         files = [file]
         language_prompt = ("INSTRUCTIONS: "
-                           f"1. What is the programming language of this file: {str(files)}")
+                           f"1. What is the programming language of this file: {str(files)}."
+                           f"2. Only respond with the programming language. Do not include any explanation.")
         if model == "oai":
             language = await call_openai(language_prompt)
         else:

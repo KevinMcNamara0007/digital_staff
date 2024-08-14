@@ -31,24 +31,34 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
     file_list = file_filter(await repo_file_list(repo_dir))
     # GET SPECIFIC FILES FROM LIST BASED ON USER_PROMPT
     required_files = []
-    for file in file_list:
-        file_code = await get_code(file, repo_dir, new_branch_name)
-        prompt = ("You are a expert programming assistant who will only respond with 'yes' or 'no' based on the users ask."
-                  "You will say 'yes' to a file if it can be modified or adjusted to fulfil the users ask."
-                  "Respond with either 'YES' OR 'NO' only."
-                  f"This is the user's request: {user_prompt}."
-                  f"This is the user's file code: {file_code}")
+    all_code = await get_all_code(file_list, repo_dir, new_branch_name)
+    prompt = ("INSTRUCTIONS: "
+              "1. You are an expert programmer."
+              f"2. You will determine which files are needed based on this user ask: {user_prompt}"
+              f"3. Respond only with the files needed in format: filename1,filename2"
+              f"4. DO NOT INCLUDE REASONING OR EXPLANATION."
+              f"5. Here are the files you will be referencing: {all_code}")
+    try:
         if model == "oai":
             response = await call_openai(prompt)
         else:
-            response = await call_llm(prompt, 100)
-        print(f"File: {file} , needed: {response}")
-        if 'YES' in response.upper():
-            required_files.append(file)
+            print("got here")
+            response = await call_llm(prompt, 10000)
+            print(response)
+        response = response.split(",") if len(response.split(",")) > 1 else [response]
+        print(response)
+        required_files = [
+            file for file in file_list
+            if any(resp.lower() in file.lower() for resp in response)
+        ]
+        print(f"REQUIRED FILES FOUND: {required_files}")
+    except Exception as exc:
+        return file_list[0, 3]
+    print(len(required_files))
     # API FLOW
     if flow == "y":
         return await create_plan_service(user_prompt, required_files, repo_dir, new_branch_name, flow)
-    return {"user_prompt": user_prompt, "files": required_files, "repo_dir": repo_dir}
+    return {"user_prompt": user_prompt, "files": required_files if len(required_files) > 0 else file_list[0:2], "repo_dir": repo_dir}
 
 
 async def create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow="n"):
@@ -102,13 +112,13 @@ async def agent_task_per_file(task, user_prompt, file_list, repo_dir, new_branch
 
 async def get_code(file, repo_dir, new_branch_name):
     code = await show_file_contents(new_branch_name, file, repo_dir)
-    return f"### *File Name: {file}* *File Code: {code}*###"
+    return f"File Name: {file} File Code: {code}"
 
 
 async def get_all_code(file_list, repo_dir, new_branch_name):
     tasks = [show_file_contents(new_branch_name, file, repo_dir) for file in file_list]
     files_code = await asyncio.gather(*tasks)
-    return "\n".join([f"### *File Name: {file}* *File Code: {code}*###" for file, code in zip(file_list, files_code)])
+    return "\n".join([f"File Name: {file} File Code: {code}" for file, code in zip(file_list, files_code)])
 
 
 async def get_software_type(assets):

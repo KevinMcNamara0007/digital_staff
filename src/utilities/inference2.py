@@ -6,6 +6,8 @@ import time
 import requests
 from fastapi import HTTPException
 from openai import OpenAI
+
+
 from src.utilities.general import llm_url, openai_key, check_token_count
 import re
 
@@ -60,15 +62,15 @@ async def agent_task(task, responses, code, model="oai"):
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code, model="oai"):
     prompt = (
         'Instructions:\n'
-        '1. You are an expert programmer.\n'
-        '2. You will compile all agent code for each corresponding file and place it into a JSON format.'
-        ' DO NOT INCLUDE ANY EXPLANATION, ONLY RESPOND WITH THE JSON FORMAT REQUESTED.\n'
-        '3. You will only respond using this JSON format: [{"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"}, {"FILE_NAME":"file_name2", "FILE_CODE":"file_code2"}].\n'
-        f'4. FILE_CODE will only be the code of the FILE_NAME associated with it.\n'
-        f'5. These are the original file names: [{file_list}], and all original file code: [{original_code}].\n'
-        f'6. Here are the agent responses you will reference to update the code: {agent_responses}\n'
+        '1: You are an expert programmer who will compile original code and updated code into one final version for each file.\n'
+        '2: You will only respond using this JSON format: [{"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"}, {"FILE_NAME":"file_name2", "FILE_CODE":"file_code2"}] \n'
+        '2.1: FILE_CODE will only be the code of the FILE_NAME associated with it.\n'
+        f'2.2: These are the file names: [{file_list}].\n'
+        f'2.3: Original file codes: [{original_code}].\n'
+        f'2.4: Here are the agent responses you will reference to update the code: {agent_responses}\n'
     )
     tokens = check_token_count(prompt)
+    print(prompt)
     print(f"Final Solution Token Amount INPUT: {tokens}")
     # response = await call_openai(prompt, model="gpt-4o")
     if model == "oai":
@@ -85,6 +87,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         return response
     except Exception as exc:
         print(f'Could not parse String Into JSON ERROR. Will Remove all formatting: {exc}')
+        return response
         response = clean_json_response(response)
         try:
             response = json.loads(response.replace("\n", ""))
@@ -209,51 +212,88 @@ async def call_openai(prompt, model="gpt-4o"):
 
 
 async def call_llm(prompt, output_tokens=6000, url=llm_url):
+    return await call_cpp(prompt, output_tokens)
+
+    time.sleep(2)
     print(check_token_count(prompt))
     # return await call_openai(prompt)
     # return await call_cpp(prompt, output_tokens)
-    try:
-        headers = {
-            'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
-        }
-        response = requests.post(
-            url,
-            data={
-                "prompt": prompt,
-                "rules": "You are a friendly virtual assistant. Your role is to answer the user questions and follow their instructions. Be concise and accurate.",
-                "temperature": 0.50,
-                "top_k": 40,
-                "top_p": 0.95
-            },
-            headers=headers
-        )
-        response.raise_for_status()  # Ensure we raise an error for bad responses
-        print(response.json()["choices"][0]["message"]["content"])
-        print(response.json()["choices"][0]["finish_reason"])
-        print(response.json()["timings"]["predicted_n"])
-        response = (response.json()["choices"][0]["message"]["content"]
-                    .replace("<|im_end|>", "")
-                    .replace("<|im_start|>", "").replace("assistant", " ")
-                    .replace('}, {"role": "User", "content": ', ''))
-        return response
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
+    # try:
+    #     headers = {
+    #         'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
+    #     }
+    #     response = requests.post(
+    #         url,
+    #         data={
+    #             "prompt": prompt,
+    #             "rules": "You are a friendly virtual assistant. Your role is to answer the user questions and follow their instructions. Be concise and accurate.",
+    #             "temperature": 0.50,
+    #             "top_k": 40,
+    #             "top_p": 0.95
+    #         },
+    #         headers=headers
+    #     )
+    #     response.raise_for_status()  # Ensure we raise an error for bad responses
+    #     print(response.json()["choices"][0]["message"]["content"])
+    #     print(response.json()["choices"][0]["finish_reason"])
+    #     print(response.json()["timings"]["predicted_n"])
+    #     response = (response.json()["choices"][0]["message"]["content"]
+    #                 .replace("<|im_end|>", "")
+    #                 .replace("<|im_start|>", "").replace("assistant", " ")
+    #                 .replace('}, {"role": "User", "content": ', ''))
+    #     return response
+    # except requests.RequestException as exc:
+    #     raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
 
 async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
-    time.sleep(5)
+    time.sleep(2)
+    hermes = f"<|im_start|>system\n{prompt}<|im_end|>\n<|im_start|>user\n<|im_end|>\nassistant"
+    llama = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>{prompt}<|start_header_id|>user<|end_header_id|><|eot_id|>assistant"
     try:
         response = requests.post(
             url,
             json={
-                "prompt": prompt,
-                "temperature": 0.50,
-                "max_output_tokens": output_tokens,
-                "messages": ""
+                "prompt": llama,
+                "stream": False,
+                "n_predict": 4000,
+                "temperature": 0.8,
+                "stop":
+                    ["</s>",
+                     "<|end|>",
+                     "<|eot_id|>",
+                     "<|end_of_text|>",
+                     "<|im_end|>",
+                     "<|EOT|>",
+                     "<|END_OF_TURN_TOKEN|>",
+                     "<|end_of_turn|>",
+                     "<|endoftext|>",
+                     "assistant",
+                     "user"],
+                "repeat_last_n":0,
+                "repeat_penalty":1,
+                "penalize_nl":False,
+                "top_k":0,
+                "top_p":1,
+                "min_p":0.05,
+                "tfs_z":1,
+                "typical_p":1,
+                "presence_penalty":0,
+                "frequency_penalty":0,
+                "mirostat":0,
+                "mirostat_tau":5,
+                "mirostat_eta":0.1,
+                "grammar":"",
+                "n_probs":0,
+                "min_keep":0,
+                "image_data":[],
+                "cache_prompt":True,
+                "api_key":""
             }
         )
         response.raise_for_status()  # Ensure we raise an error for bad responses
-        return response.json()["content"].replace("<|im_end|>", "").replace("<|im_start|>", "").replace("assistant", " ")
+        print(response.json()["stop"])
+        return response.json()["content"]
     except requests.RequestException as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
