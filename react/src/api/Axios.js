@@ -39,7 +39,7 @@ export const repoOperationAPI = (user_prompt, https_clone_link, original_code_br
     return postFormData("/Tasks/repo_ops", data)
 }
 
-export const managerPlanAPI = (user_prompt, original_code_branch, new_branch_name, model, file_list, repo_dir, flow="no") => {
+export const managerPlanAPI = (user_prompt, original_code_branch, new_branch_name, model, file_list, repo_dir,file, flow="no") => {
     let data = new FormData()
     data.set("user_prompt", user_prompt);
     data.set("original_code_branch", original_code_branch);
@@ -48,6 +48,7 @@ export const managerPlanAPI = (user_prompt, original_code_branch, new_branch_nam
     data.set("file_list", file_list);
     data.set("repo_dir", repo_dir);
     data.set("flow", flow);
+    data.set("file",file)
     return postFormData("/Tasks/manager_plan", data)
 }
 

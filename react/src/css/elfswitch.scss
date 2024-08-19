@@ -1,0 +1,122 @@
+@import "index";
+
+//ELF SWITCH
+.switch {
+  float: right;
+  margin-bottom: 10px;
+  margin-right: 10px;
+  margin-top: 10px;
+  position: relative;
+  display: inline-block;
+  width: 45px;
+  height: 35px;
+  border: 2px solid #dcdcdc;
+  background: #e0e0e0;
+  box-shadow: 3px 3px 15px #bebebe, -3px -3px 15px #ffffff;
+  overflow: hidden;
+  border-radius: 60px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  font-size: 14px;
+  font-weight: 700;
+  font-family: sans-serif;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+}
+
+input:checked + .slider:before {
+  background: white;
+  box-shadow: none;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196f3;
+}
+
+.slider {
+  color: $blue;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-family: sans-serif;
+}
+
+.slider--0 {
+  color: white;
+  font-weight: 600;
+  background-color: #4982d8;
+}
+
+.slider--1 div {
+  transition: 0.5s;
+}
+
+.slider--1 div {
+  position: absolute;
+  width: 100%;
+  height: 50%;
+  left: 0;
+}
+
+input:checked ~ .slider--1 div:first-child {
+  transform: translateY(-100%);
+  transition-delay: 1s;
+}
+
+input:checked ~ .slider--1 div:last-child {
+  transform: translateY(100%);
+  transition-delay: 1s;
+}
+
+input:checked ~ .slider--2 {
+  transform: translateX(100%);
+  transition-delay: 0.5s;
+}
+
+input:checked ~ .slider--3 {
+  transform: translateX(-100%);
+  transition-delay: 0s;
+}
+
+.slider--1 div:first-child {
+  transform: translateY(0);
+  top: 0;
+  background-color: #f3f3f3;
+  transition-delay: 0s;
+}
+
+.slider--1 div:last-child {
+  transform: translateY(0);
+  bottom: 0;
+  background-color: #f3f3f3;
+  border-top: 1px solid #e0e0e0;
+  transition-delay: 0s;
+}
+
+.slider--2 {
+  background-color: #e6e6e6;
+  transition-delay: 0.5s;
+  transform: translateX(0);
+  border-left: 1px solid #d2d2d2;
+}
+
+.slider--3 {
+  background-color: #ececec;
+  transition-delay: 1s;
+  transform: translatex(0);
+  border-right: 1px solid #d2d2d2;
+}

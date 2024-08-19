@@ -82,7 +82,7 @@ html, body, #root, .App{
       margin-top: 10px;
       .img{
         position: relative;
-        top: 3px;
+        top: 13px;
         width: 30px !important;
         height: 30px !important;
       }
@@ -92,38 +92,44 @@ html, body, #root, .App{
     }
 
     .panel{
-      width: 100%;
-      height: 80%;
-      overflow-y: auto;
       box-shadow: rgb(73, 73, 73) 0px 0px 10px -12px inset, rgb(105, 105, 105) 0px 2px 36px -18px inset;
+      height: 90%;
+      width: 100%;
+      .panelContainer{
+        border-top: 2px solid $blue;
+        border-bottom: 2px solid $blue;
+        width: 100%;
+        height: 80%;
+        overflow-y: auto;
 
-      &::-webkit-scrollbar{
-        width: 4px;
-      }
-      &::-webkit-scrollbar-track{
-        border-radius: 10px;
-        background: $gray;
-      }
-      &::-webkit-scrollbar-thumb{
-        background: $blue;
-      }
-      &::-webkit-scrollbar-thumb:hover{
-        background: $blue;
-      }
+        &::-webkit-scrollbar{
+          width: 4px;
+        }
+        &::-webkit-scrollbar-track{
+          border-radius: 10px;
+          background: $gray;
+        }
+        &::-webkit-scrollbar-thumb{
+          background: $blue;
+        }
+        &::-webkit-scrollbar-thumb:hover{
+          background: $blue;
+        }
 
-      .session{
-        padding: 20px 10px 20px 10px;
-        min-height: 70px;
-        text-align: left;
-        display: flex;
-      }
-      .session:hover{
-        color: $white;
-        background: $blue-gradient;
-      }
-      .activeSession{
-        color: $white;
-        background: $blue-gradient;
+        .session{
+          padding: 20px 10px 20px 10px;
+          min-height: 70px;
+          text-align: left;
+          display: flex;
+        }
+        .session:hover{
+          color: $white;
+          background: $blue-gradient;
+        }
+        .activeSession{
+          color: $white;
+          background: $blue-gradient;
+        }
       }
     }
   }
@@ -180,11 +186,40 @@ html, body, #root, .App{
       margin-bottom: 5px;
     }
     .output2{
-      height: 600px;
+      margin-left: 5%;
+      width: 90% !important;
+      margin-bottom: 20px ;
+
+      .fileName{
+        margin-top: 5px;
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 5px;
+      }
+      .fileCode{
+        height: 400px !important;
+        overflow-y: auto;
+        &::-webkit-scrollbar{
+          width: 4px;
+        }
+        &::-webkit-scrollbar-track{
+          border-radius: 10px;
+          background: $light-gray;
+        }
+        &::-webkit-scrollbar-thumb{
+          background: $blue;
+        }
+        &::-webkit-scrollbar-thumb:hover{
+          background: $blue-gradient;
+        }
+      }
+
     }
     .agentOutput{
       white-space: pre-wrap;
-      padding: 10px;
+      padding-left: 30px;
+      padding-right: 30px;
+      padding-top: 30px;
       height: 90%;
       width: 100%;
       overflow-y: auto;

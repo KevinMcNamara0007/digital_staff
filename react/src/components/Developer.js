@@ -30,15 +30,16 @@ const Developer = () => {
     const [sessionIndex, setSessionIndex] = useState(-1)
     const [sessions, setSessions] = useState([])
     //variables input fields
-    const [model, setModel] = useState("")
+    const [model, setModel] = useState("oai")
     const [instruction, setInstruction] = useState("")
+    const [file, setFile] = useState(null)
     const [gitRepo, setGitRepo] = useState("")
     const [currentBranch, setCurrentBranch] = useState("")
     const [newBranch, setNewBranch] = useState("")
     //Response Variables
     const [title, setTitle] = useState("Digital Staff")
     const [task, setTask] = useState("")
-    const [agentResponse, setAgentResponse] = useState("Hello")
+    const [agentResponse, setAgentResponse] = useState("")
     const [finalSolution, setFinalSolution] = useState([])
     //triggers
     const [showSettings, setShowSettings] = useState(false)
@@ -56,77 +57,7 @@ const Developer = () => {
         diff: "null"
     })
 
-    useEffect(() => {
-        console.log(agentResponse)
-    }, [agentResponse]);
-    //functions
-    const clearHistory = () => {
-        setShowTabs(false)
-        setSessionIndex(-1) //current
-        setSolutionTrigger(false)
-        setTask("")
-        setTitle("")
-        setAgentResponse("")
-        setFinalSolution([])
-        setSessions([])
-        setInstruction("")
-        setGitRepo("")
-        setCurrentBranch("")
-        setNewBranch("")
-        setCurrentObject({})
-        hist = []
-        localStorage.removeItem("digitalHistory")
-    }
-
-    useEffect(() => {
-        getAllSessions()
-    }, []);
-
-    const showPlan = () => {
-        setTitle("Manager Plan")
-        let managerPlanString = "";
-        currentObject.manager_plan.forEach((item)=>{
-            managerPlanString = managerPlanString + "\nStep:\n" + item + "\n"
-        })
-        setAgentResponse("\n\n\nAgent Tasks: " + managerPlanString)
-    }
-    const showAgent = (index) => {
-        if(running !== true){
-            setTitle("Agent " + (index+1))
-            currentObject.agentResponseList[index] ? setAgentResponse(currentObject.agentResponseList[index]) : setAgentResponse("NO Response")
-        }
-    }
-    const showSolution = () => {
-        if(running !== true){
-            setTitle("Final Solution")
-            setTask("")
-            currentObject.final_solution && currentObject.final_solution[0].FILE_NAME ? setFinalSolution(currentObject.final_solution) : setFinalSolution([])
-        }
-    }
-
-    const showGitDiff = () => {
-        if(running !== true){
-
-        }
-    }
-    const getAllSessions = () => {
-        let sessionList = []
-        if(hist.length >= 1){
-            hist.map((item) => {
-                sessionList.push({id:item.id, prompt: item.prompt})
-            })
-            setSessions(sessionList)
-        }
-    }
-
-    const selectSession = (index) => {
-        if(running === false){
-            setShowTabs(true)
-            setSessionIndex(index)
-            setCurrentObject(hist[index])
-        }
-    }
-
+    //Main Flow Functions
     const handleSubmit = async () => {
         if(running === false){
             setProgress({
@@ -159,8 +90,8 @@ const Developer = () => {
                 setNewBranch("none")
                 plan = await managerPlan("none", "none")
             }
-            let agents = plan.filenames !== null ? await processAgentTasks(plan.filenames ? plan.filenames : "", plan.repo_dir, plan.plan, plan.code) : [""]
-            let solution = plan.filenames !== null ? await produceSolution(plan.filenames, plan.repo_dir, plan.code) : null
+            let agents = plan !== null && plan.filenames !== null ? await processAgentTasks(plan.filenames ? plan.filenames : "", plan.repo_dir, plan.plan, plan.code) : [""]
+            let solution = plan !== null && plan.filenames !== null ? await produceSolution(plan.filenames, plan.repo_dir, plan.code) : null
 
             let diff = ""
             if(gitRepo !== ""){
@@ -170,9 +101,9 @@ const Developer = () => {
             setCurrentObject({
                 id: hist.length,
                 prompt: instruction,
-                repo_dir: plan.repo_dir,
-                file_list: plan.file_list,
-                manager_plan: plan.plan,
+                repo_dir: plan ? plan.repo_dir : "none",
+                file_list: plan ? plan.file_list : "none",
+                manager_plan: plan ? plan.plan : [],
                 agentResponseList: agents,
                 finalSolution: solution,
                 diff: diff
@@ -180,20 +111,21 @@ const Developer = () => {
             hist.push({
                 id: hist.length,
                 prompt: instruction,
-                repo_dir: plan.repo_dir,
-                file_list: plan.file_list,
-                manager_plan: plan.plan,
+                repo_dir: plan ? plan.repo_dir : "none",
+                file_list: plan ? plan.file_list : "none",
+                manager_plan: plan ? plan.plan : [],
                 agentResponseList: agents,
                 finalSolution: solution,
                 diff: diff
             })
             localStorage.setItem("digitalHistory", JSON.stringify(hist))
             setRunning(false)
+            setFile(null)
         }
     }
 
     async function repoOperation(){
-        return await repoOperationAPI(instruction, gitRepo, currentBranch, newBranch, "oai")
+        return await repoOperationAPI(instruction, gitRepo, currentBranch, newBranch, model)
             .then((response)=>{
                 return {repo_dir: response.data.repo_dir, files: response.data.files}
             }).catch((error)=>{
@@ -205,7 +137,7 @@ const Developer = () => {
 
     async function managerPlan(file_list, repo_dir){
         setProgress(prevState => ({...prevState, plan:"running"}))
-        return await managerPlanAPI(instruction,currentBranch,newBranch,model,file_list, repo_dir)
+        return await managerPlanAPI(instruction,currentBranch,newBranch,model,file_list, repo_dir, file)
             .then((response)=> {
                 if(file_list !== "none"){
                     setTitle("Manager Plan")
@@ -223,8 +155,6 @@ const Developer = () => {
                     response.data.MANAGER_PLAN.forEach((item)=>{
                         managerPlanString = managerPlanString + "\nStep:\n" + item + "\n"
                     })
-                    console.log(managerPlanString)
-                    console.log(response.data.CODE_FOUNDATION.ALL_CODE)
                     setAgentResponse("\n\n\nAgent Tasks: " + managerPlanString + "\n\n CODE FOUNDATION:\n\n" + response.data.CODE_FOUNDATION.ALL_CODE)
 
                     setProgress(prevState => ({...prevState, plan:"complete"}))
@@ -269,7 +199,7 @@ const Developer = () => {
             else if(agentNumber === 4){
                 setProgress(prevState => ({...prevState, 4:"running"}))
             }
-            return await agentTaskAPI(instruction,file_list,task, newBranch, repo_dir, agent_responses, code, "oai")
+            return await agentTaskAPI(instruction,file_list,task, newBranch, repo_dir, agent_responses, code, model)
                 .then((response) => {
                     if(agentNumber === 1){
                         setProgress(prevState => ({...prevState, 1:"complete"}))
@@ -311,7 +241,7 @@ const Developer = () => {
 
     async function produceSolution(file_list, repo_dir, code){
         setProgress(prevState => ({...prevState, solution:"running"}))
-        return await solutionAPI(instruction, file_list, newBranch, repo_dir, agentResponses, code, "oai")
+        return await solutionAPI(instruction, file_list, newBranch, repo_dir, agentResponses, code, model)
             .then((response)=>{
                 setProgress(prevState => ({...prevState, solution:"complete"}))
                 setTitle("Final Solution")
@@ -339,32 +269,152 @@ const Developer = () => {
             })
     }
 
+    //END OF MAIN FLOW FUNCTIONS
+    //UTILITY FUNCTIONS
+    const clearHistory = () => {
+        setShowTabs(false)
+        setSessionIndex(-1) //current
+        setSolutionTrigger(false)
+        setTask("")
+        setTitle("")
+        setAgentResponse("")
+        setFinalSolution([])
+        setSessions([])
+        setInstruction("")
+        setGitRepo("")
+        setCurrentBranch("")
+        setNewBranch("")
+        setCurrentObject({})
+        hist = []
+        localStorage.removeItem("digitalHistory")
+    }
+
+    useEffect(() => {
+        getAllSessions()
+    }, []);
+
+    const showPlan = () => {
+        if(running !== true){
+            setTitle("Manager Plan")
+            let managerPlanString = "";
+            currentObject.manager_plan.forEach((item)=>{
+                managerPlanString = managerPlanString + "\nStep:\n" + item + "\n"
+            })
+            setAgentResponse("\n\n\nAgent Tasks: " + managerPlanString)
+            setSolutionTrigger(false)
+        }
+    }
+    const showAgent = (index) => {
+        if(running !== true){
+            setTitle("Agent " + (index+1))
+            currentObject.agentResponseList[index] ? setAgentResponse(currentObject.agentResponseList[index]) : setAgentResponse("NO Response")
+            setSolutionTrigger(false)
+        }
+    }
+    const showSolution = () => {
+        if(running !== true){
+            setTitle("Final Solution")
+            setTask("")
+            console.log(currentObject.finalSolution)
+            currentObject.finalSolution && currentObject.finalSolution[0].FILE_NAME ? setFinalSolution(currentObject.finalSolution) : setFinalSolution([])
+            setSolutionTrigger(true)
+        }
+    }
+
+    const showGitDiff = () => {
+        if(running !== true){
+
+        }
+    }
+    const getAllSessions = () => {
+        let sessionList = []
+        if(hist.length >= 1){
+            hist.map((item) => {
+                sessionList.push({id:item.id, prompt: item.prompt})
+            })
+            setSessions(sessionList)
+        }
+    }
+
+    const selectSession = (index) => {
+        if(running === false){
+            setShowTabs(true)
+            setSessionIndex(index)
+            setCurrentObject(hist[index])
+        }
+    }
+
 
 
     const getSolutionDivs = (name, response) => {
         return (
             <div>
-                <div className="fileName">File Name: {name}</div>
+                <div className="fileName">{name}</div>
                 <div className="fileCode">{response}</div>
             </div>
         )
     }
 
+    const toggleDarkMode = () => {
+        document.body.classList.toggle("darkMode");
+    }
+
+    const toggleModel = (modelType) => {
+        setModel(modelType)
+    }
+
+    const imageUpload = (e) => {
+        setFile(e.target.files[0])
+    }
+
     return (
         <div className="mainContainer">
-
             <div className="menu">
-                <div className="titleSessions">Sessions
-                    <span className="clear" onClick={() => {
-                        clearHistory()
-                    }}><TrashIcon className="img" title="Clear History"/></span>
+                <div className="titleSessions">
+                    Sessions
                 </div>
                 <div className="panel">
-                    {sessions.map((item, index) => (
-                        <div disabled={running === true} key={index} className={`session ${index === sessionIndex ? "activeSession": ""}`} onClick={()=>{selectSession(index)}}>
-                            {item.prompt}
+                     <span className="clear" onClick={() => {
+                         clearHistory()
+                     }}><TrashIcon className="img" title="Clear History"/></span>
+                    <label className="switch">
+                        <input type="checkbox"/>
+                        <div className="slider slider--0" onClick={() => {
+                            toggleModel("oai")
+                        }}>ELF
                         </div>
-                    ))}
+                        <div className="slider slider--1">
+                            <div></div>
+                            <div></div>
+                        </div>
+                        <div className="slider slider--2"></div>
+                        <div className="slider slider--3" onClick={() => {
+                            toggleModel("elf")
+                        }}>OAI
+                        </div>
+                    </label>
+                    <div className="panelContainer">
+                        {sessions.map((item, index) => (
+                            <div disabled={running === true} key={index}
+                                 className={`session ${index === sessionIndex ? "activeSession" : ""}`} onClick={() => {
+                                selectSession(index)
+                            }}>
+                                {item.prompt}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="wrapper">
+                        <div className="toggle" onClick={() => {
+                            toggleDarkMode()
+                        }}>
+                            <input className="toggle-input" type="checkbox"/>
+                            <div className="toggle-bg"></div>
+                            <div className="toggle-switch">
+                                <div className="toggle-switch-figure"></div>
+                                <div className="toggle-switch-figureAlt"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             <div className="view">
@@ -383,7 +433,7 @@ const Developer = () => {
                             }
                         </div>
                         <div className="agentTab">
-                            <div className="title" id="agent0Tab">Agent 1</div>
+                            <div className="title" id="agent0Tab" onClick={()=>{showAgent(0)}}>Agent 1</div>
                             {running === true &&
                                 <div className="progress">
                                     {progress["1"] !== "null" && <div
@@ -392,7 +442,7 @@ const Developer = () => {
                             }
                         </div>
                         <div className="agentTab">
-                            <div className="title" id="agent1Tab">Agent 2</div>
+                            <div className="title" id="agent1Tab" onClick={()=>{showAgent(1)}}>Agent 2</div>
                             {running === true &&
                                 <div className="progress">
                                     {progress["2"] !== "null" && <div
@@ -401,7 +451,7 @@ const Developer = () => {
                             }
                         </div>
                         <div className="agentTab">
-                            <div className="title" id="agent2Tab">Agent 3</div>
+                            <div className="title" id="agent2Tab" onClick={()=>{showAgent(2)}}>Agent 3</div>
                             {running === true &&
                                 <div className="progress">
                                     {progress["3"] !== "null" && <div
@@ -410,7 +460,7 @@ const Developer = () => {
                             }
                         </div>
                         <div className="agentTab">
-                            <div className="title" id="agent3Tab">Agent 4</div>
+                            <div className="title" id="agent3Tab" onClick={()=>{showAgent(3)}}>Agent 4</div>
                             {running === true &&
                                 <div className="progress">
                                     {progress["4"] !== "null" && <div
@@ -419,7 +469,7 @@ const Developer = () => {
                             }
                         </div>
                         <div className="agentTab">
-                            <div id="planTab" className="title">Solution</div>
+                            <div id="planTab" className="title" onClick={()=>{showSolution()}}>Solution</div>
                             {running === true &&
                                 <div className="progress">
                                     {progress.solution !== "null" && <div
@@ -440,23 +490,31 @@ const Developer = () => {
                         <div className="agentResponse">
                             <h3 className="agentTitle">{title}</h3>
                             <h4 className="agentTitle">{task}</h4>
-                            {finalSolution.map((item, index) => (
-                                <div key={"sol" + index} className="agentOutput output2">
-                                    {getSolutionDivs(item.FILE_NAME ? item.FILE_NAME : "", item.FILE_CODE ? item.FILE_CODE : "")}
-                                </div>
-                            ))}
+                            <div className="agentOutput">
+                                {finalSolution.map((item, index) => (
+                                    <div key={"sol" + index} className="output2">
+                                        {getSolutionDivs(item.FILE_NAME ? item.FILE_NAME : "", item.FILE_CODE ? item.FILE_CODE : "")}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                 }
                 <div className="promptContainer">
-                    <button className="repoSettingsButton" onClick={()=>{setShowSettings(!showSettings)}}><GitIcon className="img"/></button>
+                    <button className="repoSettingsButton" onClick={() => {
+                        setShowSettings(!showSettings)
+                    }}><GitIcon className="img"/></button>
                     <label>
-                        <input id="instruction" value={instruction} onChange={(e)=>{setInstruction(e.target.value)}} type="text" title="instructions" placeholder="Enter Coding Instructions"/>
+                        <input id="instruction" value={instruction} onChange={(e) => {
+                            setInstruction(e.target.value)
+                        }} type="text" title="instructions" placeholder="Enter Coding Instructions"/>
                     </label>
                     <label className="diagramImage">
                         <DiagramIcon className="img"/>
-                        <input id="image" type="file" accept="image/png, image/gif, image/jpeg"/>
+                        <input id="image" type="file" accept="image/png, image/gif, image/jpeg" onClick={(e)=>{e.target.value = ""}} onChange={(e)=>{imageUpload(e)}}/>
                     </label>
-                    <button className="searchImage" onClick={() => {handleSubmit()}}><ArrowIcon className="img"/></button>
+                    <button className="searchImage" onClick={() => {
+                        handleSubmit()
+                    }}><ArrowIcon className="img"/></button>
                 </div>
             </div>
             {
@@ -475,7 +533,10 @@ const Developer = () => {
                             <input id="newBranchName" value={newBranch} onChange={(e) => {
                                 setNewBranch(e.target.value)
                             }} type="text" title="GIT CLONE LINK" placeholder="Enter New Branch name here"/>
-                            <button className="repoSettingsButton" onClick={()=>{setShowSettings(false)}}>Continue</button>
+                            <button className="repoSettingsButton" onClick={() => {
+                                setShowSettings(false)
+                            }}>Continue
+                            </button>
                         </div>
                     </div>
             }

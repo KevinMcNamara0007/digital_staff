@@ -1,6 +1,8 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './index.scss';
+import './css/index.scss';
+import './css/darkModeAndSwitch.scss'
+import './css/elfswitch.scss'
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 
