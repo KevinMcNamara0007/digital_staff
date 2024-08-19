@@ -58,6 +58,27 @@ async def agent_task(task, responses, code, model="oai"):
 #     print(f"Compile Output Token Amount: {check_token_count(response)}")
 #     return response
 
+def fix_json_string(input_string):
+    try:
+        # Replace the problematic parts in the input string
+        fixed_string = input_string \
+            .replace('\\', '\\\\') \
+            .replace('\n', '\\n') \
+            .replace('\t', '\\t') \
+            .replace('"{{', '"{') \
+            .replace('}} "', '}"') \
+            .replace('}{', '},{') \
+            .replace('[[','[') \
+            .replace(']]', ']')
+
+        # Fix the structure by ensuring it's wrapped correctly
+        fixed_string = f'[{fixed_string}]'
+
+        return fixed_string
+    except json.JSONDecodeError as e:
+        print("Error still persists:", e)
+        return None
+
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code, model="oai"):
     prompt = (
@@ -81,16 +102,15 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     try:
         index = response.index("[")
         response = response[index:]
-        response = response.replace("```","")
+        response = response.replace("[\n","[")
         response = json.loads(response)
         response = await create_unit_tests(response, model)
         return response
     except Exception as exc:
         print(f'Could not parse String Into JSON ERROR. Will Remove all formatting: {exc}')
-        return response
-        response = clean_json_response(response)
         try:
-            response = json.loads(response.replace("\n", ""))
+            response = fix_json_string(response)
+            response = json.loads(response)
             response = await create_unit_tests(response, model)
             return response
         except json.JSONDecodeError:
@@ -146,10 +166,9 @@ def find_file_by_name(agent_response_list, file_name):
 async def create_unit_test_for_file(file, model="oai"):
     prompt = (
         'INSTRUCTIONS: '
-        '1. You will be creating a unit test file based on file code. DO NOT INCLUDE ANY EXPLANATION.'
-        '2. You will only respond in JSON Format: {"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"} .'
-        f'3. FILE_NAME will be "test_" + {file.get("FILE_NAME")}.'
-        f'4.FILE_CODE MUST ONLY BE THE FILE CODE FOR UNIT TESTS. You will create test code based on this code: {file.get("FILE_CODE")}'
+        '1. You will be creating unit tests based on file code. DO NOT INCLUDE ANY EXPLANATION.'
+        '2. You will only respond with complete unit test code.'
+        f'3. You will create test code based on this code: {file.get("FILE_CODE")}'
     )
     try:
         print(f"UNIT TEST CREATION FOR:\n{file.get('FILE_NAME')}\nINPUT TOKEN AMOUNT: {check_token_count(prompt)}")
@@ -157,17 +176,11 @@ async def create_unit_test_for_file(file, model="oai"):
             response = await call_openai(prompt)
         else:
             response = await call_llm(prompt, 3000)
-        print(response)
-        index = response.index("{")
-        response = response[index:]
-        response.replace('"""', '"')
+        file.get("FILE_NAME")
+        test_name = "test_" + file.get("FILE_NAME")
+        file_code = response.replace("'''python").replace("'''", "")
         print(f"OUTPUT TOKEN AMOUNT: {check_token_count(response)}")
-        try:
-            response = json.loads(response)
-            return response
-        except json.JSONDecodeError as exc:
-            print(f'JSON ERROR FOR TEST FILE {file.get("FILE_NAME")}. Will not add due to: {exc}')
-            return None
+        return {"FILE_NAME": test_name, "FILE_CODE":file_code}
     except Exception as exc:
         print(exc)
         return None
@@ -247,6 +260,7 @@ async def call_llm(prompt, output_tokens=6000, url=llm_url):
 
 
 async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
+    print(prompt)
     time.sleep(2)
     hermes = f"<|im_start|>system\n{prompt}<|im_end|>\n<|im_start|>user\n<|im_end|>\nassistant"
     llama = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>{prompt}<|start_header_id|>user<|end_header_id|><|eot_id|>assistant"
@@ -256,7 +270,7 @@ async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/comple
             json={
                 "prompt": llama,
                 "stream": False,
-                "n_predict": 4000,
+                "n_predict": output_tokens,
                 "temperature": 0.8,
                 "stop":
                     ["</s>",
@@ -287,7 +301,7 @@ async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/comple
                 "n_probs":0,
                 "min_keep":0,
                 "image_data":[],
-                "cache_prompt":True,
+                "cache_prompt":False,
                 "api_key":""
             }
         )
