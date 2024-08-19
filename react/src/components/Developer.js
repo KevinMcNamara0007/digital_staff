@@ -243,11 +243,16 @@ const Developer = () => {
         setProgress(prevState => ({...prevState, solution:"running"}))
         return await solutionAPI(instruction, file_list, newBranch, repo_dir, agentResponses, code, model)
             .then((response)=>{
-                setProgress(prevState => ({...prevState, solution:"complete"}))
                 setTitle("Final Solution")
                 setTask("")
-                setFinalSolution(response.data)
-                setSolutionTrigger(true);
+                if(response.data[0] && response.data[0].FILE_NAME){
+                    setProgress(prevState => ({...prevState, solution:"complete"}))
+                    setFinalSolution(response.data)
+                    setSolutionTrigger(true);
+                }else{
+                    setProgress(prevState => ({...prevState, solution:"fail"}))
+                    setAgentResponse(response.data)
+                }
                 return response.data
             }).catch((err)=>{
                 setRunning(false)
@@ -315,9 +320,13 @@ const Developer = () => {
         if(running !== true){
             setTitle("Final Solution")
             setTask("")
-            console.log(currentObject.finalSolution)
-            currentObject.finalSolution && currentObject.finalSolution[0].FILE_NAME ? setFinalSolution(currentObject.finalSolution) : setFinalSolution([])
-            setSolutionTrigger(true)
+            if(currentObject.finalSolution && currentObject.finalSolution[0].FILE_NAME){
+                console.log(currentObject.finalSolution)
+                currentObject.finalSolution && currentObject.finalSolution[0].FILE_NAME ? setFinalSolution(currentObject.finalSolution) : setFinalSolution([])
+                setSolutionTrigger(true)
+            }else{
+                setAgentResponse(currentObject.finalSolution)
+            }
         }
     }
 

@@ -48,7 +48,7 @@ export const managerPlanAPI = (user_prompt, original_code_branch, new_branch_nam
     data.set("file_list", file_list);
     data.set("repo_dir", repo_dir);
     data.set("flow", flow);
-    data.set("file",file)
+    file !== null && data.set("file",file)
     return postFormData("/Tasks/manager_plan", data)
 }
 
