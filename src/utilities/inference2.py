@@ -178,7 +178,7 @@ async def create_unit_test_for_file(file, model="oai"):
             response = await call_llm(prompt, 3000)
         file.get("FILE_NAME")
         test_name = "test_" + file.get("FILE_NAME")
-        file_code = response.replace("'''python").replace("'''", "")
+        file_code = response.replace("'''python","").replace("'''", "")
         print(f"OUTPUT TOKEN AMOUNT: {check_token_count(response)}")
         return {"FILE_NAME": test_name, "FILE_CODE":file_code}
     except Exception as exc:
@@ -260,7 +260,6 @@ async def call_llm(prompt, output_tokens=6000, url=llm_url):
 
 
 async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
-    print(prompt)
     time.sleep(2)
     hermes = f"<|im_start|>system\n{prompt}<|im_end|>\n<|im_start|>user\n<|im_end|>\nassistant"
     llama = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>{prompt}<|start_header_id|>user<|end_header_id|><|eot_id|>assistant"
