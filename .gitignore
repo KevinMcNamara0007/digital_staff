@@ -2,3 +2,4 @@
 digitalstaff.iml
 venv
 efs/repos/*
+src/utilities/constants.py
