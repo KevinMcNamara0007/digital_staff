@@ -69,7 +69,11 @@ def fix_json_string(input_string):
             .replace('}} "', '}"') \
             .replace('}{', '},{') \
             .replace('[[','[') \
-            .replace(']]', ']')
+            .replace(']]', ']') \
+            .replace('"__main__"',"'__main__'") \
+            .replace("n```","") \
+            .replace("```python", "")
+
 
         # Fix the structure by ensuring it's wrapped correctly
         fixed_string = f'[{fixed_string}]'
