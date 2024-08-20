@@ -179,6 +179,7 @@ const Developer = () => {
             for (const item of tasks){
                 const index = tasks.indexOf(item);
                 let response = await agentTask(index, file_list, newBranch, repo_dir, item, agentResponses, code)
+                agentResponses = response
                 agentResponseList.push(response)
             }
             return agentResponseList
@@ -220,6 +221,7 @@ const Developer = () => {
                         return response.data.agent_response
                     }else{
                         setAgentResponse(response.data.agent_response)
+                        agent_responses = response.data.agent_response
                         return response.data.agent_response
                     }
                 }).catch((err)=>{
