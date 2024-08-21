@@ -70,24 +70,17 @@ def fix_json_string(input_string):
     try:
         # Replace other problematic parts in the input string
         fixed_string = json_string \
-            .replace('\\', '\\\\') \
-            .replace('\n', '\\n') \
-            .replace('\t', '\\t') \
             .replace('"{{', '"{') \
-            .replace('}} "', '}"') \
+            .replace('}}"', '}"') \
             .replace('}{', '},{') \
             .replace('[[', '[') \
             .replace(']]', ']') \
-            .replace('"{', '{{') \
-            .replace('}"', '}}') \
-            .replace('"__main__"', "'__main__'") \
-            .replace("n```", "") \
-            .replace("```python", "") \
-            .replace('\\\\n', '\\n')  # Convert double escaped newlines to single
-
-        # Fix the structure by ensuring it's wrapped correctly
-        fixed_string = f'[{fixed_string}]'
-        print(fixed_string)
+        # Ensuring the structure is correct
+        if not fixed_string.startswith('['):
+            fixed_string = '[' + fixed_string
+        if not fixed_string.endswith(']'):
+            fixed_string = fixed_string + ']'
+            fixed_string = fixed_string.replace('] ]', ']')
 
         return fixed_string
     except json.JSONDecodeError as e:
@@ -110,6 +103,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     # response = await call_openai(prompt, model="gpt-4o")
     if model == "oai":
         response = await call_openai(prompt)
+        response = response.replace("```", "")
     else:
         time.sleep(8)
         response = await call_llm(prompt, tokens*1.8)
@@ -117,7 +111,7 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
     try:
         index = response.index("[")
         response = response[index:]
-        response = response.replace("[\n","[")
+        response = response.replace("[\n", "[")
         response = json.loads(response)
         response = await create_unit_tests(response, model)
         return response
@@ -206,29 +200,6 @@ async def create_unit_tests(file_list, model):
     responses = await asyncio.gather(*tasks)
     files = [response for response in responses if response is not None]
     return file_list + files
-
-
-def clean_json_response(input_string):
-    # Remove leading and trailing whitespace
-    input_string = input_string.strip()
-    # Define the substrings to replace
-    substrings_to_replace = [
-        ",{\\n    wLock.unlock();\\n    }",
-        ",{\\n    rwl.readLock().unlock();\\n    },"
-    ]
-    # Replace each substring with an empty string
-    for substring in substrings_to_replace:
-        input_string = input_string.replace(substring, "")
-    # Correctly escape the remaining newline characters
-    input_string = input_string.replace('\n', '\\n')
-    input_string = re.sub(r'""', '\\"', input_string)
-    # Fix issues with single backslashes by replacing them with double backslashes
-    input_string = input_string.replace('\\', '\\\\')
-
-    # Ensure that embedded double quotes are correctly escaped
-    input_string = input_string.replace('"', '\\"')
-    # Parse the cleaned string as JSON
-    return input_string
 
 
 async def call_openai(prompt, model="gpt-4o"):

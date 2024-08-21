@@ -2,7 +2,7 @@ import json
 
 from src.utilities.general import file_filter
 from src.utilities.inference2 import call_openai, manager_development_agent_prompts, agent_task, produce_final_solution, \
-    image_to_text, call_llm, clean_json_response
+    image_to_text, call_llm
 
 
 async def manager_development_base_service(user_prompt, file, model="oai"):
