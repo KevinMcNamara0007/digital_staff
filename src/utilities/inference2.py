@@ -59,24 +59,35 @@ async def agent_task(task, responses, code, model="oai"):
 #     return response
 
 def fix_json_string(input_string):
+    # Fix the FILE_CODE sections to properly escape quotes and handle special characters
+    json_string = re.sub(
+        r'("FILE_CODE":\s*")(.*?)(?<!\\)("})',
+        lambda m: m.group(1) + m.group(2).replace('"', '\\"').replace('\n', '\\n').replace('\r', '\\r') + m.group(3),
+        input_string,
+        flags=re.DOTALL
+    )
+
     try:
-        # Replace the problematic parts in the input string
-        fixed_string = input_string \
+        # Replace other problematic parts in the input string
+        fixed_string = json_string \
             .replace('\\', '\\\\') \
             .replace('\n', '\\n') \
             .replace('\t', '\\t') \
             .replace('"{{', '"{') \
             .replace('}} "', '}"') \
             .replace('}{', '},{') \
-            .replace('[[','[') \
+            .replace('[[', '[') \
             .replace(']]', ']') \
-            .replace('"__main__"',"'__main__'") \
-            .replace("n```","") \
-            .replace("```python", "")
-
+            .replace('"{', '{{') \
+            .replace('}"', '}}') \
+            .replace('"__main__"', "'__main__'") \
+            .replace("n```", "") \
+            .replace("```python", "") \
+            .replace('\\\\n', '\\n')  # Convert double escaped newlines to single
 
         # Fix the structure by ensuring it's wrapped correctly
         fixed_string = f'[{fixed_string}]'
+        print(fixed_string)
 
         return fixed_string
     except json.JSONDecodeError as e:
@@ -95,12 +106,12 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
         f'2.4: Here are the agent responses you will reference to update the code: {agent_responses}\n'
     )
     tokens = check_token_count(prompt)
-    print(prompt)
     print(f"Final Solution Token Amount INPUT: {tokens}")
     # response = await call_openai(prompt, model="gpt-4o")
     if model == "oai":
         response = await call_openai(prompt)
     else:
+        time.sleep(8)
         response = await call_llm(prompt, tokens*1.8)
     print(f"Final solution OUTPUT: {check_token_count(response)}")
     try:
@@ -168,13 +179,13 @@ def find_file_by_name(agent_response_list, file_name):
 
 
 async def create_unit_test_for_file(file, model="oai"):
-    prompt = (
-        'INSTRUCTIONS: '
-        '1. You will be creating unit tests based on file code. DO NOT INCLUDE ANY EXPLANATION.'
-        '2. You will only respond with complete unit test code.'
-        f'3. You will create test code based on this code: {file.get("FILE_CODE")}'
-    )
     try:
+        prompt = (
+            'INSTRUCTIONS: '
+            '1. You will be creating unit tests based on file code. DO NOT INCLUDE ANY EXPLANATION.'
+            '2. You will only respond with complete unit test code.'
+            f'3. You will create test code based on this code: {file.get("FILE_CODE")}'
+        )
         print(f"UNIT TEST CREATION FOR:\n{file.get('FILE_NAME')}\nINPUT TOKEN AMOUNT: {check_token_count(prompt)}")
         if model == "oai":
             response = await call_openai(prompt)
@@ -229,38 +240,34 @@ async def call_openai(prompt, model="gpt-4o"):
 
 
 async def call_llm(prompt, output_tokens=6000, url=llm_url):
-    return await call_cpp(prompt, output_tokens)
+    # return await call_cpp(prompt, output_tokens)
 
     time.sleep(2)
     print(check_token_count(prompt))
     # return await call_openai(prompt)
-    # return await call_cpp(prompt, output_tokens)
-    # try:
-    #     headers = {
-    #         'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
-    #     }
-    #     response = requests.post(
-    #         url,
-    #         data={
-    #             "prompt": prompt,
-    #             "rules": "You are a friendly virtual assistant. Your role is to answer the user questions and follow their instructions. Be concise and accurate.",
-    #             "temperature": 0.50,
-    #             "top_k": 40,
-    #             "top_p": 0.95
-    #         },
-    #         headers=headers
-    #     )
-    #     response.raise_for_status()  # Ensure we raise an error for bad responses
-    #     print(response.json()["choices"][0]["message"]["content"])
-    #     print(response.json()["choices"][0]["finish_reason"])
-    #     print(response.json()["timings"]["predicted_n"])
-    #     response = (response.json()["choices"][0]["message"]["content"]
-    #                 .replace("<|im_end|>", "")
-    #                 .replace("<|im_start|>", "").replace("assistant", " ")
-    #                 .replace('}, {"role": "User", "content": ', ''))
-    #     return response
-    # except requests.RequestException as exc:
-    #     raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
+    try:
+        headers = {
+            'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
+        }
+        response = requests.post(
+            url,
+            json={
+                "output_tokens": output_tokens,
+                "prompt": prompt
+            },
+            headers=headers
+        )
+        response.raise_for_status()  # Ensure we raise an error for bad responses
+        print(response.json()["choices"][0]["finish_reason"])
+        print(response.json()["timings"]["predicted_n"])
+        response = (response.json()["choices"][0]["message"]["content"]
+                    .replace("<|im_end|>", "")
+                    .replace("<|im_start|>", "").replace("assistant", " ")
+                    .replace('}, {"role": "User", "content": ', ''))
+        return response
+    except requests.RequestException as exc:
+        print(exc)
+        raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
 
 async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
