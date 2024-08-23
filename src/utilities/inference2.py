@@ -210,7 +210,7 @@ async def call_openai(prompt, model="gpt-4o"):
     return response.choices[0].message.content
 
 
-async def call_llm(prompt, output_tokens=6000, url=llm_url):
+async def call_llm(prompt, output_tokens=6000, url="http://127.0.0.1:8000/Inference/ask_a_pro"):
     # return await call_cpp(prompt, output_tokens)
 
     time.sleep(2)
