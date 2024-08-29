@@ -210,7 +210,7 @@ async def call_openai(prompt, model="gpt-4o"):
     return response.choices[0].message.content
 
 
-async def call_llm(prompt, output_tokens=6000, url="http://127.0.0.1:8000/Inference/ask_a_pro"):
+async def call_llm(prompt, output_tokens=6000, extension="/ask_a_pro", url=llm_url):
     # return await call_cpp(prompt, output_tokens)
 
     time.sleep(2)
@@ -221,7 +221,7 @@ async def call_llm(prompt, output_tokens=6000, url="http://127.0.0.1:8000/Infere
             'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
         }
         response = requests.post(
-            url,
+            url + extension,
             json={
                 "output_tokens": output_tokens,
                 "prompt": prompt

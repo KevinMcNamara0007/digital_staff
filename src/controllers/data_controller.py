@@ -18,6 +18,7 @@ data = APIRouter(
 async def data_annotator(
         description: str = Form(default="Create 10-20 worded stories", description="description of the type of data you want to generate"),
         rows: int = Form(description="The amount of rows you want"),
-        labels: str = Form(default="[{'label':'labelValue1'},{'label':'labelValue2'}]", description="Object Array of Labels and Description")
+        model: str = Form(default="elf", description="Model ELF/OAI"),
+        labels: str = Form(default="[{'label':'sentence', 'description':'10-20 worded sentence'},{'label':'genre','description':'fiction or non-fiction'}]", description="Object Array of Labels and Description")
 ):
-    return await data_annotator_service(description, rows, labels)
+    return await data_annotator_service(description, rows, labels, model)
