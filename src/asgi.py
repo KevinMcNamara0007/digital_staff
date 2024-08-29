@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import RedirectResponse
 from src.controllers.tasks import tasks
+from src.controllers.data_controller import data
 from fastapi.staticfiles import StaticFiles
 
 # App Details
@@ -16,6 +17,7 @@ digital_staff = FastAPI(
 )
 digital_staff.mount("/digital_staff", StaticFiles(directory="static", html=True), name="static")
 digital_staff.include_router(tasks)
+digital_staff.include_router(data)
 
 digital_staff.add_middleware(
     CORSMiddleware,
