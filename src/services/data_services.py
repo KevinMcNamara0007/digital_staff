@@ -67,11 +67,11 @@ async def get_matrix_service(key, source, training_set):
     df_sim = pd.DataFrame(similarity_matrix, index=[f"{s[:30]}...({g}" for s, g in zip(sentences, genres)],
                           columns=[f"{s[:30]}... ({g})" for s, g in zip(sentences, genres)])
 
-    plt.figure(figsize=(35,33))
+    plt.figure(figsize=(35, 33))
     sns.heatmap(df_sim, annot=True, cmap="Blues", xticklabels=True, yticklabels=True)
     plt.title('Source-Label Correlation Matrix', fontsize=30)
     plt.xticks(fontsize=22)
-    plt.yticks(fontsize=20)
+    plt.yticks(ha="right", fontsize=20)
     plt.savefig('sourceLabel.png')
     plt.close()
     return fastapi.responses.FileResponse("sourceLabel.png")
