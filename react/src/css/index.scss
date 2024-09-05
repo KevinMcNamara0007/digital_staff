@@ -394,8 +394,8 @@ div, p{
   }
 }
 @keyframes progressAnimation{
-  from {width: 0}
-  to {width: 100%}
+  from {width: 0; color:#10bcd3;}
+  to {width: 100%; color:#10bcd3;}
 }
 .repoSettingsPopup {
   position: fixed;
