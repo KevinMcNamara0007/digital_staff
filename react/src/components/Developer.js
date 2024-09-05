@@ -4,8 +4,38 @@ import {ReactComponent as ArrowIcon} from "../images/arrowIcon.svg"
 import {ReactComponent as GitIcon} from "../images/gitIcon.svg";
 import {ReactComponent as DiagramIcon} from "../images/flowChartIcon.svg";
 import {ReactComponent as TrashIcon} from "../images/trashIcon.svg";
+import DOMPurify from 'dompurify'
+import parse, {attributesToProps} from "html-react-parser";
 
 const Developer = () => {
+
+    const options = {
+        replace: domNode => {
+            if(domNode.attribs && domNode.name === 'a'){
+                const props = attributesToProps(domNode.attribs)
+                let url = props['href']
+                if(props && url){
+                    let fullUrl = url.match(/^(https?)/g);
+                    if(!fullUrl){
+                        let newUrl = "//"+url
+                        domNode.attribs = {...domNode.attribs, 'href':newUrl}
+                    }
+                }
+            }
+        }
+    }
+
+    const callParse = (txt) => {
+        try{
+            const purify = DOMPurify(window);
+            let cleanHTMLTxt = purify.sanitize(txt);
+            let parsed = parse(cleanHTMLTxt, options)
+            return parsed
+        }
+        catch(error){
+            return "error occured while parsing html. please try again"
+        }
+    }
 
     //Timer
     const [counter,setCounter] = useState(0)
@@ -145,7 +175,7 @@ const Developer = () => {
                 return {repo_dir: response.data.repo_dir, files: response.data.files}
             }).catch((error)=>{
                 setProgress(prevState => ({...prevState, plan:"fail"}))
-                setAgentResponse("Branching Error, please delete off local and try again")
+                setAgentResponse("Branching Error, please try again or try different branch")
                 return null
             })
     }
@@ -278,12 +308,13 @@ const Developer = () => {
     }
 
     async function executeChanges(repo_dir, newBranch, solution){
-        setProgress(prevState => ({...prevState, solution:"running"}))
+        setProgress(prevState => ({...prevState, diff:"running"}))
         return await showDiff(repo_dir, solution)
             .then((response)=>{
-                setProgress(prevState => ({...prevState, solution:"complete"}))
+                setProgress(prevState => ({...prevState, diff:"complete"}))
                 setTitle("GIT DIFF +/-")
-                setAgentResponse(response.data)
+                setAgentResponse(callParse(response.data))
+                setSolutionTrigger(false)
                 return response.data
             }).catch((err)=>{
                 setProgress(prevState => ({...prevState, diff:"fail"}))
@@ -349,7 +380,10 @@ const Developer = () => {
 
     const showGitDiff = () => {
         if(running !== true){
-
+            let mainString = currentObject.diff !== null ? currentObject.diff : ""
+            setTitle("Git Repo Differences")
+            setAgentResponse(callParse(mainString))
+            setSolutionTrigger(false)
         }
     }
     const getAllSessions = () => {
@@ -428,6 +462,12 @@ const Developer = () => {
                             <div id="planTab" className={`title ${getBarClass("solution")}`} onClick={() => {
                                 showSolution()
                             }}>Solution
+                            </div>
+                        </div>
+                        <div className="agentTab">
+                            <div id="planTab" className={`title ${getBarClass("diff")}`} onClick={() => {
+                                showGitDiff()
+                            }}>Diff
                             </div>
                         </div>
                     </div>

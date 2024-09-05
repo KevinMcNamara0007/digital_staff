@@ -46,7 +46,7 @@ const SideBar = () => {
                     <div className="link"><Link to={"/data"}>Annotator</Link></div>
                 </div>
                 <div className="subTitle">
-                    Content
+                    Future
                 </div>
                 <div className="linkContainer">
                     <div className="link disabled">Content Formatter</div>

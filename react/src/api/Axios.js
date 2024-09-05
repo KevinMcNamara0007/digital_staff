@@ -8,7 +8,7 @@ const axiosFormData = axios.create({
 })
 
 const axiosJSON = axios.create({
-    baseURL: "http://127.0.0.1:8080",
+    baseURL: "http://127.0.0.1:8080/Tasks/show_diff",
     headers: {
         "Content-Type": "application/json"
     }
@@ -17,7 +17,7 @@ const axiosJSON = axios.create({
 function postJSON(url, data){
     return axiosJSON({
         method: 'post',
-        body: JSON.stringify(data)
+        data: data
     })
 }
 function postFormData(url,data){
@@ -85,7 +85,7 @@ export const showDiff = (repo_dir, produced_code) => {
         "produced_code": produced_code,
         "repo_dir":repo_dir
     }
-    return postJSON("/Tasks/show_diff", data)
+    return postJSON("/Tasks/show_diff", JSON.stringify(data))
 }
 
 export const generateDataAPI = (description, rows, labels, model) => {
