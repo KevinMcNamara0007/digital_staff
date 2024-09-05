@@ -4,7 +4,10 @@ $off-white: rgba(255, 255, 255, 0.8);
 $gallery: #F0F0F0;
 $off-gallery: #EBEBEB;
 $black: #000000;
+$cafeBlue: #0064E0;
+$cafeMenuText: #1C2B33;
 $blue: #0C63E7;
+$blueProgress: #10bcd3;
 $light-black: #252525;
 $lighter-black: #282828;
 $light-gray: rgba(70, 70, 70, 0.89);
@@ -12,8 +15,9 @@ $dark-gray: rgba(50, 58, 58, 0.7);
 $gray: #8896AB;
 $lighter-gray: #e0e0e0;
 $dark-green: #1A232C;
-$green: #31fc00;
+$green: #9eff8a;
 $red: #fc0000;
+$sidebar: #F1F4F7;
 $blue-gradient: linear-gradient(101.34deg, #0C63E7 14.12%, #01A4FF 100.36%);
 $black-gradient: radial-gradient(67.21% 225.72% at 25.69% 31.39%, #283440 0%, #252331 100%);
 $transparent: transparent;
@@ -35,6 +39,27 @@ html, body, #root, .App{
   height: 100%;
 }
 
+div, h1, h2, h3, h4, p, a, button, input[type="text"]{
+  font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif !important;
+}
+h1{
+  font-size: 32px !important;
+}
+h2{
+  font-size: 30px !important;
+}
+h3{
+  font-size: 28px !important;
+}
+h4{
+  font-size: 26px !important;
+}
+div, p{
+  font-size: 18px;
+}
+
+
+
 .body{
   width: 100%;
   margin: 0;
@@ -46,6 +71,11 @@ html, body, #root, .App{
   color: black;
 }
 
+.windowContainer{
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
 
 .mainContainer{
   display: flex;
@@ -53,8 +83,9 @@ html, body, #root, .App{
   width: 100%;
 
 
-/*  Left Side*/
+/*  right Side*/
   .menu{
+    background: $sidebar;
     width: 22%;
     height: 100%;
     display: flex;
@@ -65,8 +96,11 @@ html, body, #root, .App{
     padding-left: 10px;
     padding-right: 10px;
     overflow-y: hidden;
+    border-left: 1px solid #DEE3E9;
     .titleSessions{
-      color: $blue;
+      margin-top: 40px;
+      margin-bottom: 30px;
+      color: $cafeMenuText;
       font-size: 32px;
       text-align: center;
     }
@@ -81,6 +115,7 @@ html, body, #root, .App{
       text-align: center;
       margin-top: 10px;
       .img{
+        margin-bottom: 20px;
         position: relative;
         top: 13px;
         width: 30px !important;
@@ -92,14 +127,11 @@ html, body, #root, .App{
     }
 
     .panel{
-      box-shadow: rgb(73, 73, 73) 0px 0px 10px -12px inset, rgb(105, 105, 105) 0px 2px 36px -18px inset;
       height: 90%;
       width: 100%;
       .panelContainer{
-        border-top: 2px solid $blue;
-        border-bottom: 2px solid $blue;
         width: 100%;
-        height: 80%;
+        height: 90%;
         overflow-y: auto;
 
         &::-webkit-scrollbar{
@@ -123,12 +155,12 @@ html, body, #root, .App{
           display: flex;
         }
         .session:hover{
+          background: $cafeMenuText;
           color: $white;
-          background: $blue-gradient;
         }
         .activeSession{
+          background: $cafeMenuText;
           color: $white;
-          background: $blue-gradient;
         }
       }
     }
@@ -141,11 +173,36 @@ html, body, #root, .App{
     display: flex;
     justify-content: center;
     flex-direction: column;
+    .tabPanels{
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
+      .title{
+        padding: 10px 0;
+        font-size: 20px;
+        color: $cafeMenuText;
+        text-align: center;
+      }
+      .title:hover{
+        color:white;
+        background: $cafeMenuText;
+      }
+      .progress-bar{
+        background: $blueProgress;
+        animation: progressAnimation 20s;
+        animation-iteration-count: infinite;
+      }
+      .progress-bar-complete{
+        background: $green;
+      }
+      .fail{
+        background: $red;
+      }
+
+    }
     .agentResponse{
       width: 100%;
       height: 90%;
       max-height: 800px;
-      box-shadow: rgb(73, 73, 73) 0px 0px 10px -12px inset, rgb(105, 105, 105) 0px 2px 36px -18px inset;
       overflow-y: auto;
       overflow-x: auto;
 
@@ -181,7 +238,7 @@ html, body, #root, .App{
       width: 100%;
       font-size: 24px;
       text-align: center;
-      color: $blue;
+      color: $cafeMenuText;
       margin-top: 20px;
       margin-bottom: 5px;
     }
@@ -335,40 +392,6 @@ html, body, #root, .App{
       }
     }
   }
-  .tabPanels{
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr 1fr 1fr;
-    .title{
-      padding: 10px 0;
-      font-size: 20px;
-      color: $blue;
-      text-align: center;
-    }
-    .title:hover{
-      color:white;
-      background: $blue;
-    }
-    .progress{
-      border-radius: 4p 1x;
-      width: 100%;
-      .progress-bar{
-        height: 18px;
-        background: $blue;
-        width: 100%;
-        animation: progressAnimation 20s;
-        animation-iteration-count: infinite;
-      }
-      .progress-bar-complete{
-        height: 18px;
-        background: $green;
-      }
-      .fail{
-        height: 18px;
-        background: $red;
-      }
-    }
-
-  }
 }
 @keyframes progressAnimation{
   from {width: 0}
@@ -428,5 +451,96 @@ html, body, #root, .App{
     padding: 0 10px;
     font-size: 18px;
     border-right: none !important;
+  }
+}
+
+.sideBar{
+  background: $sidebar;
+  min-width: 20%;
+  max-width: 20%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  top: 0;
+  bottom: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  overflow-y: hidden;
+  border-right: 1px solid #DEE3E9;
+  .modelText{
+    text-align: center;
+    margin-top: 30px;
+    font-size: 16px;
+  }
+  .mainTitle{
+    margin-top: 40px;
+    padding-bottom: 30px;
+    border-bottom: 1px solid black;
+    display: flex;
+    justify-content: center;
+    img{
+      width: 60px;
+      height: 60px;
+    }
+    h1{
+      position: relative;
+      right: 10px;
+      font-weight: 900 !important;
+      color: $cafeMenuText;
+    }
+  }
+  .navContainer{
+    height: 50%;
+    border-top: 1px solid black;
+    border-bottom: 1px solid black;
+    padding: 0 20px;
+
+    .linkContainer{
+      padding-top: 10px;
+      padding-bottom: 10px;
+      .link{
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 18px;
+        font-weight: 600;
+        color: $cafeBlue;
+        text-align: center;
+        a{
+          color: $cafeBlue;
+          text-decoration: none;
+        }
+      }
+      .link:hover{
+        cursor: pointer;
+        color: white;
+        background: $cafeBlue;
+        a{
+          cursor: pointer;
+          color: white;
+          background: $cafeBlue;
+        }
+      }
+      .disabled{
+        color: gray !important;
+      }
+      .disabled:hover{
+        cursor: not-allowed;
+        background: none;
+        color: gray !important;
+      }
+    }
+  }
+  .subTitle{
+    margin-top: 10px;
+    text-align: left;
+    font-size: 20px;
+    font-weight: 600;
+  }
+
+  .modelContainer{
+    display: flex;
+    justify-content: center;
+    bottom: 0;
+    position: relative;
   }
 }

@@ -1,0 +1,21 @@
+@import "index";
+
+
+.dataTable{
+  &.mainContainer{
+    position: relative;
+  }
+}
+
+.exportControls{
+  display: flex;
+  flex-direction: column;
+
+  button{
+    span{
+      a{
+        color: $white !important;
+      }
+    }
+  }
+}

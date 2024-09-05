@@ -87,3 +87,13 @@ export const showDiff = (repo_dir, produced_code) => {
     }
     return postJSON("/Tasks/show_diff", data)
 }
+
+export const generateDataAPI = (description, rows, labels, model) => {
+    let data = new FormData()
+    data.set("description", description)
+    data.set("rows", rows)
+    data.set("labels", JSON.stringify(labels))
+    data.set("model", model)
+
+    return postFormData("/Data/data_annotator", data)
+}

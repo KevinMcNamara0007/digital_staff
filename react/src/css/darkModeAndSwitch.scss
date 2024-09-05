@@ -3,6 +3,7 @@
 .wrapper {
     height: 10%;
     margin-top: 17px;
+    margin-bottom: 17px;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -165,12 +166,16 @@
 //Dark Mode
 .darkMode{
     background: $light-black;
+    .inputForm{
+        color: white;
+    }
     .mainContainer{
         /*  Left Side*/
         .menu{
+            background: $cafeMenuText;
             overflow-y: hidden;
             .titleSessions{
-                color: $blue;
+                color: $white;
             }
             .clear{
                 background: transparent;
@@ -205,7 +210,6 @@
         .view{
             .agentResponse{
                 color: $white;
-                box-shadow: rgb(211, 211, 211) 0px 0px 10px -12px inset, rgb(199, 199, 199) 0px 2px 36px -18px inset;
                 &::-webkit-scrollbar{
                     width: 4px;
                 }
@@ -232,7 +236,7 @@
                 color: $black;
             }
             .agentTitle{
-                color: $blue;
+                color: $white;
             }
             .output2{
             }
@@ -291,11 +295,11 @@
         }
         .tabPanels{
             .title{
-                color: $blue;
+                color: $white !important;
             }
             .title:hover{
                 color:white;
-                background: $blue;
+                background: $blue !important;
             }
             .progress{
                 .progress-bar{

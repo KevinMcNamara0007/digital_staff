@@ -30,14 +30,14 @@ const Developer = () => {
     const [sessionIndex, setSessionIndex] = useState(-1)
     const [sessions, setSessions] = useState([])
     //variables input fields
-    const [model, setModel] = useState("oai")
+    const [model, setModel] = useState(localStorage.getItem("model"))
     const [instruction, setInstruction] = useState("")
     const [file, setFile] = useState(null)
     const [gitRepo, setGitRepo] = useState("")
     const [currentBranch, setCurrentBranch] = useState("")
     const [newBranch, setNewBranch] = useState("")
     //Response Variables
-    const [title, setTitle] = useState("Digital Staff")
+    const [title, setTitle] = useState("E-Staff Developer")
     const [task, setTask] = useState("")
     const [agentResponse, setAgentResponse] = useState("")
     const [finalSolution, setFinalSolution] = useState([])
@@ -57,8 +57,23 @@ const Developer = () => {
         diff: "null"
     })
 
+    const getBarClass = (item) => {
+        if(progress[item] === "null"){
+            return ""
+        }
+        if(progress[item] === "running"){
+            return "progress-bar"
+        }
+        if(progress[item] === "complete"){
+            return "progress-bar-complete"
+        }
+        if(progress[item] === "fail"){
+            return "fail"
+        }
+    }
     //Main Flow Functions
     const handleSubmit = async () => {
+        setModel(localStorage.getItem("model"))
         if(running === false){
             setProgress({
                 plan: "null",
@@ -125,7 +140,7 @@ const Developer = () => {
     }
 
     async function repoOperation(){
-        return await repoOperationAPI(instruction, gitRepo, currentBranch, newBranch, model)
+        return await repoOperationAPI(instruction, gitRepo, currentBranch, newBranch, localStorage.getItem("model"))
             .then((response)=>{
                 return {repo_dir: response.data.repo_dir, files: response.data.files}
             }).catch((error)=>{
@@ -137,7 +152,7 @@ const Developer = () => {
 
     async function managerPlan(file_list, repo_dir){
         setProgress(prevState => ({...prevState, plan:"running"}))
-        return await managerPlanAPI(instruction,currentBranch,newBranch,model,file_list, repo_dir, file)
+        return await managerPlanAPI(instruction,currentBranch,newBranch,localStorage.getItem("model"),file_list, repo_dir, file)
             .then((response)=> {
                 if(file_list !== "none"){
                     setTitle("Manager Plan")
@@ -200,7 +215,7 @@ const Developer = () => {
             else if(agentNumber === 4){
                 setProgress(prevState => ({...prevState, 4:"running"}))
             }
-            return await agentTaskAPI(instruction,file_list,task, newBranch, repo_dir, agent_responses, code, model)
+            return await agentTaskAPI(instruction,file_list,task, newBranch, repo_dir, agent_responses, code, localStorage.getItem("model"))
                 .then((response) => {
                     if(agentNumber === 1){
                         setProgress(prevState => ({...prevState, 1:"complete"}))
@@ -243,7 +258,7 @@ const Developer = () => {
 
     async function produceSolution(file_list, repo_dir, code){
         setProgress(prevState => ({...prevState, solution:"running"}))
-        return await solutionAPI(instruction, file_list, newBranch, repo_dir, agentResponses, code, model)
+        return await solutionAPI(instruction, file_list, newBranch, repo_dir, agentResponses, code, localStorage.getItem("model"))
             .then((response)=>{
                 setTitle("Final Solution")
                 setTask("")
@@ -314,7 +329,7 @@ const Developer = () => {
     const showAgent = (index) => {
         if(running !== true){
             setTitle("Agent " + (index+1))
-            currentObject.agentResponseList[index] ? setAgentResponse(currentObject.agentResponseList[index]) : setAgentResponse("NO Response")
+            currentObject.agentResponseList[index] ? setAgentResponse(currentObject.agentResponseList[index]) : setAgentResponse("No Changes")
             setSolutionTrigger(false)
         }
     }
@@ -370,123 +385,50 @@ const Developer = () => {
         document.body.classList.toggle("darkMode");
     }
 
-    const toggleModel = (modelType) => {
-        setModel(modelType)
-    }
-
     const imageUpload = (e) => {
         setFile(e.target.files[0])
     }
 
     return (
         <div className="mainContainer">
-            <div className="menu">
-                <div className="titleSessions">
-                    Sessions
-                </div>
-                <div className="panel">
-                     <span className="clear" onClick={() => {
-                         clearHistory()
-                     }}><TrashIcon className="img" title="Clear History"/></span>
-                    <label className="switch">
-                        <input type="checkbox"/>
-                        <div className="slider slider--0" onClick={() => {
-                            toggleModel("oai")
-                        }}>ELF
-                        </div>
-                        <div className="slider slider--1">
-                            <div></div>
-                            <div></div>
-                        </div>
-                        <div className="slider slider--2"></div>
-                        <div className="slider slider--3" onClick={() => {
-                            toggleModel("elf")
-                        }}>OAI
-                        </div>
-                    </label>
-                    <div className="panelContainer">
-                        {sessions.map((item, index) => (
-                            <div disabled={running === true} key={index}
-                                 className={`session ${index === sessionIndex ? "activeSession" : ""}`} onClick={() => {
-                                selectSession(index)
-                            }}>
-                                {item.prompt}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="wrapper">
-                        <div className="toggle" onClick={() => {
-                            toggleDarkMode()
-                        }}>
-                            <input className="toggle-input" type="checkbox"/>
-                            <div className="toggle-bg"></div>
-                            <div className="toggle-switch">
-                                <div className="toggle-switch-figure"></div>
-                                <div className="toggle-switch-figureAlt"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
             <div className="view">
                 {showTabs &&
                     <div className="tabPanels">
                         <div className="agentTab">
                             <div disabled={running === true} onClick={() => {
                                 showPlan()
-                            }} id="planTab" className="title">Plan
+                            }} id="planTab" className={`title ${getBarClass("plan")}`}>Plan
                             </div>
-                            {running === true &&
-                                <div className="progress">
-                                    {progress.plan !== null && <div
-                                        className={progress.plan === "fail" ? "fail" : progress.plan === "running" ? "progress-bar" : "progress-bar-complete"}></div>}
-                                </div>
-                            }
                         </div>
                         <div className="agentTab">
-                            <div className="title" id="agent0Tab" onClick={()=>{showAgent(0)}}>Agent 1</div>
-                            {running === true &&
-                                <div className="progress">
-                                    {progress["1"] !== "null" && <div
-                                        className={progress["1"] === "fail" ? "fail" : progress["1"] === "running" ? "progress-bar" : "progress-bar-complete"}></div>}
-                                </div>
-                            }
+                            <div className={`title ${getBarClass("1")}`} id="agent0Tab" onClick={() => {
+                                showAgent(0)
+                            }}>Agent 1
+                            </div>
                         </div>
                         <div className="agentTab">
-                            <div className="title" id="agent1Tab" onClick={()=>{showAgent(1)}}>Agent 2</div>
-                            {running === true &&
-                                <div className="progress">
-                                    {progress["2"] !== "null" && <div
-                                        className={progress["2"] === "fail" ? "fail" : progress["2"] === "running" ? "progress-bar" : "progress-bar-complete"}></div>}
-                                </div>
-                            }
+                            <div className={`title ${getBarClass("2")}`} id="agent1Tab" onClick={() => {
+                                showAgent(1)
+                            }}>Agent 2
+                            </div>
                         </div>
                         <div className="agentTab">
-                            <div className="title" id="agent2Tab" onClick={()=>{showAgent(2)}}>Agent 3</div>
-                            {running === true &&
-                                <div className="progress">
-                                    {progress["3"] !== "null" && <div
-                                        className={progress["3"] === "fail" ? "fail" : progress["3"] === "running" ? "progress-bar" : "progress-bar-complete"}></div>}
-                                </div>
-                            }
+                            <div className={`title ${getBarClass("3")}`} id="agent2Tab" onClick={() => {
+                                showAgent(2)
+                            }}>Agent 3
+                            </div>
                         </div>
                         <div className="agentTab">
-                            <div className="title" id="agent3Tab" onClick={()=>{showAgent(3)}}>Agent 4</div>
-                            {running === true &&
-                                <div className="progress">
-                                    {progress["4"] !== "null" && <div
-                                        className={progress["4"] === "fail" ? "fail" : progress["4"] === "running" ? "progress-bar" : "progress-bar-complete"}></div>}
-                                </div>
-                            }
+                            <div className={`title ${getBarClass("4")}`} id="agent3Tab" onClick={() => {
+                                showAgent(3)
+                            }}>Agent 4
+                            </div>
                         </div>
                         <div className="agentTab">
-                            <div id="planTab" className="title" onClick={()=>{showSolution()}}>Solution</div>
-                            {running === true &&
-                                <div className="progress">
-                                    {progress.solution !== "null" && <div
-                                        className={progress.solution === "fail" ? "fail" : progress.solution === "running" ? "progress-bar" : "progress-bar-complete"}></div>}
-                                </div>
-                            }
+                            <div id="planTab" className={`title ${getBarClass("solution")}`} onClick={() => {
+                                showSolution()
+                            }}>Solution
+                            </div>
                         </div>
                     </div>
                 }
@@ -521,7 +463,11 @@ const Developer = () => {
                     </label>
                     <label className="diagramImage">
                         <DiagramIcon className="img"/>
-                        <input id="image" type="file" accept="image/png, image/gif, image/jpeg" onClick={(e)=>{e.target.value = ""}} onChange={(e)=>{imageUpload(e)}}/>
+                        <input id="image" type="file" accept="image/png, image/gif, image/jpeg" onClick={(e) => {
+                            e.target.value = ""
+                        }} onChange={(e) => {
+                            imageUpload(e)
+                        }}/>
                     </label>
                     <button className="searchImage" onClick={() => {
                         handleSubmit()
@@ -551,6 +497,26 @@ const Developer = () => {
                         </div>
                     </div>
             }
+            <div className="menu">
+                <div className="titleSessions">
+                    Sessions
+                </div>
+                <div className="panel">
+                    <span className="clear" onClick={() => {
+                        clearHistory()
+                    }}><TrashIcon className="img" title="Clear History"/></span>
+                    <div className="panelContainer">
+                        {sessions.map((item, index) => (
+                            <div disabled={running === true} key={index}
+                                 className={`session ${index === sessionIndex ? "activeSession" : ""}`} onClick={() => {
+                                selectSession(index)
+                            }}>
+                                {item.prompt}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
