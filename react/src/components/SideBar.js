@@ -1,5 +1,5 @@
 import {useEffect, useState} from "react";
-import staffLogo from '../images/stafflogo.png'
+import staffLogo from './../images/stafflogo.png'
 import {Link} from "react-router-dom";
 
 const SideBar = () => {
@@ -24,7 +24,7 @@ const SideBar = () => {
 
     return (
         <div className="sideBar">
-            <div className="mainTitle"><h1><img alt="logo" src={staffLogo}/>E-Staff</h1></div>
+            <div className="mainTitle"><h1>eStaff</h1></div>
             <div className="wrapper">
                 <div className="toggle" onClick={() => {
                     toggleDarkMode()
