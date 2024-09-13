@@ -31,6 +31,13 @@ $trans: all .4s ease-in-out;
   box-sizing: border-box;
 }
 
+.review-content{
+  height: 700px;
+  overflow-y: auto;
+  width: 100%;
+  white-space: pre-wrap;
+}
+
 .img{
   filter: invert(24%) sepia(82%) saturate(4560%) hue-rotate(212deg) brightness(98%) contrast(91%);
 }

@@ -1,4 +1,4 @@
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {Button, Col, Form, Nav, Row, Tooltip} from "react-bootstrap";
 import Editor from "./Editor";
 import DOMPurify from "dompurify";
@@ -169,6 +169,40 @@ const ContentFormatter = () => {
             })
     }
 
+    const exportToDoc = (data, type) => {
+        let bodyContent = "";
+        let filename = "";
+        if(type === mapper.review){
+            bodyContent = data.replaceAll("\n","<br/>")
+            filename = "review.doc"
+        }else{
+            bodyContent = data;
+            filename = "finaldraft.doc"
+        }
+        let preHtml =
+            "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML To Doc</title></head><body>";
+        let postHtml = "</body></html>";
+        let html = preHtml + bodyContent + postHtml
+
+        let docMimeType = 'application/vnd.ms-word';
+        let hrefUrl = 'data:'+docMimeType+';charset=utf-8,' + encodeURIComponent(html)
+
+        if(window.navigator.msSaveOrOpenBlob){
+            var blob = new Blob(["\ufeff", html], {
+                type: "application/msword",
+            });
+            window.navigator.msSaveOrOpenBlob(blob, filename)
+        }else{
+            let downloadLinkEle = document.createElement('a')
+            let downloadHelperDiv = document.getElementById('downloadHelper')
+            downloadHelperDiv.appendChild(downloadLinkEle)
+            downloadLinkEle.href = hrefUrl
+            downloadLinkEle.download = filename
+            downloadLinkEle.click()
+            downloadHelperDiv.removeChild(downloadLinkEle)
+        }
+    }
+
     const getBarClass = (item) => {
         if(progress === null){
             return ""
@@ -185,12 +219,32 @@ const ContentFormatter = () => {
         return ""
     }
 
+    useEffect(() => {
+        getAllSessions()
+    }, []);
+
     return (
         <div className="d-flex w-100">
             <div className="d-flex w-75 px-5 pt-5">
                 {view === "" ?
                     <Form>
                         <Row>
+                            <div className="contentTabs">
+                                <div className="agentTab">
+                                    {progress && progress[mapper["review"]] !== null &&
+                                        <div disabled={running} onClick={() => {
+                                            setView("review")
+                                        }} id="planTab" className={`title ${getBarClass("review")}`}>Review
+                                        </div>}
+                                </div>
+                                <div className="agentTab">
+                                    {progress && progress[mapper["finalDraft"]] !== null &&
+                                        <div disabled={running} onClick={() => {
+                                            setView("finalDraft")
+                                        }} id="planTab" className={`title ${getBarClass("finalDraft")}`}>Final
+                                        </div>}
+                                </div>
+                            </div>
                             <Form.Group as={Col} sm="3" controlId="style">
                                 <Form.Select aria-label="Default select example" disabled={running} value={style}
                                              onChange={(e) => setStyle(e.target.value)} required>
@@ -227,13 +281,13 @@ const ContentFormatter = () => {
                                         </div>}
                                 </div>
                             </div>
-                            <Col className="d-flex justify-content-start pt-3">
+                            <Col className="d-flex justify-content-start pt-3 pb-3">
                                 <Button type="button" className={"button-main"} variant={"primary"} disabled={running}
                                         onClick={(e) => handleNew(e)}>New</Button>
                                 <Button type="button" variant="link" disabled={running}>
                                     HTML
                                 </Button>
-                                <Button className="float-end" type="button" variant="link" disabled={running}>
+                                <Button onClick={()=>{exportToDoc(view === mapper.finalDraft ? response : review, view)}} className="float-end" type="button" variant="link" disabled={running}>
                                     Word
                                     {/*<WordIcon className="icon"></WordIcon>*/}
                                 </Button>
@@ -243,7 +297,7 @@ const ContentFormatter = () => {
                         {
                             view === mapper.review ?
                                 <div className="">
-                                    <div className="ck-content">{review}</div>
+                                    <div className="review-content">{review}</div>
                                 </div>
                                 :
                                 <>
@@ -257,17 +311,13 @@ const ContentFormatter = () => {
                                                 <div className="w-50">
                                                     <div className="container flex-container">
                                                         <Button disabled={running} type="button"
-                                                                variant="primary">Submit</Button>
-                                                        <Button disabled={running} type="button"
-                                                                variant="primary">Edit</Button>
-                                                        <Button disabled={running} type="button"
-                                                                variant="primary">Minimize</Button>
+                                                                variant="primary">Done</Button>
                                                     </div>
                                                     <Editor data={response} setData={setResponse}/>
                                                 </div> :
                                                 <div className="w-100">
                                                     <div className="response ck-content">
-                                                        <Editor data={response} setData={setResponse}/>
+                                                        <div className="review-content"><Button className="mb-3 float-end">Edit</Button>{response}</div>
                                                     </div>
                                                 </div>
                                             }
@@ -293,7 +343,7 @@ const ContentFormatter = () => {
                                         className={`session w-100 ${index === sessionIndex ? "activeSession" : ""}`}
                                         onClick={() => {
                                             selectSession(index)
-                                        }}>{item.text.slice(0, 28)}...</button>
+                                        }}>{item.text.slice(3, 28)}...</button>
                             )
                         })}
                     </div>
