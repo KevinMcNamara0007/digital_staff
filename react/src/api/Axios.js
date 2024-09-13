@@ -97,3 +97,24 @@ export const generateDataAPI = (description, rows, labels, model) => {
 
     return postFormData("/Data/data_annotator", data)
 }
+
+export const contentReviewAPI = (original, style, model, persona="") => {
+    let data = new FormData()
+    data.set("original", original)
+    data.set("style", style)
+    data.set("persona", persona)
+    data.set("model", model)
+
+    return postFormData("/Content/review", data)
+}
+
+export const finalDraftAPI = (original, style, review, model, persona="") => {
+    let data = new FormData()
+    data.set("original", original)
+    data.set("style", style)
+    data.set("persona", persona)
+    data.set("review", review)
+    data.set("model", model)
+
+    return postFormData("/Content/final_draft", data)
+}

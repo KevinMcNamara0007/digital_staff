@@ -46,10 +46,15 @@ const SideBar = () => {
                     <div className="link"><Link to={"/data"}>Annotator</Link></div>
                 </div>
                 <div className="subTitle">
+                    Content
+                </div>
+                <div className="linkContainer">
+                    <div className="link"><Link to={"/Content"}>Formatter</Link></div>
+                </div>
+                <div className="subTitle">
                     Future
                 </div>
                 <div className="linkContainer">
-                    <div className="link disabled">Content Formatter</div>
                     <div className="link disabled">Jira Groomer</div>
                     <div className="link disabled">Marketing</div>
                     <div className="link disabled">Insurance</div>

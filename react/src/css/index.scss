@@ -58,6 +58,121 @@ div, p{
   font-size: 18px;
 }
 
+.contentTabs{
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  .title{
+    padding: 10px 0;
+    font-size: 20px;
+    color: $cafeMenuText;
+    text-align: center;
+  }
+  .title:hover{
+    color:white;
+    background: $cafeMenuText;
+  }
+  .progress-bar{
+    background: $blueProgress;
+    animation: progressAnimation 20s;
+    animation-iteration-count: infinite;
+  }
+  .progress-bar-complete{
+    background: $green;
+  }
+  .fail{
+    background: $red;
+  }
+
+}
+
+.contentmenu{
+  background: $sidebar;
+  width: 22%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  top: 0;
+  bottom: 0;
+  padding-left: 10px;
+  padding-right: 10px;
+  overflow-y: hidden;
+  border-left: 1px solid #DEE3E9;
+  .titleSessions{
+    margin-top: 40px;
+    margin-bottom: 30px;
+    color: $cafeMenuText;
+    font-size: 32px;
+    text-align: center;
+  }
+  .clear{
+    border: none;
+    height: 50px;
+    width: 50px;
+    font-size: 20px;
+    background: transparent;
+    color: $white;
+    padding: 10px;
+    text-align: center;
+    margin-top: 10px;
+    .img{
+      margin-bottom: 20px;
+      position: relative;
+      top: 13px;
+      width: 30px !important;
+      height: 30px !important;
+    }
+    .img:hover{
+      transform: scale(130%)
+    }
+  }
+
+  .panel{
+    height: 90%;
+    width: 100%;
+    .panelContainer{
+      width: 100%;
+      height: 90%;
+      overflow-y: auto;
+
+      &::-webkit-scrollbar{
+        width: 4px;
+      }
+      &::-webkit-scrollbar-track{
+        border-radius: 10px;
+        background: $gray;
+      }
+      &::-webkit-scrollbar-thumb{
+        background: $blue;
+      }
+      &::-webkit-scrollbar-thumb:hover{
+        background: $blue;
+      }
+
+      .session{
+        background: transparent;
+        border: none;
+        padding: 20px 10px 20px 10px;
+        min-height: 70px;
+        text-align: left;
+        display: flex;
+      }
+      .session:disabled{
+        background: transparent;
+        border: none;
+      }
+      .session:hover{
+        background: $cafeMenuText;
+        color: $white;
+      }
+      .activeSession{
+        background: $cafeMenuText;
+        color: $white;
+      }
+    }
+  }
+}
 
 
 .body{
