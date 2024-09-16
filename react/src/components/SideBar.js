@@ -39,10 +39,15 @@ const SideBar = () => {
             </div>
             <div className="navContainer">
                 <div className="subTitle">
-                    Software & Data
+                    Software
                 </div>
                 <div className="linkContainer">
                     <div className="link"><Link to={"/"}>Developer</Link></div>
+                </div>
+                <div className="subTitle">
+                    ML Data
+                </div>
+                <div className="linkContainer">
                     <div className="link"><Link to={"/data"}>Annotator</Link></div>
                 </div>
                 <div className="subTitle">

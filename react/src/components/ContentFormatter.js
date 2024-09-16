@@ -8,6 +8,7 @@ import {ReactComponent as TrashIcon} from "../images/trashIcon.svg";
 
 const ContentFormatter = () => {
     const [text, setText] = useState("")
+    const [persona, setPersona] = useState("Professional")
     const [style, setStyle] = useState("AP")
     const [response, setResponse] = useState("")
     const [review, setReview] = useState(null)
@@ -227,9 +228,9 @@ const ContentFormatter = () => {
         <div className="d-flex w-100">
             <div className="d-flex w-75 px-5 pt-5">
                 {view === "" ?
-                    <Form>
+                    <Form className="w-100">
                         <Row>
-                            <div className="contentTabs">
+                            <div className="contentTabs mb-3">
                                 <div className="agentTab">
                                     {progress && progress[mapper["review"]] !== null &&
                                         <div disabled={running} onClick={() => {
@@ -245,7 +246,7 @@ const ContentFormatter = () => {
                                         </div>}
                                 </div>
                             </div>
-                            <Form.Group as={Col} sm="3" controlId="style">
+                            <Form.Group className="mb-3" as={Col} sm="3" controlId="style">
                                 <Form.Select aria-label="Default select example" disabled={running} value={style}
                                              onChange={(e) => setStyle(e.target.value)} required>
                                     <option value="">Select Style</option>
@@ -254,12 +255,21 @@ const ContentFormatter = () => {
                                     <option value="CNN">CNN</option>
                                 </Form.Select>
                             </Form.Group>
+                            <Form.Group className="mb-3" as={Col} sm="3" controlId="persona">
+                                <Form.Select aria-label="Default select example" disabled={running} value={persona}
+                                             onChange={(e) => setPersona(e.target.value)} required>
+                                    <option value="">Select Persona</option>
+                                    <option value="Professional">Professional</option>
+                                    <option value="Creative">Creative</option>
+                                    <option value="Friendly">Friendly</option>
+                                </Form.Select>
+                            </Form.Group>
                             <Col>
-                                <Button className="float-end" disabled={running} type="button" variant={"primary"}
+                                <Button className="float-end mb-3" disabled={running} type="button" variant={"primary"}
                                         onClick={(e) => handleSubmit(e, text)}>Submit</Button>
                             </Col>
                         </Row>
-                        <Form.Group as={Col} className="w-100">
+                        <Form.Group id="editorC" as={Col} className="w-100">
                             <Editor data={text} setData={setText}/>
                         </Form.Group>
                     </Form>
@@ -308,16 +318,14 @@ const ContentFormatter = () => {
                                             </div>}
                                         <>
                                             {editMode === true ?
-                                                <div className="w-50">
-                                                    <div className="container flex-container">
-                                                        <Button disabled={running} type="button"
-                                                                variant="primary">Done</Button>
-                                                    </div>
+                                                <div className="w-100 h-50 p-1">
                                                     <Editor data={response} setData={setResponse}/>
+                                                    <Button onClick={()=>{setEditMode(false)}} className="float-end mt-2" disabled={running} type="button"
+                                                            variant="primary">Done</Button>
                                                 </div> :
                                                 <div className="w-100">
                                                     <div className="response ck-content">
-                                                        <div className="review-content"><Button className="mb-3 float-end">Edit</Button>{response}</div>
+                                                        <div className="review-content"><Button className="mb-3 float-end" onClick={()=>{setEditMode(true)}}>Edit</Button>{response}</div>
                                                     </div>
                                                 </div>
                                             }
