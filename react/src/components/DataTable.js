@@ -97,7 +97,7 @@ const DataTable = (props) => {
                             <thead>
                             <tr></tr>
                             </thead>
-                            <tbody className="flexChildStretch scrollbar">
+                            <tbody className="flexChildStretch scrollbar overflow-auto">
                             <tr key={"rowHEader"} id="rowHeader">
                                 <td>#</td>
                                 {cols?.map((key,index)=>{

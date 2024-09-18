@@ -64,10 +64,10 @@ async def get_matrix_service(key, source, training_set):
     combined_vectors = np.hstack((sentence_vectors, genre_vectors))
     similarity_matrix = metrics.pairwise.cosine_similarity(combined_vectors)
 
-    df_sim = pd.DataFrame(similarity_matrix, index=[f"{s[:30]}...({g}" for s, g in zip(sentences, genres)],
-                          columns=[f"{s[:30]}... ({g})" for s, g in zip(sentences, genres)])
+    df_sim = pd.DataFrame(similarity_matrix, index=[f"{s[:20]}...({g}" for s, g in zip(sentences, genres)],
+                          columns=[f"{s[:20]}... ({g})" for s, g in zip(sentences, genres)])
 
-    plt.figure(figsize=(35, 33))
+    plt.figure(figsize=(20, 20))
     sns.heatmap(df_sim, annot=True, cmap="Blues", xticklabels=True, yticklabels=True)
     plt.title('Source-Label Correlation Matrix', fontsize=30)
     plt.xticks(fontsize=22)

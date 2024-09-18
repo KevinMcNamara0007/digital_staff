@@ -44,7 +44,7 @@ const Developer = () => {
         return()=> clearInterval(timer);
     }, [counter]);
 
-    const fillText = "<div> class='introText'>\n\n\n" +
+    const fillText = "<div class='introText'>\n\n\n" +
         "Repo Disclaimer: \n\n" +
         "For larger code repos it is recommended to be specific in your ask to avoid long wait times.\n\n" +
         "Recommended Examples:\n\n" +
@@ -67,9 +67,9 @@ const Developer = () => {
     const [currentBranch, setCurrentBranch] = useState("")
     const [newBranch, setNewBranch] = useState("")
     //Response Variables
-    const [title, setTitle] = useState("E-Staff Developer")
+    const [title, setTitle] = useState("Developer")
     const [task, setTask] = useState("")
-    const [agentResponse, setAgentResponse] = useState("")
+    const [agentResponse, setAgentResponse] = useState(callParse(fillText))
     const [finalSolution, setFinalSolution] = useState([])
     //triggers
     const [showSettings, setShowSettings] = useState(false)
@@ -475,7 +475,7 @@ const Developer = () => {
                 {
                     !solutionTrigger ?
                         <div className="agentResponse">
-                            <h3 className="agentTitle">{title}</h3>
+                            <h4 className="agentTitle">{title}</h4>
                             <h4 className="agentTitle">{task}</h4>
                             <div className="agentOutput">{agentResponse}</div>
                         </div>

@@ -47,7 +47,7 @@ html, body, #root, .App{
 }
 
 div, h1, h2, h3, h4, p, a, button, input[type="text"]{
-  font-family: Segoe UI Historic, Segoe UI, Helvetica, Arial, sans-serif !important;
+  font-family: "Open Sans", sans-serif !important;
 }
 h1{
   font-size: 32px !important;
@@ -63,6 +63,34 @@ h4{
 }
 div, p{
   font-size: 18px;
+}
+
+.dataTabs{
+  width: 100% !important;
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  .title{
+    padding: 10px 0;
+    font-size: 20px;
+    color: $cafeMenuText;
+    text-align: center;
+  }
+  .title:hover{
+    color:white;
+    background: $cafeMenuText;
+  }
+  .progress-bar{
+    background: $blueProgress;
+    animation: progressAnimation 20s;
+    animation-iteration-count: infinite;
+  }
+  .progress-bar-complete{
+    background: $green;
+  }
+  .fail{
+    background: $red;
+  }
+
 }
 
 .contentTabs{
@@ -110,10 +138,12 @@ div, p{
   border-left: 1px solid #DEE3E9;
   .titleSessions{
     margin-top: 40px;
-    margin-bottom: 30px;
+    padding-bottom: 30px;
     color: $cafeMenuText;
-    font-size: 32px;
+    font-size: 22px;
+    font-weight: 600;
     text-align: center;
+    border-bottom: 1px solid $cafeMenuText;
   }
   .clear{
     border: none;
@@ -166,6 +196,7 @@ div, p{
         min-height: 70px;
         text-align: left;
         display: flex;
+        border-bottom: 1px dotted $cafeMenuText;
       }
       .session:disabled{
         background: transparent;
@@ -224,8 +255,9 @@ div, p{
     .titleSessions{
       margin-top: 40px;
       margin-bottom: 30px;
+      font-weight: 700;
       color: $cafeMenuText;
-      font-size: 32px;
+      font-size: 22px;
       text-align: center;
     }
     .clear{
@@ -251,6 +283,7 @@ div, p{
     }
 
     .panel{
+      border-top: 1px solid black;
       height: 90%;
       width: 100%;
       .panelContainer{
@@ -277,6 +310,7 @@ div, p{
           min-height: 70px;
           text-align: left;
           display: flex;
+          border-bottom: 1px dotted $cafeMenuText;
         }
         .session:hover{
           background: $cafeMenuText;
@@ -397,6 +431,7 @@ div, p{
 
     }
     .agentOutput{
+      box-shadow: rgba(0, 0, 0, 0.35) 0px -50px 36px -28px inset;
       white-space: pre-wrap;
       padding-left: 30px;
       padding-right: 30px;
@@ -580,8 +615,8 @@ div, p{
 
 .sideBar{
   background: $sidebar;
-  min-width: 20%;
-  max-width: 20%;
+  min-width: 24%;
+  max-width: 24%;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -614,7 +649,7 @@ div, p{
     }
   }
   .navContainer{
-    height: 50%;
+    height: 57%;
     border-top: 1px solid black;
     border-bottom: 1px solid black;
     padding: 0 20px;
@@ -658,7 +693,7 @@ div, p{
   .subTitle{
     margin-top: 10px;
     text-align: left;
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 600;
   }
 

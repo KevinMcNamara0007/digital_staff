@@ -39,30 +39,29 @@ const SideBar = () => {
             </div>
             <div className="navContainer">
                 <div className="subTitle">
-                    Software
+                    Engineering and Technology
                 </div>
                 <div className="linkContainer">
                     <div className="link"><Link to={"/"}>Developer</Link></div>
                 </div>
                 <div className="subTitle">
-                    ML Data
+                    Data & Analytics
                 </div>
                 <div className="linkContainer">
                     <div className="link"><Link to={"/data"}>Annotator</Link></div>
                 </div>
                 <div className="subTitle">
-                    Content
+                    Marketing & Communications
                 </div>
                 <div className="linkContainer">
                     <div className="link"><Link to={"/Content"}>Formatter</Link></div>
+                    <div className="link disabled">Marketing</div>
                 </div>
                 <div className="subTitle">
-                    Future
+                Project Management & Operations
                 </div>
                 <div className="linkContainer">
                     <div className="link disabled">Jira Groomer</div>
-                    <div className="link disabled">Marketing</div>
-                    <div className="link disabled">Insurance</div>
                 </div>
             </div>
             <div className="modelText">
