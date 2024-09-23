@@ -493,15 +493,15 @@ const Developer = () => {
                         </div>
                 }
                 <div className="promptContainer">
-                    <button className="repoSettingsButton" onClick={() => {
-                        setShowSettings(!showSettings)
-                    }}><GitIcon className="img"/></button>
                     <label>
                         <input id="instruction" value={instruction} onChange={(e) => {
                             setInstruction(e.target.value)
                         }} type="text" title="instructions" placeholder="Enter Coding Instructions"/>
                     </label>
-                    <label className="diagramImage">
+                    <button title="Git Settings" className="diagramImage" onClick={() => {
+                        setShowSettings(!showSettings)
+                    }}><GitIcon className="img2"/></button>
+                    <label title="Upload Image" className="diagramImage">
                         <DiagramIcon className="img"/>
                         <input id="image" type="file" accept="image/png, image/gif, image/jpeg" onClick={(e) => {
                             e.target.value = ""
@@ -509,7 +509,7 @@ const Developer = () => {
                             imageUpload(e)
                         }}/>
                     </label>
-                    <button className="searchImage" onClick={() => {
+                    <button title="search" className="searchImage" onClick={() => {
                         handleSubmit()
                     }}><ArrowIcon className="img"/></button>
                 </div>
