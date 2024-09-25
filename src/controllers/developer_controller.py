@@ -4,7 +4,7 @@ from pydantic import parse_obj_as
 from src.models.request_models import CodeFileList
 from src.services.no_repo_tasks import manager_development_base_service, no_repo_agent_task_service, \
     no_repo_produce_solution
-from src.services.tasks import (
+from src.services.developer_services import (
     get_repo_service,
     create_plan_service,
     agent_task_service,
@@ -13,6 +13,7 @@ from src.services.tasks import (
 )
 from src.utilities.general import cleanup_cloned_repo, delete_folder
 from src.utilities.git import show_file_contents
+from fastapi.responses import StreamingResponse
 
 tasks = APIRouter(
     prefix="/Tasks",
@@ -78,11 +79,18 @@ async def agent_tasks(
         code: str = Form(default="", description="Generated Code If there is no repo"),
         model: str = Form(default="oai", description="Model"),
 ):
-    if repo_dir != "none":
-        parsed_file_list = parse_obj_as(List[str], file_list.split(','))
-        return await agent_task_service(agent_task, user_prompt, parsed_file_list, repo_dir, new_branch_name, "",
-                                        agent_responses, model, flow)
-    return await no_repo_agent_task_service(agent_task, agent_responses, code, model)
+    # if repo_dir != "none":
+    #     parsed_file_list = parse_obj_as(List[str], file_list.split(','))
+    #     return StreamingResponse(
+    #         await agent_task_service(agent_task, user_prompt, parsed_file_list, repo_dir, new_branch_name, "",
+    #                            agent_responses, model, flow),
+    #         media_type="text/plain"
+    #     )
+    print("got here")
+    return StreamingResponse(
+        await no_repo_agent_task_service(agent_task, agent_responses, code, model),
+        media_type="text/plain"
+    )
 
 
 @tasks.post("/produce_solution")

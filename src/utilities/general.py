@@ -1,6 +1,9 @@
 import json
 import os
 import shutil
+
+import httpx
+import requests
 from dotenv import load_dotenv
 from fastapi import HTTPException
 
@@ -123,3 +126,89 @@ async def delete_folder(repo_dir):
         error_message = f"Error deleting folder: {exc}"
         print(error_message)
         raise HTTPException(status_code=500, detail=error_message)
+
+
+async def stream_cpp_call(prompt, output_tokens=9000, url="http://192.168.1.13:8001/completion"):
+    hermes = f"<|im_start|>system\n{prompt}<|im_end|>\n<|im_start|>user\n<|im_end|>\nassistant"
+    llama = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>{prompt}<|start_header_id|>user<|end_header_id|><|eot_id|>assistant"
+
+    try:
+        response = requests.post(
+            url,
+            json={
+                "prompt": llama,
+                "stream": True,  # Enable streaming
+                "n_predict": output_tokens,
+                "temperature": 0.8,
+                "stop": [
+                    "</s>",
+                    "<|end|>",
+                    "<|eot_id|>",
+                    "<|end_of_text|>",
+                    "<|im_end|>",
+                    "<|EOT|>",
+                    "<|END_OF_TURN_TOKEN|>",
+                    "<|end_of_turn|>",
+                    "<|endoftext|>",
+                    "assistant",
+                    "user"
+                ],
+                "repeat_last_n": 0,
+                "repeat_penalty": 1,
+                "penalize_nl": False,
+                "top_k": 0,
+                "top_p": 1,
+                "min_p": 0.05,
+                "tfs_z": 1,
+                "typical_p": 1,
+                "presence_penalty": 0,
+                "frequency_penalty": 0,
+                "mirostat": 0,
+                "mirostat_tau": 5,
+                "mirostat_eta": 0.1,
+                "grammar": "",
+                "n_probs": 0,
+                "min_keep": 0,
+                "image_data": [],
+                "cache_prompt": False,
+                "api_key": ""
+            },
+            stream=True  # Enable streaming in the request
+        )
+        response.raise_for_status()
+
+        # Stream content progressively
+        for chunk in response.iter_lines():
+            if chunk:
+                yield chunk.decode('utf-8')
+
+    except requests.RequestException as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
+
+
+async def stream_call_llm(prompt: str, output_tokens: int = 6000, extension: str = "/ask_a_pro_stream", url=llm_url):
+    headers = {
+        'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
+    }
+    try:
+        response = requests.post(
+            llm_url + extension,
+            json={
+                "output_tokens": output_tokens,
+                "prompt": prompt
+            },
+            headers=headers,
+            stream=True  # Enable streaming in the request
+        )
+        response.raise_for_status()  # Raise an error for bad responses
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err}")  # Print the error
+        return  # Handle the error as needed
+    except Exception as err:
+        print(f"An error occurred: {err}")
+        return  # Handle the error as needed
+
+    # Stream content progressively
+    for chunk in response.iter_lines():
+        if chunk:
+            yield chunk.decode('utf-8')

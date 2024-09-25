@@ -8,7 +8,7 @@ from fastapi import HTTPException
 from openai import OpenAI
 
 
-from src.utilities.general import llm_url, openai_key, check_token_count
+from src.utilities.general import llm_url, openai_key, check_token_count, stream_cpp_call, stream_call_llm
 import re
 
 
@@ -26,7 +26,7 @@ async def agent_task(task, responses, code, model="oai"):
     prompt = (
         f"Instructions:\n"
         f"1. This is your task: {task}.\n"
-        f"2. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE."
+        f"2. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE.\n"
         f"3. If your task requires a previous agent's response, these are the previous agents' responses: {responses}.\n"
         f"4. If your task requires original code, use these files and their code as reference: {code}.\n"
     )
@@ -35,28 +35,12 @@ async def agent_task(task, responses, code, model="oai"):
     print(f"Agent Input Token Amount: {tokens}")
     if model == "oai":
         response = await call_openai(prompt)
+        yield response
     else:
-        response = await call_llm(prompt, tokens*1.7)
-    print(f"Agent Output Token Amount: {check_token_count(response)}")
-    return response
+        # Stream response from the custom C++ model
+        async for chunk in stream_call_llm(prompt):
+            yield chunk
 
-
-# async def compile_agent_code(task, shot1, shot2, original_code):
-#     print(f"Compile Agent Shots")
-#     prompt = (
-#         f"Instructions:\n"
-#         f"1. Version 1 and Version 2 are two different outputs of the task.\n"
-#         f"2. Compile and Merge both versions into one singular best answer based on the task.\n"
-#         f"2. Ensure the task was fulfilled: {task} .\n"
-#         f"2. ONLY RESPOND WITH BEST OUTPUT CODE.\n"
-#         f"3. Version 1 code: {shot1}.\n"
-#         f"4. Version 2 code: {shot2}.\n"
-#     )
-#     tokens = check_token_count(prompt)
-#     print(f"Compile Input Token Amount: {tokens}")
-#     response = await call_llm(prompt, tokens*1.7)
-#     print(f"Compile Output Token Amount: {check_token_count(response)}")
-#     return response
 
 def fix_json_string(input_string):
     # Fix the FILE_CODE sections to properly escape quotes and handle special characters
@@ -124,47 +108,6 @@ async def produce_final_solution(user_prompt, file_list, agent_responses, origin
             return response
         except json.JSONDecodeError:
             return response
-                # return await produce_final_solution(user_prompt, file_list, agent_responses, original_code)
-
-
-# async def produce_final_solution_for_file(file, agent_responses):
-#     prompt = (
-#         "Instructions:\n"
-#         "1. You are an expert programmer.\n"
-#         f"2. You will compile all agent code for the following file {file}.\n"
-#         "3. You will respond only with the completed compiled and merged code.\n"
-#         f"4. Here are the agent responses you will reference when making the final version of the code: {agent_responses}\n"
-#     )
-#     tokens = check_token_count(prompt)
-#     print(f"Final Solution Token Amount INPUT: {tokens}")
-#     time.sleep(5)
-#     response = await call_llm(prompt, tokens*1.5)
-#     print(f"Final solution OUTPUT: {check_token_count(response)}")
-#     return response.replace("```java", "").replace("```python", "").replace("```", "")
-#
-#
-# async def process_file(file, agent_response_list):
-#     responses_for_file = find_file_by_name(agent_response_list, file)
-#     if responses_for_file is not None:
-#         file_solution = await produce_final_solution_for_file(file, responses_for_file)
-#         obj = {"FILE_NAME": file, "FILE_CODE": file_solution}
-#         file_test = await create_unit_test_for_file(obj)
-#         return [obj] + ([file_test] if file_test is not None else [])
-#     return []
-#
-#
-# async def produce_final_solution_for_large_repo(user_prompt, file_list, agent_responses, original_code):
-#     final_list = []
-#     try:
-#         agent_response_list = json.loads(agent_responses)
-#         tasks = [process_file(file, agent_response_list) for file in file_list]
-#         results = await asyncio.gather(*tasks)
-#         for result in results:
-#             final_list.extend(result)
-#         return final_list
-#     except json.JSONDecodeError as exc:
-#         print(f"Could not produce final solution: {exc}")
-#         return "Fail"
 
 
 def find_file_by_name(agent_response_list, file_name):
@@ -238,58 +181,6 @@ async def call_llm(prompt, output_tokens=6000, extension="/ask_a_pro", url=llm_u
         return response
     except requests.RequestException as exc:
         print(exc)
-        raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
-
-
-async def call_cpp(prompt, output_tokens=9000, url="http://127.0.0.1:8001/completion"):
-    time.sleep(2)
-    hermes = f"<|im_start|>system\n{prompt}<|im_end|>\n<|im_start|>user\n<|im_end|>\nassistant"
-    llama = f"<|begin_of_text|><|start_header_id|>system<|end_header_id|>{prompt}<|start_header_id|>user<|end_header_id|><|eot_id|>assistant"
-    try:
-        response = requests.post(
-            url,
-            json={
-                "prompt": llama,
-                "stream": False,
-                "n_predict": output_tokens,
-                "temperature": 0.8,
-                "stop":
-                    ["</s>",
-                     "<|end|>",
-                     "<|eot_id|>",
-                     "<|end_of_text|>",
-                     "<|im_end|>",
-                     "<|EOT|>",
-                     "<|END_OF_TURN_TOKEN|>",
-                     "<|end_of_turn|>",
-                     "<|endoftext|>",
-                     "assistant",
-                     "user"],
-                "repeat_last_n":0,
-                "repeat_penalty":1,
-                "penalize_nl":False,
-                "top_k":0,
-                "top_p":1,
-                "min_p":0.05,
-                "tfs_z":1,
-                "typical_p":1,
-                "presence_penalty":0,
-                "frequency_penalty":0,
-                "mirostat":0,
-                "mirostat_tau":5,
-                "mirostat_eta":0.1,
-                "grammar":"",
-                "n_probs":0,
-                "min_keep":0,
-                "image_data":[],
-                "cache_prompt":False,
-                "api_key":""
-            }
-        )
-        response.raise_for_status()  # Ensure we raise an error for bad responses
-        print(response.json()["stop"])
-        return response.json()["content"]
-    except requests.RequestException as exc:
         raise HTTPException(status_code=500, detail=f"Failed to reach {url}\n{exc}")
 
 

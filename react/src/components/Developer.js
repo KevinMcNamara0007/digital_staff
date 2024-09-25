@@ -217,14 +217,14 @@ const Developer = () => {
 
     }
 
-    let agentResponses = ""
+    let agent_responses = ""
+    let agentResponseList = []
     async function processAgentTasks(file_list, repo_dir, tasks, code=null){
-        let agentResponseList = []
         try{
             for (const item of tasks){
                 const index = tasks.indexOf(item);
-                let response = await agentTask(index, file_list, newBranch, repo_dir, item, agentResponses, code)
-                agentResponses = response
+                let response = await agentTask(index, file_list, newBranch, repo_dir, item, agent_responses, code)
+                agent_responses = response
                 agentResponseList.push(response)
             }
             return agentResponseList
@@ -232,63 +232,96 @@ const Developer = () => {
             console.log(e)
             return []
         }
-        async function agentTask(index, file_list, gitNewBranch, repo_dir, task, agent_responses, code){
-            let agentNumber = index + 1;
+
+    }
+    async function agentTask(index, file_list, newBranch, repo_dir, item, agentResponses, code){
+        setAgentResponse("")
+
+        let data = new FormData()
+        data.set("user_prompt", instruction);
+        data.set("file_list", file_list);
+        data.set("agent_task", task);
+        data.set("agent_responses", agent_responses);
+        data.set("new_branch_name", newBranch);
+        data.set("repo_dir", repo_dir);
+        data.set("code", code);
+        data.set("model", model);
+        data.set("flow", "no");
+
+        let agentNumber = index + 1;
+
+        if(agentNumber === 1){
+            setProgress(prevState => ({...prevState, 1:"running"}))
+        }else if(agentNumber === 2){
+            setProgress(prevState => ({...prevState, 2:"running"}))
+        }
+        else if(agentNumber === 3){
+            setProgress(prevState => ({...prevState, 3:"running"}))
+        }
+        else if(agentNumber === 4){
+            setProgress(prevState => ({...prevState, 4:"running"}))
+        }
+
+        setTask(task)
+        setTitle("Agent " + agentNumber)
+
+        const response = await fetch('http://127.0.0.1:8080/Tasks/agent_task', {
+            method: 'POST',
+            body: data,
+        });
+
+        if (!response.ok) {
             if(agentNumber === 1){
-                setProgress(prevState => ({...prevState, 1:"running"}))
+                setProgress(prevState => ({...prevState, 1:"fail"}))
             }else if(agentNumber === 2){
-                setProgress(prevState => ({...prevState, 2:"running"}))
+                setProgress(prevState => ({...prevState, 2:"fail"}))
             }
             else if(agentNumber === 3){
-                setProgress(prevState => ({...prevState, 3:"running"}))
+                setProgress(prevState => ({...prevState, 3:"fail"}))
             }
             else if(agentNumber === 4){
-                setProgress(prevState => ({...prevState, 4:"running"}))
+                setProgress(prevState => ({...prevState, 4:"fail"}))
             }
-            return await agentTaskAPI(instruction,file_list,task, newBranch, repo_dir, agent_responses, code, localStorage.getItem("model"))
-                .then((response) => {
-                    if(agentNumber === 1){
-                        setProgress(prevState => ({...prevState, 1:"complete"}))
-                    }else if(agentNumber === 2){
-                        setProgress(prevState => ({...prevState, 2:"complete"}))
-                    }
-                    else if(agentNumber === 3){
-                        setProgress(prevState => ({...prevState, 3:"complete"}))
-                    }
-                    else if(agentNumber === 4){
-                        setProgress(prevState => ({...prevState, 4:"complete"}))
-                    }
-                    setTitle("Agent " + agentNumber)
-                    setTask(task)
-                    if(repo_dir !== "none"){
-                        setAgentResponse(response.data.agent_response)
-                        agent_responses = response.data.agent_response
-                        return response.data.agent_response
-                    }else{
-                        setAgentResponse(response.data.agent_response)
-                        agent_responses = response.data.agent_response
-                        return response.data.agent_response
-                    }
-                }).catch((err)=>{
-                    if(agentNumber === 1){
-                        setProgress(prevState => ({...prevState, 1:"fail"}))
-                    }else if(agentNumber === 2){
-                        setProgress(prevState => ({...prevState, 2:"fail"}))
-                    }
-                    else if(agentNumber === 3){
-                        setProgress(prevState => ({...prevState, 3:"fail"}))
-                    }
-                    else if(agentNumber === 4){
-                        setProgress(prevState => ({...prevState, 4:"fail"}))
-                    }
-                    return "NA"
-                })
+            console.error('Error:', response.statusText);
+            return "";
         }
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder('utf-8');
+
+        // Function to read the stream
+        let output = ""
+        const readStream = async () => {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    break;
+                }
+                output = output + decoder.decode(value);
+                // Decode and append the chunk to output
+                setAgentResponse((prevOutput) => prevOutput + decoder.decode(value));
+            }
+        };
+
+        await readStream();
+        if(agentNumber === 1){
+            setProgress(prevState => ({...prevState, 1:"complete"}))
+        }else if(agentNumber === 2){
+            setProgress(prevState => ({...prevState, 2:"complete"}))
+        }
+        else if(agentNumber === 3){
+            setProgress(prevState => ({...prevState, 3:"complete"}))
+        }
+        else if(agentNumber === 4){
+            setProgress(prevState => ({...prevState, 4:"complete"}))
+        }
+        agent_responses = output
+        return output
     }
 
     async function produceSolution(file_list, repo_dir, code){
         setProgress(prevState => ({...prevState, solution:"running"}))
-        return await solutionAPI(instruction, file_list, newBranch, repo_dir, agentResponses, code, localStorage.getItem("model"))
+        return await solutionAPI(instruction, file_list, newBranch, repo_dir, agent_responses, code, localStorage.getItem("model"))
             .then((response)=>{
                 setTitle("Final Solution")
                 setTask("")

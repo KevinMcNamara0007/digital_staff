@@ -52,8 +52,32 @@ export const managerPlanAPI = (user_prompt, original_code_branch, new_branch_nam
     return postFormData("/Tasks/manager_plan", data)
 }
 
-export const agentTaskAPI = (user_prompt, file_list, agent_task, new_branch_name, repo_dir, agent_responses, code, model, flow="no") => {
-    let data = new FormData()
+// export const agentTaskAPI = (user_prompt, file_list, agent_task, new_branch_name, repo_dir, agent_responses, code, model, flow="no") => {
+//     let data = new FormData()
+//     data.set("user_prompt", user_prompt);
+//     data.set("file_list", file_list);
+//     data.set("agent_task", agent_task);
+//     data.set("agent_responses", agent_responses);
+//     data.set("new_branch_name", new_branch_name);
+//     data.set("repo_dir", repo_dir);
+//     data.set("code", code);
+//     data.set("model", model);
+//     data.set("flow", flow);
+//     return postFormData("/Tasks/agent_task", data)
+// }
+
+function StreamFormData(url, data, onStreamProgress) {
+    return axiosFormData({
+        method: 'post',
+        url,
+        data,
+        responseType: 'stream', // Enable streaming
+        onDownloadProgress: onStreamProgress  // Capture progress for streaming
+    });
+}
+
+export const agentTaskAPI = (user_prompt, file_list, agent_task, new_branch_name, repo_dir, agent_responses, code, model, flow = "no", onStreamProgress) => {
+    let data = new FormData();
     data.set("user_prompt", user_prompt);
     data.set("file_list", file_list);
     data.set("agent_task", agent_task);
@@ -63,7 +87,7 @@ export const agentTaskAPI = (user_prompt, file_list, agent_task, new_branch_name
     data.set("code", code);
     data.set("model", model);
     data.set("flow", flow);
-    return postFormData("/Tasks/agent_task", data)
+    return StreamFormData("/Tasks/agent_task", data, onStreamProgress);
 }
 
 export const solutionAPI = (user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code, model, flow="no") => {

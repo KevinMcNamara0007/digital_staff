@@ -53,7 +53,8 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
         ]
         print(f"REQUIRED FILES FOUND: {required_files}")
     except Exception as exc:
-        return file_list[0, 3]
+        print(file_list)
+        return file_list[0, 2]
     print(len(required_files))
     # API FLOW
     if flow == "y":
