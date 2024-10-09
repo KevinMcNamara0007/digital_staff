@@ -165,6 +165,9 @@
 
 //Dark Mode
 .darkMode{
+    .review-content{
+        color: white;
+    }
     background: $light-black;
     .mainContainer{
         color: white;
@@ -209,6 +212,7 @@
         //  Right Side
         .view{
             .agentResponse{
+                background: $lighter-black;
                 color: $white;
                 &::-webkit-scrollbar{
                     width: 4px;
@@ -241,6 +245,7 @@
             .output2{
             }
             .agentOutput{
+                background: $cafeMenuText;
                 & .diff { font-family: monospace; white-space: pre; }
                 & .diff-header { font-weight: bold; }
                 & .diff-index { font-weight: bold; }
