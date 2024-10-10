@@ -18,6 +18,7 @@ $dark-green: #1A232C;
 $green: #9eff8a;
 $red: #fc0000;
 $sidebar: #F1F4F7;
+$blue-primary-gradient: linear-gradient(-45deg, #a3cef9, #0b2a52, #4187cf);
 $blue-gradient: linear-gradient(101.34deg, #0C63E7 14.12%, #01A4FF 100.36%);
 $black-gradient: radial-gradient(67.21% 225.72% at 25.69% 31.39%, #283440 0%, #252331 100%);
 $transparent: transparent;
@@ -358,7 +359,7 @@ div, p{
 
     }
     .agentResponse{
-      background: $blue-gradient;
+      background: $blue-primary-gradient;
       width: 100%;
       height: 90%;
       max-height: 800px;
@@ -400,6 +401,12 @@ div, p{
       color: $white;
       margin-top: 20px;
       margin-bottom: 5px;
+    }
+    .agentTitleTask{
+      font-size: 20px !important;
+      text-align: center;
+      color: $white;
+      padding: 5px;
     }
     .output2{
       margin-left: 5%;

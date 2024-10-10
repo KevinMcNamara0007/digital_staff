@@ -476,7 +476,7 @@ const Developer = () => {
                     !solutionTrigger ?
                         <div className="agentResponse">
                             <h4 className="agentTitle">{title}</h4>
-                            <h4 className="agentTitle">{task}</h4>
+                            <h4 className="agentTitleTask">{task}</h4>
                             <div className="agentOutput">{agentResponse}</div>
                         </div>
                         :

@@ -212,7 +212,7 @@
         //  Right Side
         .view{
             .agentResponse{
-                background: $lighter-black;
+                background: $black-gradient;
                 color: $white;
                 &::-webkit-scrollbar{
                     width: 4px;
@@ -240,6 +240,9 @@
                 color: $black;
             }
             .agentTitle{
+                color: $white;
+            }
+            .agentTitleTask{
                 color: $white;
             }
             .output2{

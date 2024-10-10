@@ -101,7 +101,7 @@ const DataGenerator = () => {
                         </div>
                         <Form.Group as={Row} className="mb-3">
                             <Form.Label column sm="2">
-                                Name
+                                Annotation Name
                             </Form.Label>
                             <Col sm="10">
                                 <Form.Control value={dataDescription}
@@ -113,7 +113,7 @@ const DataGenerator = () => {
                         </Form.Group>
                         <Form.Group as={Row} className="mb-3">
                             <Form.Label column sm="2">
-                                Number of Rows
+                                Records
                             </Form.Label>
                             <Col sm="10">
                                 <Form.Control type="number" value={rows} placeholder="Enter a number from 0-100"
@@ -138,7 +138,7 @@ const DataGenerator = () => {
                                         <Form.Control required value={input.description} onChange={(e) => {
                                             setInput(prev => ({...prev, description: e.target.value}))
                                         }}
-                                                      placeholder="Label Description Ex: 10-20 word sentence"/>
+                                                      placeholder="Input Description Ex: 10-20 word sentence"/>
                                     </Col>
                                 </Row>
                             </Col>
