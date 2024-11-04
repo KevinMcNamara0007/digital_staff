@@ -43,9 +43,10 @@ const SideBar = () => {
                 </div>
                 <div className="linkContainer">
                     <div className="link"><Link to={"/"}>Developer</Link></div>
+                    <div className="link"><Link to={"/CoT"}>CoT Developer</Link></div>
                 </div>
                 <div className="subTitle">
-                    Data & Analytics
+                Data & Analytics
                 </div>
                 <div className="linkContainer">
                     <div className="link"><Link to={"/data"}>Annotator</Link></div>
@@ -58,16 +59,23 @@ const SideBar = () => {
                     <div className="link disabled">Marketing</div>
                 </div>
                 <div className="subTitle">
-                Project Management & Operations
+                    Project Management & Operations
                 </div>
                 <div className="linkContainer">
                     <div className="link disabled">Jira Groomer</div>
                 </div>
+                <div className="subTitle">
+                    Legal & Insurance
+                </div>
+                <div className="linkContainer">
+                    <div className="link disabled">Insurance Resolution</div>
+                    <div className="link disabled">Insurance Intake</div>
+                </div>
             </div>
             <div className="modelText">
                 Choose your AI model of choice.<br/>
-                (ELF) Expert Level Framework<br/>
-                (OAI) OpenAI GPT-4o
+                (CXI) CX Intelligence<br/>
+                (AI) OpenAI GPT-4o
             </div>
             <div className="modelContainer">
                 <label className="switch">
