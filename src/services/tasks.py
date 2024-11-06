@@ -42,72 +42,25 @@ async def get_repo_service(user_prompt, https_clone_link, original_code_branch, 
         if model == "oai":
             response = await call_openai(prompt)
         else:
-            print("got here")
             response = await call_llm(prompt, 10000)
-            print(response)
         response = response.split(",") if len(response.split(",")) > 1 else [response]
-        print(response)
         required_files = [
             file for file in file_list
             if any(resp.lower() in file.lower() for resp in response)
         ]
         print(f"REQUIRED FILES FOUND: {required_files}")
     except Exception as exc:
-        return file_list[0, 3]
-    print(len(required_files))
-    # API FLOW
-    if flow == "y":
-        return await create_plan_service(user_prompt, required_files, repo_dir, new_branch_name, flow)
-    return {"user_prompt": user_prompt, "files": required_files if len(required_files) > 0 else file_list[0:2], "repo_dir": repo_dir}
+        required_files = file_list[0:2]
+    all_code = []
+    for file in required_files:
+        code = await get_code(file, repo_dir, new_branch_name)
+        all_code.append({"FILE_NAME": file, "FILE_CODE": code})
+    return {"user_prompt": user_prompt, "files": required_files if len(required_files) > 0 else file_list[0:2], "repo_dir": repo_dir, "all_code": all_code}
 
 
 async def create_plan_service(user_prompt, file_list, repo_dir, new_branch_name, flow="n"):
-    if flow == "y":
-        tasks = manager_development_agent_prompts(user_prompt, file_list)
-        all_code = await get_all_code(file_list, repo_dir, new_branch_name)
-        all_agent_responses = await process_agent_tasks(tasks, user_prompt, file_list, repo_dir, new_branch_name,
-                                                        all_code)
-        return await produce_solution_service(user_prompt, file_list, repo_dir, new_branch_name, all_agent_responses,
-                                              all_code, flow)
     software_type = await get_software_type(file_list)
     return manager_development_agent_prompts(user_prompt, file_list, software_type)
-
-
-async def process_agent_tasks(tasks, user_prompt, file_list, repo_dir, new_branch_name, all_code):
-    tasks_responses = await asyncio.gather(
-        *[
-            agent_task_service(agent_prompt, user_prompt, file_list, repo_dir, new_branch_name, all_code)
-            for agent_prompt in tasks
-        ]
-    )
-    all_agent_responses = "".join(
-        [f"{{Agent: {i}, Response: {response}}}" for i, response in enumerate(tasks_responses)])
-    return all_agent_responses
-
-
-async def agent_task_service(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", model="oai", flow="n"):
-    if flow == "y":
-        return await agent_task(task, response, code)
-    all_code = await get_all_code(file_list, repo_dir, new_branch_name)
-    print(f"Total Code Token Count: {check_token_count(all_code)}")
-
-    compiled_code = await agent_task(task, response, all_code, model)
-    return {"agent_response": compiled_code}
-
-async def process_file(task, file, repo_dir, new_branch_name, response):
-    file_code = await get_code(file, repo_dir, new_branch_name)
-    compiled_code = await agent_task(task, response, file_code)
-    print(f"File: {file}  completed.")
-    return {"FILE_NAME": file, "FILE_CODE": compiled_code}
-
-
-async def agent_task_per_file(task, user_prompt, file_list, repo_dir, new_branch_name, code="", response="", flow="n"):
-    tasks = [
-        process_file(task, file, repo_dir, new_branch_name, response)
-        for file in file_list
-    ]
-    file_code_list = await asyncio.gather(*tasks)
-    return {"agent_response_list": file_code_list}
 
 
 async def get_code(file, repo_dir, new_branch_name):

@@ -1,9 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import './css/index.scss';
-import './css/darkModeAndSwitch.scss'
-import './css/elfswitch.scss'
-import './css/cot.css'
+import './css/styles.scss'
 import 'bootstrap/dist/css/bootstrap.css';
 import {BrowserRouter} from "react-router-dom";
 import App from './App';

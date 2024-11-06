@@ -48,7 +48,7 @@ const Developer = () => {
         "Repo Disclaimer: \n\n" +
         "For larger code repos it is recommended to be specific in your ask to avoid long wait times.\n\n" +
         "Recommended Examples:\n\n" +
-        "Example 1:\n<div>Please optimize code in home.js for efficiency and precise code.\n</div>" +
+        "Example 1:\n<div>Please optimize code in Home.js for efficiency and precise code.\n</div>" +
         "Example 2:\n<div>For main.py, controller.py and service.py. implement multi-threading.\n</div>" +
         "</div>"
 

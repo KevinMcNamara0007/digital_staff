@@ -47,7 +47,7 @@ const CoTDev = () => {
         setPlan("")
         resultChunks = false
         try {
-            const response = await fetch("http://127.0.0.1:8000/Inference/ask_a_pro_stream", {
+            const response = await fetch("http://192.168.1.13:8000/Inference/ask_a_pro_stream", {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

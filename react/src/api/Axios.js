@@ -1,5 +1,7 @@
 import axios from 'axios'
 
+
+
 const axiosFormData = axios.create({
     baseURL: "http://127.0.0.1:8080",
     headers: {
@@ -117,4 +119,27 @@ export const finalDraftAPI = (original, style, review, model, persona="") => {
     data.set("model", model)
 
     return postFormData("/Content/final_draft", data)
+}
+
+const axiosLLMJSON = axios.create({
+    baseURL: "http://192.168.1.13:8000/Inference/ask_a_pro",
+    headers: {
+        "Content-Type": "application/json",
+        'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
+    }
+})
+
+function postLLMJSON(url, data){
+    return axiosLLMJSON({
+        method: 'post',
+        data: data
+    })
+}
+
+export const askPro = (prompt, output) => {
+    let data = {
+        "prompt": prompt,
+        "output_tokens": output
+    }
+    return postLLMJSON("/ask_a_pro", JSON.stringify(data))
 }

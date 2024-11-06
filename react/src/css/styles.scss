@@ -1,0 +1,193 @@
+$white: #ffffff;
+$off-white: rgba(255, 255, 255, 0.8);
+$gallery: #F0F0F0;
+$off-gallery: #EBEBEB;
+$black: #000000;
+$cafeBlue: #0064E0;
+$cafeMenuText: #1C2B33;
+$blue: #0C63E7;
+$blueProgress: #10bcd3;
+$light-black: #252525;
+$lighter-black: #282828;
+$light-gray: rgba(70, 70, 70, 0.89);
+$dark-gray: rgba(50, 58, 58, 0.7);
+$gray: #8896AB;
+$lighter-gray: #e0e0e0;
+$dark-green: #1A232C;
+$green: #9eff8a;
+$red: #fc0000;
+$sidebar: #F1F4F7;
+$blue-primary-gradient: linear-gradient(-45deg, #a3cef9, #0b2a52, #4187cf);
+$blue-gradient: linear-gradient(101.34deg, #0C63E7 14.12%, #01A4FF 100.36%);
+$black-gradient: radial-gradient(67.21% 225.72% at 25.69% 31.39%, #283440 0%, #252331 100%);
+$transparent: transparent;
+$trans: all .4s ease-in-out;
+
+/* General Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  width: 100%;
+  height: 100%;
+}
+
+/* Main Container */
+.chat-container {
+  width: 100%;
+  min-height: 90vh;
+  background: $black-gradient;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Chat Header */
+.chat-header {
+  background-color: $light-black;
+  padding: 1rem;
+  text-align: center;
+  font-size: 1.2rem;
+  color: #d1d5db;
+  border-bottom: 1px solid #444;
+
+  .title{
+    position: relative;
+    font-weight: 600;
+    right: 2%;
+  }
+}
+
+/* Chat Messages Area */
+.chat-messages {
+  height: 81.5vh !important;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: 2rem 14rem;
+  overflow-y: auto;
+  gap: 0.8rem;
+  &::-webkit-scrollbar {
+    width: 8px; /* Width of the scrollbar */
+  }
+  &::-webkit-scrollbar-track {
+    background: #444; /* Track color */
+  }
+  &::-webkit-scrollbar-thumb {
+    background-color: #d1d5db; /* Thumb color */
+    border-radius: 4px; /* Rounded corners */
+  }
+  &::-webkit-scrollbar-thumb:hover {
+    background-color: #c0c4ca; /* Slightly darker on hover */
+  }
+}
+
+.chat-message {
+  color: white;
+  padding: 0.8rem;
+  border-radius: 8px;
+  max-width: 80%;
+
+  white-space: pre-wrap;
+}
+
+.user-message {
+  background-color: #4e4f62;
+  align-self: flex-end;
+}
+
+.assistant-message {
+  background-color: #3b3c48;
+  align-self: flex-start;
+
+  white-space: pre-wrap;
+}
+
+/* Chat Input Area */
+.chat-input-area {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  padding: 1rem;
+  border-top: 1px solid #444;
+  background-color: #202123;
+  align-items: center; /* Align items vertically */
+}
+
+.chat-input {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  background-color: #3b3c48;
+  color: #d1d5db;
+  font-size: 1rem;
+  resize: none; /* Disable manual resizing */
+  overflow-y: hidden; /* Hide overflow */
+  min-height: 2.5rem; /* Minimum height for the input */
+}
+
+.chat-input::-webkit-scrollbar {
+  width: 6px; /* Chrome, Safari: makes the scrollbar smaller */
+}
+
+.chat-input::-webkit-scrollbar-thumb {
+  background-color: #888; /* Chrome, Safari: scrollbar color */
+  border-radius: 3px; /* Rounded scrollbar thumb */
+}
+
+.send-button,
+.attachment-input {
+  padding: 0.8rem;
+  margin-left: 0.5rem;
+  background-color: #10a37f;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  height: 2.5rem; /* Match the height of the text area */
+  display: flex;
+  align-items: center; /* Center text vertically */
+  justify-content: center;
+}
+
+.send-button:hover {
+  background-color: #0d8765;
+}
+
+.attachment-input {
+  background-color: #4e4f62;
+  cursor: pointer;
+}
+
+.attachment-input:hover {
+  background-color: #3b3c48;
+}
+
+
+.attachment-label {
+  background-color: #4e4f62;
+  color: white;
+  font-weight: bold;
+  padding: 0.8rem;
+  margin-left: 0.5rem;
+  border-radius: 5px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.5rem; /* Match the height of the textarea */
+}
+
+.attachment-label:hover {
+  background-color: #3b3c48;
+}
+
+.attachment-input {
+  display: none; /* Hide the actual input */
+}
