@@ -122,5 +122,6 @@ async def stream(
 ):
     return StreamingResponse(
         openai_stream_service(prompt),
-        media_type="text/event-stream"
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "Connection": "close"}
     )
