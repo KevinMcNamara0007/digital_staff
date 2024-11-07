@@ -1,5 +1,6 @@
 import {useEffect, useState} from "react";
 import {Button, Table} from "react-bootstrap";
+import {ReactComponent as ExcelIcon} from "../images/excelIcon.svg";
 
 const DataTable = (props) => {
     const baselink = "http://127.0.0.1:8080"
@@ -79,9 +80,9 @@ const DataTable = (props) => {
                         View Table
                     </Button>
                 }
-                <button variant="success" className="btn exportBtn ms-1 mt-3" disabled={!data} onClick={()=>{exportToExcel()}} data-tooltip-id="excelTooltip">
+                <button variant="success" className="btn exportBtn ms-1 mt-2 float-end" disabled={!data} onClick={()=>{exportToExcel()}} data-tooltip-id="excelTooltip">
                     <a className="center" href={excelContent} download="data.csv">
-                        <span>Excel</span>
+                        <span><ExcelIcon className="xcl"/></span>
                     </a>
                 </button>
                 <div id="downloadHelper"></div>

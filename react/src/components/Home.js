@@ -1,15 +1,27 @@
 import {useEffect, useRef, useState} from "react";
-import {classify, classifyRepoRequired, executePlanPrompt, getRepoDetails, dataGenerate} from "./constants/constants";
+import {
+    classify,
+    classifyRepoRequired,
+    executePlanPrompt,
+    getRepoDetails,
+    dataGenerate,
+    askLLM, askDifferentlyPrompt
+} from "./constants/constants";
 import TableData from "./TableData";
+import {Button} from "react-bootstrap";
+import {ReactComponent as CheckIcon} from "../images/check.svg"
+import {ReactComponent as SendIcon} from "../images/send.svg"
 
 const Home = () => {
+    const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [toggleModel, setToggleModel] = useState("elf")
+    const [showAllTables, setShowAllTables] = useState(false)
+    const [loader, setLoader] = useState(false)
     const [running, setRunning] = useState(false)
     const [instruction, setInstruction] = useState("")
     const [repo, setRepo] = useState({required:"",repoLink:"",branch:"", newBranch:"",allCode:"",dir:"",lastResponse:"",files:""})
-    const [dataDetails, setDataDetails] = useState({description:"", rows:"",input:"", label:"", data:[]})
+    const [dataDetails, setDataDetails] = useState({description:"", rows:"",input:"", label:"", data:[], count:0})
     const [persona, setPersona] = useState("Persona")
-    const [result, setResults] = useState("")
-    let resultChunks = false;
     const [messages, setMessages] = useState([
         { type: 'assistant', text: 'Hello! How can I help you today?' },
         { type: 'assistant', text: 'Example: "Write me the game of snake in python"' },
@@ -109,7 +121,7 @@ const Home = () => {
                 }
             ]);
         } else{
-            if (message.toLowerCase().includes("yes")) {
+            if (message.toLowerCase().includes("yes") || !message.toLowerCase().includes("no")) {
                 await handleFlow(instruction)
             }else{
                 setDataDetails({description:"", rows:"",input:"", label:""})
@@ -161,9 +173,10 @@ const Home = () => {
     }
 
     const handleFlow = async (input) => {
+        setLoader(true)
         let personaClassification = persona
         let repoRequired = repo.required
-        if (!running) {
+        if (!running && personaClassification === "Persona") {
             personaClassification = await classify(input);
             setPersona(personaClassification);
             setRunning(true);
@@ -207,16 +220,25 @@ const Home = () => {
             }
         } else if(personaClassification === "Data"){
             if(dataDetails.description === ""){
+                let agentText = await askLLM(askDifferentlyPrompt("Give me a brief description or name about the data contract you want to create."))
                 setMessages((prevMessages) => [
                     ...prevMessages,
-                    { type: 'assistant', text: 'We will be setting up your data annotation contract.\n Give me a brief description or name about the data contract you want to create.' }
+                    { type: 'assistant', text: agentText ? agentText : 'We will be setting up your data annotation contract.\n Give me a brief description or name about the data contract you want to create.' }
                 ]);
             }
             if(dataDetails.description && dataDetails.rows && dataDetails.input && dataDetails.label){
                 let tableData = await dataGenerate(dataDetails.description, dataDetails.rows, dataDetails.input, dataDetails.label)
-                setDataDetails(prevState => ({...prevState, data: tableData}))
+                setDataDetails(prevState => ({...prevState, data: prevState.data.concat(tableData), count: prevState.count+1}))
+                let agentText = await askLLM(askDifferentlyPrompt("Here is your Complete Data Contract."))
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    { type: 'assistant', text: agentText ? agentText : 'Here is your Complete Contract.',  data:true, array:tableData, count:dataDetails.count+1}
+                ]);
+
             }
         }
+
+        setLoader(false)
     };
 
     async function callAPI(prompt) {
@@ -275,21 +297,83 @@ const Home = () => {
         }
     }, [messages]);
 
+    const clearHistory = () => {
+        setShowAllTables(false)
+        setLoader(false)
+        setRunning(false)
+        setInstruction("")
+        setRepo({required:"",repoLink:"",branch:"", newBranch:"",allCode:"",dir:"",lastResponse:"",files:""})
+        setDataDetails({description:"", rows:"",input:"", label:"", data:[], count:0})
+        setPersona("Persona")
+        setMessages([
+            { type: 'assistant', text: 'Hello! How can I help you today?' }
+        ]);
+    }
+
     return (
         <div className="chat-container">
-            <div className="chat-header"><span className="float-start">{persona}</span><span className="title">eStaff</span></div>
+            <div className="chat-header">
+                <div
+                    className="persona-dropdown-container"
+                    data-arrow={dropdownOpen ? "▲" : "▼"} // Toggle arrow icon
+                    onFocus={() => setDropdownOpen(true)}
+                    onBlur={() => setDropdownOpen(false)}
+                >
+                    <select
+                        className="persona-dropdown"
+                        value={persona}
+                        onChange={(e) => setPersona(e.target.value)}
+                    >
+                        <option value="Persona">Persona</option>
+                        <option value="General">General</option>
+                        <option value="Developer">Developer</option>
+                        <option value="Data">Data</option>
+                        <option value="Content">Content</option>
+                    </select>
+                </div>
+                <span className="title">eStaff</span>
+                <label className="switch">
+                    <input type="checkbox"/>
+                    <div className="slider slider--0" onClick={() => {
+                        setToggleModel("oai")
+                    }}>ELF
+                    </div>
+                    <div className="slider slider--1">
+                        <div></div>
+                        <div></div>
+                    </div>
+                    <div className="slider slider--2"></div>
+                    <div className="slider slider--3" onClick={() => {
+                        setToggleModel("elf")
+                    }}>OAI
+                    </div>
+                </label>
+            </div>
             <div className="chat-messages">
-            {messages.map((msg, index) => (
+                {messages.map((msg, index) => (
                     <div
                         key={index}
                         className={`chat-message ${msg.type === 'user' ? 'user-message' : 'assistant-message'}`}
                     >
                         {msg.text}
+                        {msg.data && msg.data === true && dataDetails.data.length > 1 &&
+                            <div>
+                                {showAllTables ? <TableData data={dataDetails.data}/> : <TableData data={msg.array}/>}
+                                <CheckIcon title="Finished" className="icon float-end"/>
+                                {dataDetails.count > 1 && msg.count > 1 &&
+                                    <Button variant="success" className="" onClick={()=>{setShowAllTables(!showAllTables)}}>{showAllTables ? "go back" : "Combine Previous"}</Button>
+                                }
+                            </div>
+                        }
                     </div>
                 ))}
-                {dataDetails.data.length > 1 &&
+                {loader &&
                     <div className="chat-message assistant-message">
-                        <TableData data={dataDetails.data}/>
+                        <div className="loader">
+                            <div className="loader__circle"></div>
+                            <div className="loader__circle"></div>
+                            <div className="loader__circle"></div>
+                        </div>
                     </div>
                 }
                 <div ref={messagesEndRef}/>
@@ -303,18 +387,23 @@ const Home = () => {
                     onInput={handleInput}
                 ></textarea>
                 <button className="send-button" onClick={handleSendMessage}>
-                    Send
+                    <SendIcon className="icon"/>
                 </button>
-                <label className="attachment-label" htmlFor="attachment">
-                    Upload
-                </label>
-                <input
-                    type="file"
-                    id="attachment"
-                    className="attachment-input"
-                    onChange={handleAttachment}
-                    accept="image/*"
-                />
+                <div>
+                    <label className="attachment-label" htmlFor="attachment">
+                        Upload
+                    </label>
+                    <input
+                        type="file"
+                        id="attachment"
+                        className="attachment-input"
+                        onChange={handleAttachment}
+                        accept="image/*"
+                    />
+                    <label className="attachment-label" onClick={()=>{clearHistory()}}>
+                        Clear History
+                    </label>
+                </div>
             </div>
         </div>
     );

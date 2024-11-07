@@ -52,16 +52,48 @@ body {
   color: #d1d5db;
   border-bottom: 1px solid #444;
 
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* This will space out items to their respective positions */
+
   .title{
     position: relative;
     font-weight: 600;
     right: 2%;
   }
+
+  .persona-dropdown-container {
+    position: relative;
+    display: inline-block;
+    width: 150px;
+  }
+
+  .persona-dropdown {
+    background-color: #333;
+    color: #d1d5db;
+    border: 1px solid #444;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    appearance: none;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .persona-dropdown-container::after {
+    content: attr(data-arrow); /* Dynamically set content */
+    position: absolute;
+    top: 50%;
+    right: 1rem;
+    transform: translateY(-50%);
+    pointer-events: none;
+    color: #d1d5db;
+  }
 }
 
 /* Chat Messages Area */
 .chat-messages {
-  height: 81.5vh !important;
+  height: 77.5vh !important;
   display: flex;
   flex-direction: column;
   flex: 1;
@@ -102,8 +134,15 @@ body {
   align-self: flex-start;
 
   white-space: pre-wrap;
+  .icon{
+    width:30px;
+    height: 30px;
+    filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(242deg) brightness(99%) contrast(104%);
+  }
+  .icon:hover{
+    filter: invert(60%) sepia(98%) saturate(3349%) hue-rotate(88deg) brightness(123%) contrast(111%);
+  }
 }
-
 /* Chat Input Area */
 .chat-input-area {
   position: absolute;
@@ -120,12 +159,13 @@ body {
 .chat-input {
   flex: 1;
   padding: 0.8rem;
-  border-radius: 5px;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
   border: none;
   outline: none;
   background-color: #3b3c48;
   color: #d1d5db;
-  font-size: 1rem;
+  font-size: 1.2rem;
   resize: none; /* Disable manual resizing */
   overflow-y: hidden; /* Hide overflow */
   min-height: 2.5rem; /* Minimum height for the input */
@@ -140,7 +180,24 @@ body {
   border-radius: 3px; /* Rounded scrollbar thumb */
 }
 
-.send-button,
+.send-button{
+  padding: 0.8rem;
+  background-color: #10a37f;
+  font-weight: bold;
+  border: none;
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  cursor: pointer;
+  height: 5.2rem; /* Match the height of the text area */
+  display: flex;
+  align-items: center; /* Center text vertically */
+  justify-content: center;
+  .icon{
+    width:30px;
+    height: 30px;
+    filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(242deg) brightness(99%) contrast(104%);
+  }
+}
 .attachment-input {
   padding: 0.8rem;
   margin-left: 0.5rem;
@@ -174,8 +231,10 @@ body {
   background-color: #4e4f62;
   color: white;
   font-weight: bold;
-  padding: 0.8rem;
-  margin-left: 0.5rem;
+  padding: .5rem;
+  margin-left: .7rem;
+  margin-top: .5rem;
+  margin-bottom: .5rem;
   border-radius: 5px;
   cursor: pointer;
   display: flex;
@@ -190,4 +249,167 @@ body {
 
 .attachment-input {
   display: none; /* Hide the actual input */
+}
+
+//Loader
+
+.loader {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 1vh; /* Adjust as needed */
+  gap: 10px;
+}
+
+.loader__circle {
+  width: 16px;
+  height: 16px;
+  background-color: #3498db; /* Customize color */
+  border-radius: 50%;
+  animation: loader-animation 0.6s infinite alternate;
+}
+
+.loader__circle:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.loader__circle:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes loader-animation {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.5);
+    opacity: 0.7;
+  }
+}
+
+.xcl{
+  width: 40px;
+  height: 40px;
+}
+.xcl:hover{
+  transform: scale(110%);
+}
+
+// ELF SWITCH
+.switch {
+  margin-bottom: 10px;
+  margin-right: 10px;
+  margin-top: 10px;
+  position: relative;
+  display: inline-block;
+  width: 55px;
+  height: 35px;
+  border: 2px solid #555555; /* Darker border */
+  background: #222222; /* Darker background */
+  box-shadow: 1px 1px 5px #111111, -1px -1px 5px #333333; /* Softer shadow for dark theme */
+  overflow: hidden;
+  border-radius: 60px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  font-size: 1.2rem;
+  font-weight: bold;
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+}
+
+input:checked + .slider:before {
+  background: #111111; /* Darker background when checked */
+  box-shadow: none;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #888888; /* Softer focus shadow */
+}
+
+.slider {
+  color: #d1d5db; /* Light text color */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+}
+
+.slider--0 {
+  color: white;
+  font-weight: bold;
+  background-color: #4982d8; /* Bright blue to contrast with dark theme */
+}
+
+.slider--1 div {
+  transition: 0.5s;
+}
+
+.slider--1 div {
+  position: absolute;
+  width: 100%;
+  height: 50%;
+  left: 0;
+}
+
+input:checked ~ .slider--1 div:first-child {
+  transform: translateY(-100%);
+  transition-delay: 1s;
+}
+
+input:checked ~ .slider--1 div:last-child {
+  transform: translateY(100%);
+  transition-delay: 1s;
+}
+
+input:checked ~ .slider--2 {
+  transform: translateX(100%);
+  transition-delay: 0.5s;
+}
+
+input:checked ~ .slider--3 {
+  transform: translateX(-100%);
+  transition-delay: 0s;
+}
+
+.slider--1 div:first-child {
+  transform: translateY(0);
+  top: 0;
+  background-color: #333333; /* Darker gray background */
+  transition-delay: 0s;
+}
+
+.slider--1 div:last-child {
+  transform: translateY(0);
+  bottom: 0;
+  background-color: #333333; /* Darker gray background */
+  border-top: 1px solid #444444; /* Darker border to match theme */
+  transition-delay: 0s;
+}
+
+.slider--2 {
+  background-color: #555555; /* Dark gray background */
+  transition-delay: 0.5s;
+  transform: translateX(0);
+  border-left: 1px solid #444444;
+}
+
+.slider--3 {
+  background-color: #444444; /* Slightly lighter dark gray */
+  transition-delay: 1s;
+  transform: translateX(0);
+  border-right: 1px solid #333333;
 }

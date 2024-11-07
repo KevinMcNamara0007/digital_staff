@@ -24,6 +24,19 @@ export const classify = async (userInput) => {
     })
 }
 
+//General
+export const askDifferentlyPrompt = (input) => {
+    return "Respond only with an alternate way of saying this: " + input
+}
+
+export const askLLM = async (prompt) => {
+    return await askPro(prompt).then((response) => {
+        return response.data.choices[0].message.content
+    }).catch((err)=>{
+        return null
+    })
+}
+
 
 // DEVELOPER FUNCTIONS
 export const classifyRepoRequired = async (input) => {

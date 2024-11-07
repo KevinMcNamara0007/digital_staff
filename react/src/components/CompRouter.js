@@ -1,8 +1,6 @@
 import {Route, Routes} from 'react-router-dom'
 import Developer from "./Developer";
-import DataGenerator from "./DataGenerator";
 import ContentFormatter from "./ContentFormatter";
-import CoTDev from "./CoTDev";
 import Home from "./Home";
 
 const CompRouter = () => {
@@ -10,9 +8,7 @@ const CompRouter = () => {
         <Routes>
             <Route path="/" element={<Home/>}/>
             <Route path="/developer" element={<Developer/>}/>
-            <Route path="/data" element={<DataGenerator/>}/>
             <Route path="/Content" element={<ContentFormatter/>}/>
-            <Route path="/CoT" element={<CoTDev/>}/>
         </Routes>
     )
 }
