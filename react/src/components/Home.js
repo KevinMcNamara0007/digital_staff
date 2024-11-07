@@ -5,12 +5,15 @@ import {
     executePlanPrompt,
     getRepoDetails,
     dataGenerate,
-    askLLM, askDifferentlyPrompt
+    askLLM, askDifferentlyPrompt, createNewFiles, getGitChanges
 } from "./constants/constants";
 import TableData from "./TableData";
 import {Button} from "react-bootstrap";
 import {ReactComponent as CheckIcon} from "../images/check.svg"
 import {ReactComponent as SendIcon} from "../images/send.svg"
+import {ReactComponent as DiffIcon} from "../images/diff.svg"
+import parse, {attributesToProps} from "html-react-parser";
+import DOMPurify from "dompurify";
 
 const Home = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -30,6 +33,34 @@ const Home = () => {
     ]);
     const chatInputRef = useRef(null);
     const messagesEndRef = useRef(null);
+
+    const options = {
+        replace: domNode => {
+            if(domNode.attribs && domNode.name === 'a'){
+                const props = attributesToProps(domNode.attribs)
+                let url = props['href']
+                if(props && url){
+                    let fullUrl = url.match(/^(https?)/g);
+                    if(!fullUrl){
+                        let newUrl = "//"+url
+                        domNode.attribs = {...domNode.attribs, 'href':newUrl}
+                    }
+                }
+            }
+        }
+    }
+
+    const callParse = (txt) => {
+        try{
+            const purify = DOMPurify(window);
+            let cleanHTMLTxt = purify.sanitize(txt);
+            let parsed = parse(cleanHTMLTxt, options)
+            return parsed
+        }
+        catch(error){
+            return "error occured while parsing html. please try again"
+        }
+    }
 
     const handleInput = () => {
         const chatInput = chatInputRef.current;
@@ -208,8 +239,8 @@ const Home = () => {
                         code = codeData.all_code
                     }
                     console.log("here")
-                    let solution = await callAPI(executePlanPrompt(instruction, code))
-                    console.log(solution[solution.length - 1].text)
+                    let solution = await callAPI(executePlanPrompt(instruction, code),true)
+                    setRepo((prevState) => ({ ...prevState, lastResponse: solution}));
                     setRunning(false)
 
                 }
@@ -241,12 +272,50 @@ const Home = () => {
         setLoader(false)
     };
 
-    async function callAPI(prompt) {
+    const produceFiles = async (agentResponse) => {
+        setLoader(true)
+        let completeFiles = await createNewFiles(instruction, repo.files, repo.newBranch, repo.dir, agentResponse)
+        console.log(completeFiles.length)
+        if(completeFiles.length > 0){
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { type: 'assistant', text: "Here is your completed Files.", codeSolution: true, codeList: completeFiles}
+            ]);
+        }else{
+            agentResponse = await askLLM(askDifferentlyPrompt("I apologize, something went wrong. Please try this again."))
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { type: 'assistant', text: agentResponse ? agentResponse : "I apologize, something went wrong. Please try this again."}
+            ]);
+        }
+        setLoader(false)
+    }
+
+    const pushCode = async (codeList) => {
+        setLoader(true)
+        let changes = await getGitChanges(repo.dir, codeList)
+        console.log(changes)
+        if(changes){
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { type: 'assistant', text: "Here is your completed Files.", gitDiff:true, gitDiv: changes}
+            ]);
+        }else{
+            let agentResponse = await askLLM(askDifferentlyPrompt("I apologize, something went wrong. Please try this again."))
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                { type: 'assistant', text: agentResponse ? agentResponse : "I apologize, something went wrong. Please try this again."}
+            ]);
+        }
+        setLoader(false)
+    }
+
+    async function callAPI(prompt, code=false) {
         let text = ""
         // Add a new empty assistant message to start updating with streamed chunks
         setMessages((prevMessages) => [
             ...prevMessages,
-            { type: 'assistant', text: "" }
+            { type: 'assistant', text: "", codeCall:code }
         ]);
 
         try {
@@ -356,6 +425,25 @@ const Home = () => {
                         className={`chat-message ${msg.type === 'user' ? 'user-message' : 'assistant-message'}`}
                     >
                         {msg.text}
+                        {msg.codeSolution &&
+                            msg.codeList.map((file, fileIndex) =>(
+                                <div className="fileContainer" key={fileIndex}>
+                                    <div className="fileName">{file.FILE_NAME}</div>
+                                    <div className="fileCode">{file.FILE_CODE}</div>
+                                </div>
+                            ))
+                        }
+                        {msg.codeSolution &&
+                            <DiffIcon title="Compare Code and Push" className="icon float-end" onClick={()=>{pushCode(msg.codeList)}}></DiffIcon>
+                        }
+                        {msg.codeCall &&
+                            <CheckIcon title="Produce Files" className="icon float-end" onClick={()=>{produceFiles(msg.text)}}/>
+                        }
+                        {msg.gitDiff &&
+                            <div className="fileContainer">
+                                {callParse(msg.gitDiv)}
+                            </div>
+                        }
                         {msg.data && msg.data === true && dataDetails.data.length > 1 &&
                             <div>
                                 {showAllTables ? <TableData data={dataDetails.data}/> : <TableData data={msg.array}/>}

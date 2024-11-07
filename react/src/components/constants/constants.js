@@ -1,4 +1,4 @@
-import {askPro, generateDataAPI, repoOperationAPI} from "../../api/Axios";
+import {askPro, generateDataAPI, repoOperationAPI, showDiff, solutionAPI} from "../../api/Axios";
 
 export const classify = async (userInput) => {
     let prompt = "Instruction: 1. Classify this prompt as a developer, data, general, or content." +
@@ -61,7 +61,7 @@ export const classifyRepoRequired = async (input) => {
 }
 
 export const getRepoDetails = async (user_prompt, https_clone_link, original_code_branch, new_branch_name) =>{
-    return await repoOperationAPI(user_prompt, https_clone_link, original_code_branch, new_branch_name, "elf", "no")
+    return await repoOperationAPI(user_prompt, https_clone_link, original_code_branch, new_branch_name, "oai", "no")
         .then((resp)=>{
             return resp.data
         }).catch((err)=>{
@@ -84,6 +84,23 @@ export const executePlanPrompt =  (user_prompt, files) => {
         " 3. Make the required changes to this existing code: " + file_codes
 }
 
+export const createNewFiles = async (user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code = "") => {
+    return await solutionAPI(user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code, "oai")
+        .then((response) => {
+            return response.data
+        }).catch((err) => {
+            return []
+        })
+}
+
+export const getGitChanges = async (repo_dir, produced_code) => {
+    return await showDiff(repo_dir, produced_code)
+        .then((response) => {
+            return response.data
+        }).catch((err) => {
+            return null
+        })
+}
 //DATA FUNCTIONS
 
 export const dataGenerate = async(dataDescription, rows, input, label) => {

@@ -129,6 +129,100 @@ body {
   align-self: flex-end;
 }
 
+/* Container for the file display */
+.fileContainer {
+  padding: 1rem;
+  border: 1px solid #444444; /* Darker border for definition */
+  background-color: #222222; /* Dark background */
+  border-radius: 8px;
+  margin: 1rem 0; /* Spacing between file containers */
+}
+
+/* Styling for the file name */
+.fileName {
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: bold;
+  color: #d1d5db; /* Light text color */
+  margin-bottom: 0.5rem; /* Spacing below file name */
+}
+
+/* Styling for the file code */
+.fileCode {
+  font-family: 'Courier New', Courier, monospace; /* Monospaced font for code */
+  background-color: #333333; /* Slightly lighter background for code */
+  color: #f1f1f1; /* Light text color for readability */
+  padding: 1rem;
+  border-radius: 6px;
+  overflow-x: auto; /* Horizontal scrolling if code is wide */
+  white-space: pre-wrap; /* Preserve whitespace and line breaks */
+  font-size: 1rem;
+}
+
+/* File paths */
+.diff-file-right, .diff-file-left {
+  font-weight: bold;
+  padding: 0.5rem;
+  display: inline-block;
+  font-family: 'Courier New', Courier, monospace;
+}
+
+.diff-file-right {
+  color: #f77669; /* Red for file on the right side (removal) */
+}
+
+.diff-file-left {
+  color: #79c879; /* Green for file on the left side (addition) */
+}
+
+/* Hunk metadata */
+.diff-hunk {
+  background-color: #444444;
+  color: #d1d5db;
+  padding: 0.5rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  border-radius: 4px;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* General code styling */
+.diff-code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1rem;
+  white-space: pre;
+}
+
+/* Removed lines */
+.diff-removed {
+  background-color: #4c1c1c; /* Dark red background for removed code */
+  color: #f77669; /* Light red text */
+  display: block;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.2rem;
+}
+
+/* Added lines */
+.diff-added {
+  background-color: #1c4c1c; /* Dark green background for added code */
+  color: #79c879; /* Light green text */
+  display: block;
+  padding: 0.3rem 0.5rem;
+  border-radius: 4px;
+  margin-bottom: 0.2rem;
+}
+
+/* Additional adjustments for positioning and spacing */
+.left {
+  text-align: left;
+}
+
+.right {
+  text-align: left;
+}
+
 .assistant-message {
   background-color: #3b3c48;
   align-self: flex-start;

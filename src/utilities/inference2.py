@@ -129,7 +129,7 @@ async def create_unit_test_for_file(file, model="oai"):
             response = await call_llm(prompt, 3000)
         file.get("FILE_NAME")
         test_name = "test_" + file.get("FILE_NAME")
-        file_code = response.replace("'''python","").replace("'''", "")
+        file_code = response.replace("'''python","").replace("'''", "").replace("```python","").replace("```","")
         print(f"OUTPUT TOKEN AMOUNT: {check_token_count(response)}")
         return {"FILE_NAME": test_name, "FILE_CODE":file_code}
     except Exception as exc:
