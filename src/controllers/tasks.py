@@ -1,9 +1,10 @@
 from typing import List
 from fastapi import APIRouter, Form, BackgroundTasks, UploadFile, File
 from pydantic import parse_obj_as
+from starlette.responses import StreamingResponse
 from src.models.request_models import CodeFileList
 from src.services.no_repo_tasks import manager_development_base_service, no_repo_agent_task_service, \
-    no_repo_produce_solution
+    no_repo_produce_solution, openai_stream_service
 from src.services.tasks import (
     get_repo_service,
     create_plan_service,
@@ -79,7 +80,7 @@ async def produce_solution(
     if repo_dir != "none":
         parsed_file_list = parse_obj_as(List[str], file_list.split(','))
         return await produce_solution_service(user_prompt, parsed_file_list, repo_dir, new_branch_name, agent_responses,
-                                              "",model, flow)
+                                              "", model, flow)
     return await no_repo_produce_solution(user_prompt, file_list, agent_responses, code, model)
 
 
@@ -113,3 +114,13 @@ async def file_show_test(
         new_branch_name: str = Form(default=default_new_branch, description="The branch to push into.")
 ):
     return await show_file_contents(new_branch_name, "general.py", repo_dir)
+
+
+@tasks.post("/stream")
+async def stream(
+        prompt: str = Form(description="prompt"),
+):
+    return StreamingResponse(
+        openai_stream_service(prompt),
+        media_type="text/event-stream"
+    )

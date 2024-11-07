@@ -2,7 +2,7 @@ import json
 
 from src.utilities.general import file_filter
 from src.utilities.inference2 import call_openai, manager_development_agent_prompts, agent_task, produce_final_solution, \
-    image_to_text, call_llm
+    image_to_text, call_llm, openai_stream
 
 
 async def manager_development_base_service(user_prompt, file, model="oai"):
@@ -57,5 +57,11 @@ async def manager_development_base_service(user_prompt, file, model="oai"):
 async def no_repo_agent_task_service(task, responses, code, model):
     return {"agent_response": await agent_task(task, responses, code, model)}
 
+
 async def no_repo_produce_solution(user_prompt, file_list, responses, code, model):
     return await produce_final_solution(user_prompt, file_list, responses, code, model)
+
+
+async def openai_stream_service(prompt):
+    async for chunk in openai_stream(prompt):
+        yield chunk

@@ -6,7 +6,7 @@ import time
 import requests
 from fastapi import HTTPException
 from openai import OpenAI
-
+from openai.types.chat import ChatCompletionChunk
 
 from src.utilities.general import llm_url, openai_key, check_token_count
 import re
@@ -150,6 +150,25 @@ async def call_openai(prompt, model="gpt-4o"):
                                        model=model,
                                        messages=[{"role": "user", "content": prompt}])
     return response.choices[0].message.content
+
+
+async def openai_stream(prompt, model="gpt-4o"):
+    client = OpenAI(api_key=openai_key)
+    response = client.chat.completions.create(
+        model=model,
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+
+    )
+    for chunk in response:
+        try:
+            # Access the content in the ChatCompletionChunk
+            content = chunk.choices[0].delta.content
+            if content:
+                print("Yielding content:", content)
+                yield content
+        except AttributeError as e:
+            print("Failed to parse chunk:", e)
 
 
 async def call_llm(prompt, output_tokens=6000, extension="/ask_a_pro", url=llm_url):
