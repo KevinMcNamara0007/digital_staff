@@ -104,7 +104,7 @@ export const getGitChanges = async (repo_dir, produced_code) => {
 //DATA FUNCTIONS
 
 export const dataGenerate = async(dataDescription, rows, input, label) => {
-    return await generateDataAPI(dataDescription, rows, ["input:"+input,"label:"+label], "elf")
+    return await generateDataAPI(dataDescription, rows, ["input:"+input,"label:"+label], "oai")
         .then((response)=>{
             if(!response){
                 throw new Error("Error")
@@ -115,4 +115,23 @@ export const dataGenerate = async(dataDescription, rows, input, label) => {
             console.log(err)
             return []
         })
+}
+
+//Content Functions
+
+export const getContentReviewPrompt = (description, content, style, tone) => {
+    return ("Instructions:" +
+        " 1. You are a peer reviewer of content for the style: " + style + "." +
+        " 2. You will give meaningful instructions on where to improve the referenced content." +
+        " 3. You will also provide instructions on where to improve this tone: " + tone +
+        " 4. Also complete this user ask: " + description + "" +
+        "5. This is the referenced content:\n " + content)
+}
+
+export const finalDraftPrompt = (description, content, style, tone, review) => {
+    return ("Instructions:" +
+        "1. You are an expert " + style + " writer." +
+        "2. You will fix the referenced content and create a final draft based on these instructions: " + review +
+        "3. This is the referenced content: " + content
+    )
 }

@@ -201,7 +201,6 @@ body {
   display: block;
   padding: 0.3rem 0.5rem;
   border-radius: 4px;
-  margin-bottom: 0.2rem;
 }
 
 /* Added lines */
@@ -211,7 +210,6 @@ body {
   display: block;
   padding: 0.3rem 0.5rem;
   border-radius: 4px;
-  margin-bottom: 0.2rem;
 }
 
 /* Additional adjustments for positioning and spacing */
@@ -263,6 +261,7 @@ body {
   resize: none; /* Disable manual resizing */
   overflow-y: hidden; /* Hide overflow */
   min-height: 2.5rem; /* Minimum height for the input */
+  max-height: 20rem
 }
 
 .chat-input::-webkit-scrollbar {

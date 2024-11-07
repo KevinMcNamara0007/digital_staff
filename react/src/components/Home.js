@@ -5,7 +5,7 @@ import {
     executePlanPrompt,
     getRepoDetails,
     dataGenerate,
-    askLLM, askDifferentlyPrompt, createNewFiles, getGitChanges
+    askLLM, askDifferentlyPrompt, createNewFiles, getGitChanges, getContentReviewPrompt, finalDraftPrompt
 } from "./constants/constants";
 import TableData from "./TableData";
 import {Button} from "react-bootstrap";
@@ -16,20 +16,23 @@ import parse, {attributesToProps} from "html-react-parser";
 import DOMPurify from "dompurify";
 
 const Home = () => {
+    const [showPlan, setShowPlan] = useState(false)
     const [dropdownOpen, setDropdownOpen] = useState(false);
-    const [toggleModel, setToggleModel] = useState("elf")
+    const [toggleModel, setToggleModel] = useState("oai")
     const [showAllTables, setShowAllTables] = useState(false)
     const [loader, setLoader] = useState(false)
     const [running, setRunning] = useState(false)
     const [instruction, setInstruction] = useState("")
     const [repo, setRepo] = useState({required:"",repoLink:"",branch:"", newBranch:"",allCode:"",dir:"",lastResponse:"",files:""})
     const [dataDetails, setDataDetails] = useState({description:"", rows:"",input:"", label:"", data:[], count:0})
+    const [contentDetails, setContentDetails] = useState({description:"",style:"",tone:"", content:""})
     const [persona, setPersona] = useState("Persona")
     const [messages, setMessages] = useState([
         { type: 'assistant', text: 'Hello! How can I help you today?' },
         { type: 'assistant', text: 'Example: "Write me the game of snake in python"' },
         { type: 'assistant', text: 'Example: "In my Repo, please implement multi-threading where applicable"'},
         { type: 'assistant', text: 'Example: "Create a data annotation contract"'},
+        { type: 'assistant', text: 'Example: "Review my Rough Draft for a Help Desk Article"'},
     ]);
     const chatInputRef = useRef(null);
     const messagesEndRef = useRef(null);
@@ -98,13 +101,52 @@ const Home = () => {
             await developerFlow(message)
         } else if (persona === 'Data'){
             await dataFlow(message)
+        } else if (persona === 'Content'){
+            await contentFlow(message)
         }
 
 
     };
 
+    const contentFlow = async (message) => {
+        if(!contentDetails.description){
+            setContentDetails(prevState => ({...prevState, description:message}))
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {type: 'assistant', text: 'Please Enter your content.'}
+            ]);
+        }else if(!contentDetails.content){
+            setContentDetails(prevState => ({...prevState, content:message}))
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {type: 'assistant', text: 'Why style would you like this in?\nEX: AP, Blog, MLA, CMS, AMA...'}
+            ]);
+        }else if(!contentDetails.style){
+            setContentDetails(prevState => ({...prevState, style:message}))
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {type: 'assistant', text: 'What type of tone would you like to give off?\nEX: Formal, Creative, Friendly, Funny...'}
+            ]);
+        }else if(!contentDetails.tone){
+            setContentDetails(prevState => ({...prevState, tone:message}))
+            setMessages((prevMessages) => [
+                ...prevMessages,
+                {type: 'assistant', text: 'Is this information correct?\nStyle: ' + contentDetails.style + "\nTone: " + message}
+            ]);
+        }else{
+            if (message.toLowerCase().includes("yes") || !message.toLowerCase().includes("no")) {
+                await handleFlow()
+            }else{
+                setContentDetails({description:"",style:"",tone:"", content:""})
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {type: 'assistant', text: 'Okay, lets start from the beginning.\nWhat would you like to do with the content?'}
+                ]);
+            }
+        }
+    }
+
     const dataFlow = async (message) => {
-        let object = {description:"", rows:"",input:"", label:""}
         if(!dataDetails.description){
             setDataDetails(prevState => ({...prevState, description: message}))
             setMessages((prevMessages) => [
@@ -246,6 +288,7 @@ const Home = () => {
                 }
             }
             if (repoRequired === 'no') {
+                // let plan = await callAPI("")
                 let response = await callAPI(input);
                 setRunning(false);
             }
@@ -266,6 +309,19 @@ const Home = () => {
                     { type: 'assistant', text: agentText ? agentText : 'Here is your Complete Contract.',  data:true, array:tableData, count:dataDetails.count+1}
                 ]);
 
+            }
+        } else if(personaClassification === "Content"){
+            if(!contentDetails.description){
+                setContentDetails(prevState => ({...prevState, description: input}))
+                let agentText = await askLLM(askDifferentlyPrompt("Sure thing, go ahead and send your content."))
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    { type: 'assistant', text: agentText ? agentText : 'Sure thing, go ahead and send your content.' }
+                ]);
+            }
+            if(contentDetails.description && contentDetails.content && contentDetails.style && contentDetails.tone){
+                let review = await callAPI(getContentReviewPrompt(contentDetails.description, contentDetails.content, contentDetails.style, contentDetails.tone))
+                let finalDraft = await callAPI(finalDraftPrompt(contentDetails.description, contentDetails.content, contentDetails.style, contentDetails.tone, review))
             }
         }
 
@@ -317,15 +373,31 @@ const Home = () => {
             ...prevMessages,
             { type: 'assistant', text: "", codeCall:code }
         ]);
+        let link = "";
+        let data;
+        let headers = "";
+        if(toggleModel === "elf"){
+            link = "http://192.168.1.13:8000/Inference/ask_a_pro_stream"
+            data = JSON.stringify({ "output_tokens": 12000, "prompt": prompt })
+            headers = {
+                'Content-Type': "application/json",
+                'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
+            }
+        }else{
+            link = "http://127.0.0.1:8080/Tasks/stream"
+            data = new FormData()
+            data.append("prompt", prompt)
+            headers = {
+
+            }
+        }
+
 
         try {
-            const response = await fetch("http://192.168.1.13:8000/Inference/ask_a_pro_stream", {
+            const response = await fetch(link, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
-                },
-                body: JSON.stringify({ "output_tokens": 12000, "prompt": prompt })
+                headers: headers,
+                body: data
             });
 
             if (!response.ok) {
@@ -361,6 +433,10 @@ const Home = () => {
     }
 
     useEffect(() => {
+        console.log(toggleModel)
+    }, [toggleModel]);
+
+    useEffect(() => {
         if (messagesEndRef.current) {
             messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
@@ -373,6 +449,7 @@ const Home = () => {
         setInstruction("")
         setRepo({required:"",repoLink:"",branch:"", newBranch:"",allCode:"",dir:"",lastResponse:"",files:""})
         setDataDetails({description:"", rows:"",input:"", label:"", data:[], count:0})
+        setContentDetails({description:"",style:"",tone:"", content:""})
         setPersona("Persona")
         setMessages([
             { type: 'assistant', text: 'Hello! How can I help you today?' }
@@ -402,20 +479,14 @@ const Home = () => {
                 </div>
                 <span className="title">eStaff</span>
                 <label className="switch">
-                    <input type="checkbox"/>
-                    <div className="slider slider--0" onClick={() => {
-                        setToggleModel("oai")
-                    }}>ELF
-                    </div>
+                    <input type="checkbox" onChange={(e) => setToggleModel(e.target.checked ? "elf" : "oai")}/>
+                    <div className="slider slider--0">ELF</div>
                     <div className="slider slider--1">
                         <div></div>
                         <div></div>
                     </div>
                     <div className="slider slider--2"></div>
-                    <div className="slider slider--3" onClick={() => {
-                        setToggleModel("elf")
-                    }}>OAI
-                    </div>
+                    <div className="slider slider--3">CoT</div>
                 </label>
             </div>
             <div className="chat-messages">
