@@ -509,13 +509,13 @@ const Home = () => {
                 <span className="title">eStaff</span>
                 <label className="switch">
                     <input type="checkbox" onChange={(e) => setToggleModel(e.target.checked ? "elf" : "oai")}/>
-                    <div className="slider slider--0">ELF</div>
+                    <div className="slider slider--0">CoT</div>
                     <div className="slider slider--1">
                         <div></div>
                         <div></div>
                     </div>
                     <div className="slider slider--2"></div>
-                    <div className="slider slider--3">CoT</div>
+                    <div className="slider slider--3">OAI</div>
                 </label>
             </div>
             <div className="chat-messages">
