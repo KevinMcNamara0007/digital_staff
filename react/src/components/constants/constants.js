@@ -86,6 +86,19 @@ export const executePlanPrompt =  (user_prompt, files) => {
         " 3. Make the required changes to this existing code: " + file_codes
 }
 
+export const executePlanWithResponsePrompt =  (user_prompt, files, previous) => {
+    let file_codes = ""
+    files.forEach((file)=>{
+        file_codes = file_codes + "\n" + file.FILE_CODE + "\n"
+    })
+    return "Instructions: " +
+        "1. Create code that will complete the ask:  " + user_prompt + "\n" +
+        "2. Only respond with file names and code. Do not include any explanation.\n" +
+        "3. Use either the previous response code or the original code to complete the ask.\n" +
+        "3. Previous Code: " + previous + "\n" +
+        " 4. Original Code: " + file_codes
+}
+
 export const createNewFiles = async (user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code = "") => {
     return await solutionAPI(user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code, "oai")
         .then((response) => {

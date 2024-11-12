@@ -5,7 +5,13 @@ import {
     executePlanPrompt,
     getRepoDetails,
     dataGenerate,
-    askLLM, askDifferentlyPrompt, createNewFiles, getGitChanges, getContentReviewPrompt, finalDraftPrompt
+    askLLM,
+    askDifferentlyPrompt,
+    createNewFiles,
+    getGitChanges,
+    getContentReviewPrompt,
+    finalDraftPrompt,
+    executePlanWithResponsePrompt
 } from "./constants/constants";
 import TableData from "./TableData";
 import {Button} from "react-bootstrap";
@@ -17,6 +23,7 @@ import DOMPurify from "dompurify";
 
 const Home = () => {
     const [showPlan, setShowPlan] = useState(false)
+    const [lastResponse, setLastResponse] = useState("")
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [toggleModel, setToggleModel] = useState("oai")
     const [showAllTables, setShowAllTables] = useState(false)
@@ -94,7 +101,7 @@ const Home = () => {
             handleInput(); // Reset the height after sending the message
         }
 
-        if (!running) {
+        if (running === false) {
             setInstruction(message)
             await handleFlow(message);
         } else if (persona === 'Developer') {
@@ -227,18 +234,22 @@ const Home = () => {
                 ...prevMessages,
                 {
                     type: 'assistant',
-                    text: 'Is this information correct?\nHTTP LINK: ' + repo.repoLink + "\nCurrent Branch: " + repo.branch + "\nNew Branch: " + message
+                    text: 'Is this information correct?\nHTTPS LINK: ' + repo.repoLink + "\nCurrent Branch: " + repo.branch + "\nNew Branch: " + message
                 }
             ]);
         } else {
-            if (message.toLowerCase().includes("yes")) {
-                await handleFlow(instruction)
+            if (!message.toLowerCase().includes("no")) {
+                if(lastResponse === ""){
+                    await handleFlow(instruction)
+                }else{
+                    await handleFlow(message)
+                }
             } else {
                 setRepo({required: "yes", repoLink: "", branch: "", newBranch: ""})
                 setMessages((prevMessages) => [
                     ...prevMessages,
                     {type: 'assistant', text: 'Okay, lets get the correct information.'},
-                    {type: 'assistant', text: 'Give me a brief description or name about the data contract you want to create.'}
+                    {type: 'assistant', text: 'What is the correct GitHub HTTPS Clone Link?'}
                 ]);
 
             }
@@ -281,9 +292,15 @@ const Home = () => {
                         code = codeData.all_code
                     }
                     console.log("here")
-                    let solution = await callAPI(executePlanPrompt(instruction, code),true)
+                    let solution = ""
+                    if(lastResponse === ""){
+                        solution = await callAPI(executePlanPrompt(instruction, code),true)
+                        setLastResponse(solution)
+                    }else{
+                        solution = await callAPI(executePlanWithResponsePrompt(input, code, lastResponse),true)
+                        setLastResponse(solution)
+                    }
                     setRepo((prevState) => ({ ...prevState, lastResponse: solution}));
-                    setRunning(false)
 
                 }
             }
