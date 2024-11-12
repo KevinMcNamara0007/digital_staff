@@ -153,33 +153,7 @@ export const finalDraftPrompt = (description, content, style, tone, review) => {
 
 
 // <Editor data={response} setData={setResponse}/>
-// const options = {
-//     replace: domNode => {
-//         if(domNode.attribs && domNode.name === 'a'){
-//             const props = attributesToProps(domNode.attribs)
-//             let url = props['href']
-//             if(props && url){
-//                 let fullUrl = url.match(/^(https?)/g);
-//                 if(!fullUrl){
-//                     let newUrl = "//"+url
-//                     domNode.attribs = {...domNode.attribs, 'href':newUrl}
-//                 }
-//             }
-//         }
-//     }
-// }
-// const callParse = (txt) => {
-//     try{
-//         const purify = DOMPurify(window);
-//         let cleanHTMLTxt = purify.sanitize(txt);
-//         let parsed = parse(cleanHTMLTxt, options)
-//         return parsed
-//     }
-//     catch(error){
-//         return "error occured while parsing html. please try again"
-//     }
-// }
-//
+
 // const exportToDoc = (data, type) => {
 //     let bodyContent = "";
 //     let filename = "";

@@ -238,7 +238,7 @@ const Home = () => {
                 }
             ]);
         } else {
-            if (!message.toLowerCase().includes("no")) {
+            if (message.toLowerCase() !== "no") {
                 if(lastResponse === ""){
                     await handleFlow(instruction)
                 }else{
@@ -463,6 +463,7 @@ const Home = () => {
         setShowAllTables(false)
         setLoader(false)
         setRunning(false)
+        setLastResponse("")
         setInstruction("")
         setRepo({required:"",repoLink:"",branch:"", newBranch:"",allCode:"",dir:"",lastResponse:"",files:""})
         setDataDetails({description:"", rows:"",input:"", label:"", data:[], count:0})
