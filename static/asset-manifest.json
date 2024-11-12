@@ -1,20 +1,19 @@
 {
   "files": {
-    "main.css": "/static/css/main.23b686cd.css",
-    "main.js": "/static/js/main.61ccc887.js",
+    "main.css": "/static/css/main.ad6d4191.css",
+    "main.js": "/static/js/main.9686540f.js",
     "static/js/453.7b842153.chunk.js": "/static/js/453.7b842153.chunk.js",
-    "static/media/stafflogo.png": "/static/media/stafflogo.7a5ab9a1b1514f5526b3.png",
-    "static/media/trashIcon.svg": "/static/media/trashIcon.1afaa0da74ae89f085d733a4a0eae836.svg",
-    "static/media/flowChartIcon.svg": "/static/media/flowChartIcon.e7576a4012e20ca2f44d7e22a1284e0d.svg",
-    "static/media/gitIcon.svg": "/static/media/gitIcon.4513bcacee7c4f3adca130d2f1bd824b.svg",
-    "static/media/arrowIcon.svg": "/static/media/arrowIcon.5a169d0d1c2289f1dd3522ba5b07b6f6.svg",
+    "static/media/excelIcon.svg": "/static/media/excelIcon.38e53191fca8764976cf12cf9f0baced.svg",
+    "static/media/send.svg": "/static/media/send.045352e9aa7d98994484ffb8ec3dbe38.svg",
+    "static/media/diff.svg": "/static/media/diff.127db278f2fb993523264598c4c208d7.svg",
     "index.html": "/index.html",
-    "main.23b686cd.css.map": "/static/css/main.23b686cd.css.map",
-    "main.61ccc887.js.map": "/static/js/main.61ccc887.js.map",
+    "static/media/check.svg": "/static/media/check.d380e81f30fe5d6cb44e9e23c17e0849.svg",
+    "main.ad6d4191.css.map": "/static/css/main.ad6d4191.css.map",
+    "main.9686540f.js.map": "/static/js/main.9686540f.js.map",
     "453.7b842153.chunk.js.map": "/static/js/453.7b842153.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.23b686cd.css",
-    "static/js/main.61ccc887.js"
+    "static/css/main.ad6d4191.css",
+    "static/js/main.9686540f.js"
   ]
 }

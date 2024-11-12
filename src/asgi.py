@@ -16,7 +16,7 @@ digital_staff = FastAPI(
         "docExpansion": "none"
     }
 )
-digital_staff.mount("/digital_staff", StaticFiles(directory="static", html=True), name="static")
+digital_staff.mount("/eStaff", StaticFiles(directory="static", html=True), name="static")
 digital_staff.include_router(tasks)
 digital_staff.include_router(data)
 digital_staff.include_router(content)
@@ -32,4 +32,4 @@ digital_staff.add_middleware(
 
 @digital_staff.get("/", include_in_schema=False)
 async def docs_redirect():
-    return RedirectResponse(url="/digital_staff")
+    return RedirectResponse(url="/eStaff")

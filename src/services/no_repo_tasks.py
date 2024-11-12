@@ -3,7 +3,7 @@ import json
 import asyncio
 
 from src.utilities.general import file_filter
-from src.utilities.inference2 import call_openai, manager_development_agent_prompts, agent_task, produce_final_solution, \
+from src.utilities.inference2 import call_openai, manager_development_agent_prompts, produce_final_solution, \
     image_to_text, call_llm, openai_stream
 
 

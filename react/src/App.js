@@ -1,11 +1,10 @@
 import {useEffect, useState} from "react";
-import CompRouter from "./components/CompRouter";
-
+import Home from "./components/Home";
 function App() {
 
   return (
     <div>
-        <CompRouter/>
+        <Home/>
     </div>
   );
 }
