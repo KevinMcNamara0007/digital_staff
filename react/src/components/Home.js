@@ -141,8 +141,8 @@ const Home = () => {
                 {type: 'assistant', text: 'Is this information correct?\nStyle: ' + contentDetails.style + "\nTone: " + message}
             ]);
         }else{
-            if (message.toLowerCase().includes("yes") || !message.toLowerCase().includes("no")) {
-                await handleFlow()
+            if (message.toLowerCase().includes("yes") || message.toLowerCase() !== "no") {
+                await handleFlow(message)
             }else{
                 setContentDetails({description:"",style:"",tone:"", content:""})
                 setMessages((prevMessages) => [
@@ -337,8 +337,19 @@ const Home = () => {
                 ]);
             }
             if(contentDetails.description && contentDetails.content && contentDetails.style && contentDetails.tone){
-                let review = await callAPI(getContentReviewPrompt(contentDetails.description, contentDetails.content, contentDetails.style, contentDetails.tone))
-                let finalDraft = await callAPI(finalDraftPrompt(contentDetails.description, contentDetails.content, contentDetails.style, contentDetails.tone, review))
+                let review = ""
+                let finalDraft = ""
+                if(lastResponse === ""){
+                    review = await callAPI(getContentReviewPrompt(contentDetails.description, contentDetails.content, contentDetails.style, contentDetails.tone))
+                    finalDraft = await callAPI(finalDraftPrompt(contentDetails.description, contentDetails.content, contentDetails.style, contentDetails.tone, review))
+                    setLastResponse(finalDraft)
+                }else{
+                    review = await callAPI(getContentReviewPrompt(input, lastResponse, contentDetails.style, contentDetails.tone))
+                    finalDraft = await callAPI(finalDraftPrompt(input, lastResponse, contentDetails.style, contentDetails.tone, review))
+                    setLastResponse(finalDraft)
+                }
+                console.log(review)
+                console.log(finalDraft)
             }
         }
 
@@ -439,7 +450,7 @@ const Home = () => {
                         ...updatedMessages[updatedMessages.length - 1],
                         text: updatedMessages[updatedMessages.length - 1].text + textChunk
                     };
-                    text = updatedMessages;
+                    text = updatedMessages[updatedMessages.length - 1].text + textChunk;
                     return updatedMessages;
                 });
             }

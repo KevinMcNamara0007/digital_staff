@@ -145,9 +145,10 @@ export const getContentReviewPrompt = (description, content, style, tone) => {
 
 export const finalDraftPrompt = (description, content, style, tone, review) => {
     return ("Instructions:" +
-        "1. You are an expert " + style + " writer." +
-        "2. You will fix the referenced content and create a final draft based on these instructions: " + review +
-        "3. This is the referenced content: " + content
+        "1. You are an expert " + style + " writer.\n" +
+        "2. You will fix the referenced content and create a final draft based on these instructions: " + review + "\n" +
+        "3. Only respond with the final draft, do not include any explanation." +
+        "4. This is the referenced content: " + content
     )
 }
 
