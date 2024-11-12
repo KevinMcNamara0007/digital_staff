@@ -3,7 +3,7 @@ from fastapi import APIRouter, Form, BackgroundTasks, UploadFile, File
 from pydantic import parse_obj_as
 from starlette.responses import StreamingResponse
 from src.models.request_models import CodeFileList
-from src.services.no_repo_tasks import manager_development_base_service, no_repo_agent_task_service, \
+from src.services.no_repo_tasks import manager_development_base_service, \
     no_repo_produce_solution, openai_stream_service
 from src.services.tasks import (
     get_repo_service,

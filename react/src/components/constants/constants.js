@@ -1,4 +1,6 @@
 import {askPro, generateDataAPI, repoOperationAPI, showDiff, solutionAPI} from "../../api/Axios";
+import parse, {attributesToProps} from "html-react-parser";
+import DOMPurify from "dompurify";
 
 export const classify = async (userInput) => {
     let prompt = "Instruction: 1. Classify this prompt as a developer, data, general, or content." +
@@ -135,3 +137,66 @@ export const finalDraftPrompt = (description, content, style, tone, review) => {
         "3. This is the referenced content: " + content
     )
 }
+
+
+// <Editor data={response} setData={setResponse}/>
+// const options = {
+//     replace: domNode => {
+//         if(domNode.attribs && domNode.name === 'a'){
+//             const props = attributesToProps(domNode.attribs)
+//             let url = props['href']
+//             if(props && url){
+//                 let fullUrl = url.match(/^(https?)/g);
+//                 if(!fullUrl){
+//                     let newUrl = "//"+url
+//                     domNode.attribs = {...domNode.attribs, 'href':newUrl}
+//                 }
+//             }
+//         }
+//     }
+// }
+// const callParse = (txt) => {
+//     try{
+//         const purify = DOMPurify(window);
+//         let cleanHTMLTxt = purify.sanitize(txt);
+//         let parsed = parse(cleanHTMLTxt, options)
+//         return parsed
+//     }
+//     catch(error){
+//         return "error occured while parsing html. please try again"
+//     }
+// }
+//
+// const exportToDoc = (data, type) => {
+//     let bodyContent = "";
+//     let filename = "";
+//     if(type === mapper.review){
+//         bodyContent = data.replaceAll("\n","<br/>")
+//         filename = "review.doc"
+//     }else{
+//         bodyContent = data;
+//         filename = "finaldraft.doc"
+//     }
+//     let preHtml =
+//         "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Export HTML To Doc</title></head><body>";
+//     let postHtml = "</body></html>";
+//     let html = preHtml + bodyContent + postHtml
+//
+//     let docMimeType = 'application/vnd.ms-word';
+//     let hrefUrl = 'data:'+docMimeType+';charset=utf-8,' + encodeURIComponent(html)
+//
+//     if(window.navigator.msSaveOrOpenBlob){
+//         var blob = new Blob(["\ufeff", html], {
+//             type: "application/msword",
+//         });
+//         window.navigator.msSaveOrOpenBlob(blob, filename)
+//     }else{
+//         let downloadLinkEle = document.createElement('a')
+//         let downloadHelperDiv = document.getElementById('downloadHelper')
+//         downloadHelperDiv.appendChild(downloadLinkEle)
+//         downloadLinkEle.href = hrefUrl
+//         downloadLinkEle.download = filename
+//         downloadLinkEle.click()
+//         downloadHelperDiv.removeChild(downloadLinkEle)
+//     }
+// }

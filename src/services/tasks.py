@@ -17,7 +17,6 @@ from src.utilities.git import (
 from src.utilities.cli import cmd_popen, cmd_run
 from src.utilities.inference2 import (
     manager_development_agent_prompts,
-    agent_task,
     produce_final_solution,
     customized_response, call_openai, call_llm,
 )

@@ -21,26 +21,6 @@ def manager_development_agent_prompts(user_prompt, assets, software_type):
     ]
 
 
-async def agent_task(task, responses, code, model="oai"):
-    print(f"Agent Task: {task}")
-    prompt = (
-        f"Instructions:\n"
-        f"1. This is your task: {task}.\n"
-        f"2. RESPOND ONLY WITH FILE NAMES AND NEW OR UPDATED CODE."
-        f"3. If your task requires a previous agent's response, these are the previous agents' responses: {responses}.\n"
-        f"4. If your task requires original code, use these files and their code as reference: {code}.\n"
-    )
-    time.sleep(2)
-    tokens = check_token_count(prompt)
-    print(f"Agent Input Token Amount: {tokens}")
-    if model == "oai":
-        response = await call_openai(prompt)
-    else:
-        response = await call_llm(prompt, tokens*1.7)
-    print(f"Agent Output Token Amount: {check_token_count(response)}")
-    return response
-
-
 def fix_json_string(input_string):
     # Fix the FILE_CODE sections to properly escape quotes and handle special characters
     json_string = re.sub(
