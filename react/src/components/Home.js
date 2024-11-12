@@ -405,7 +405,7 @@ const Home = () => {
         let data;
         let headers = "";
         if(toggleModel === "elf"){
-            link = "http://192.168.1.13:8000/Inference/ask_a_pro_stream"
+            link = "http://127.0.0.1:8000/Inference/ask_a_pro_stream"
             data = JSON.stringify({ "output_tokens": 12000, "prompt": prompt })
             headers = {
                 'Content-Type': "application/json",

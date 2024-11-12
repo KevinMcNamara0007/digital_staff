@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.ad6d4191.css",
-    "main.js": "/static/js/main.d2d31072.js",
+    "main.js": "/static/js/main.b444b09a.js",
     "static/js/453.7b842153.chunk.js": "/static/js/453.7b842153.chunk.js",
     "static/media/excelIcon.svg": "/static/media/excelIcon.38e53191fca8764976cf12cf9f0baced.svg",
     "static/media/send.svg": "/static/media/send.045352e9aa7d98994484ffb8ec3dbe38.svg",
@@ -9,11 +9,11 @@
     "index.html": "/index.html",
     "static/media/check.svg": "/static/media/check.d380e81f30fe5d6cb44e9e23c17e0849.svg",
     "main.ad6d4191.css.map": "/static/css/main.ad6d4191.css.map",
-    "main.d2d31072.js.map": "/static/js/main.d2d31072.js.map",
+    "main.b444b09a.js.map": "/static/js/main.b444b09a.js.map",
     "453.7b842153.chunk.js.map": "/static/js/453.7b842153.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.ad6d4191.css",
-    "static/js/main.d2d31072.js"
+    "static/js/main.b444b09a.js"
   ]
 }
