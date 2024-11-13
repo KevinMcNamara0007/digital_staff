@@ -97,9 +97,14 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 2rem 14rem;
+  padding: 2rem 20%;
   overflow-y: auto;
   gap: 0.8rem;
+
+  .img{
+    width: 300px;
+    height: 300px;
+  }
   &::-webkit-scrollbar {
     width: 8px; /* Width of the scrollbar */
   }

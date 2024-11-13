@@ -89,8 +89,9 @@ const Home = () => {
 
     const handleAttachment = (event) => {
         const file = event.target.files[0];
+        const imageUrl = URL.createObjectURL(file);
         if (file) {
-            setMessages([...messages, { type: 'user', text: `Attached: ${file.name}` },{ type: 'user', text: `Enter some instructions for this image.` }]);
+            setMessages([...messages, { type: 'user', text: ``, img:imageUrl },{ type: 'user', text: `Enter some instructions for this image.` }]);
         }
         setImage(event.target.files[0])
         setRunning(true)
@@ -550,6 +551,7 @@ const Home = () => {
                         className={`chat-message ${msg.type === 'user' ? 'user-message' : 'assistant-message'}`}
                     >
                         {msg.text}
+                        {msg.img && <img className="img" src={msg.img} alt="attached"/>}
                         {msg.codeSolution &&
                             msg.codeList.map((file, fileIndex) =>(
                                 <div className="fileContainer" key={fileIndex}>
