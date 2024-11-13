@@ -2,6 +2,7 @@ import asyncio
 import base64
 import json
 import time
+from io import BytesIO
 
 import requests
 from fastapi import HTTPException
@@ -132,11 +133,27 @@ async def call_openai(prompt, model="gpt-4o"):
     return response.choices[0].message.content
 
 
-async def openai_stream(prompt, model="gpt-4o"):
+async def openai_stream(prompt, model="gpt-4o", image=None):
     client = OpenAI(api_key=openai_key)
+    if image:
+        base64_image = encode_image(image)
+        messages = [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}",
+                    },
+                },
+            ],
+        }]
+    else:
+        messages = [{"role": "user", "content": prompt}]
     response = client.chat.completions.create(
         model=model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=messages,
         stream=True,
 
     )
@@ -238,8 +255,8 @@ async def customized_response(prompt):
     return await call_openai(prompt, model="gpt-4o")
 
 
-def encode_image(image):
-    return base64.b64encode(image.file.read()).decode('utf-8')
+def encode_image(image_bytes: bytes):
+    return base64.b64encode(image_bytes).decode('utf-8')
 
 
 async def image_to_text(prompt, image):

@@ -119,9 +119,11 @@ async def file_show_test(
 @tasks.post("/stream")
 async def stream(
         prompt: str = Form(description="prompt"),
+        file: UploadFile = File(default=None, description="The file attached")
 ):
+    file_content = await file.read() if file else None
     return StreamingResponse(
-        openai_stream_service(prompt),
+        openai_stream_service(prompt, file_content),
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "Connection": "close"}
     )

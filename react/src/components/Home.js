@@ -11,7 +11,7 @@ import {
     getGitChanges,
     getContentReviewPrompt,
     finalDraftPrompt,
-    executePlanWithResponsePrompt
+    executePlanWithResponsePrompt, getRegularPrompt
 } from "./constants/constants";
 import TableData from "./TableData";
 import {Button} from "react-bootstrap";
@@ -22,7 +22,7 @@ import parse, {attributesToProps} from "html-react-parser";
 import DOMPurify from "dompurify";
 
 const Home = () => {
-    const [showPlan, setShowPlan] = useState(false)
+    const [image,setImage] = useState(null)
     const [lastResponse, setLastResponse] = useState("")
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [toggleModel, setToggleModel] = useState("oai")
@@ -90,9 +90,13 @@ const Home = () => {
     const handleAttachment = (event) => {
         const file = event.target.files[0];
         if (file) {
-            setMessages([...messages, { type: 'user', text: `Attached: ${file.name}` }]);
+            setMessages([...messages, { type: 'user', text: `Attached: ${file.name}` },{ type: 'user', text: `Enter some instructions for this image.` }]);
         }
+        setImage(event.target.files[0])
+        setRunning(true)
+        setPersona("Developer")
     };
+
     const handleSendMessage = async () => {
         const message = chatInputRef.current.value.trim();
         if (message !== '') {
@@ -105,7 +109,7 @@ const Home = () => {
             setInstruction(message)
             await handleFlow(message);
         } else if (persona === 'Developer') {
-            await developerFlow(message)
+            image === null ? await developerFlow(message) : await imageFlow(message)
         } else if (persona === 'Data'){
             await dataFlow(message)
         } else if (persona === 'Content'){
@@ -114,6 +118,16 @@ const Home = () => {
 
 
     };
+
+    const imageFlow = async (msg) => {
+        if(lastResponse === ""){
+            let code = await callAPI(msg)
+            setLastResponse(code)
+        }else{
+            let code = await callAPI(getRegularPrompt(lastResponse, msg))
+            setLastResponse(code)
+        }
+    }
 
     const contentFlow = async (message) => {
         if(!contentDetails.description){
@@ -305,9 +319,13 @@ const Home = () => {
                 }
             }
             if (repoRequired === 'no') {
-                // let plan = await callAPI("")
-                let response = await callAPI(input);
-                setRunning(false);
+                if(lastResponse === ""){
+                    let response = await callAPI(input);
+                    setLastResponse(response)
+                }else{
+                    let response = await callAPI(getRegularPrompt(lastResponse, input));
+                    setLastResponse(response)
+                }
             }
         } else if(personaClassification === "Data"){
             if(dataDetails.description === ""){
@@ -404,13 +422,19 @@ const Home = () => {
         let link = "";
         let data;
         let headers = "";
-        if(toggleModel === "elf"){
-            link = "http://127.0.0.1:8000/Inference/ask_a_pro_stream"
-            data = JSON.stringify({ "output_tokens": 12000, "prompt": prompt })
-            headers = {
-                'Content-Type': "application/json",
-                'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
-            }
+        if(image && lastResponse === ""){
+            link = "http://127.0.0.1:8080/Tasks/stream"
+            data = new FormData()
+            data.append("prompt", prompt)
+            data.append("file", image)
+            headers = {}
+        }else if(toggleModel === "elf"){
+                link = "http://127.0.0.1:8000/Inference/ask_a_pro_stream"
+                data = JSON.stringify({ "output_tokens": 12000, "prompt": prompt })
+                headers = {
+                    'Content-Type': "application/json",
+                    'token': 'fja0w3fj039jwiej092j0j-9ajw-3j-a9j-ea'
+                }
         }else{
             link = "http://127.0.0.1:8080/Tasks/stream"
             data = new FormData()
@@ -471,6 +495,7 @@ const Home = () => {
     }, [messages]);
 
     const clearHistory = () => {
+        setImage(null)
         setShowAllTables(false)
         setLoader(false)
         setRunning(false)

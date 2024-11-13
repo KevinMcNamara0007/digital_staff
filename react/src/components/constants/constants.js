@@ -75,6 +75,12 @@ export const getDevPlanPrompt = (user_prompt) => {
     return "Instructions: ONLY PROVIDE A list of requirements and steps in order to complete this task: " + user_prompt
 }
 
+export const getRegularPrompt = (previousCode, instruction) => {
+    return "Instructions: 1. Create or Modify reference code that will complete the ask: " + instruction + "\n" +
+        "2. Only respond with code, do not include any explanation.\n" +
+        "3. Reference Code: " + previousCode
+}
+
 export const executePlanPrompt =  (user_prompt, files) => {
     let file_codes = ""
     files.forEach((file)=>{

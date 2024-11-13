@@ -60,8 +60,8 @@ async def no_repo_produce_solution(user_prompt, file_list, responses, code, mode
     return await produce_final_solution(user_prompt, file_list, responses, code, model)
 
 
-async def openai_stream_service(prompt):
-    async for chunk in openai_stream(prompt):
+async def openai_stream_service(prompt, image):
+    async for chunk in openai_stream(prompt, "gpt-4o", image):
         for char in chunk:
             yield char  # Yield one character at a time
             await asyncio.sleep(0)
