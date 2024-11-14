@@ -18,10 +18,16 @@ import {Button} from "react-bootstrap";
 import {ReactComponent as CheckIcon} from "../images/check.svg"
 import {ReactComponent as SendIcon} from "../images/send.svg"
 import {ReactComponent as DiffIcon} from "../images/diff.svg"
+import logo from "../images/stafflogo.png"
 import parse, {attributesToProps} from "html-react-parser";
 import DOMPurify from "dompurify";
 
 const Home = () => {
+    //Sessions
+    let sessionHist = localStorage.getItem("staffSessions") ? JSON.parse(localStorage.getItem("staffSessions")) : [];
+    const [activeSession, setActiveSession] = useState(-1)
+    const [sessions, setSessions] = useState(sessionHist)
+    //Base
     const [image,setImage] = useState(null)
     const [lastResponse, setLastResponse] = useState("")
     const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -43,6 +49,26 @@ const Home = () => {
     ]);
     const chatInputRef = useRef(null);
     const messagesEndRef = useRef(null);
+    const updateSession = (id=null,instruction=null,lastResponse=null,repo=null,dataDetails=null,contentDetails=null,persona=null,messages=null) => {
+        let sessionObject = {
+            id: activeSession === -1 ? sessionHist.length : activeSession,
+            instruction:instruction,
+            lastResponse:lastResponse,
+            repo: repo,
+            dataDetails: dataDetails,
+            contentDetails: contentDetails,
+            persona: persona,
+            messages: messages
+        }
+        if(activeSession === -1){
+            sessionHist.push(sessionObject)
+            setActiveSession(sessionObject.id)
+        }else{
+            sessionHist[activeSession] = sessionObject;
+        }
+        localStorage.setItem("staffSessions", JSON.stringify(sessionHist));
+        setSessions([...sessionHist]);
+    }
 
     const options = {
         replace: domNode => {
@@ -91,7 +117,7 @@ const Home = () => {
         const file = event.target.files[0];
         const imageUrl = URL.createObjectURL(file);
         if (file) {
-            setMessages([...messages, { type: 'user', text: ``, img:imageUrl },{ type: 'user', text: `Enter some instructions for this image.` }]);
+            setMessages([...messages, { type: 'assistant', text: ``, img:imageUrl },{ type: 'assistant', text: `Enter some instructions for this image.` }]);
         }
         setImage(event.target.files[0])
         setRunning(true)
@@ -115,6 +141,8 @@ const Home = () => {
             await dataFlow(message)
         } else if (persona === 'Content'){
             await contentFlow(message)
+        } else if (persona === 'General'){
+            await handleFlow(message);
         }
 
 
@@ -282,8 +310,17 @@ const Home = () => {
         }
 
         if (personaClassification === 'General') {
-            await callAPI(input);
-            setRunning(false);
+            let resp = lastResponse
+            if(lastResponse === ""){
+                resp = await callAPI(input);
+                setLastResponse(resp)
+            }else{
+                resp = await callAPI(input);
+                setLastResponse(resp)
+            }
+
+            let newMsgs = [...messages,{type: 'user', text:input},{type:'assistant',text: resp}]
+            updateSession(activeSession, input, resp, repo, dataDetails, contentDetails, personaClassification, newMsgs)
         } else if (personaClassification === 'Developer') {
             if (repoRequired === "") {
                 console.log("got to classify")
@@ -301,6 +338,8 @@ const Home = () => {
                 if(repo.repoLink && repo.branch && repo.newBranch){
                     console.log(repo)
                     let code = repo.allCode
+                    let files = repo.files
+                    let dir = repo.dir
                     if(repo.dir === ""){
                         let codeData = await getRepoDetails(instruction, repo.repoLink, repo.branch, repo.newBranch)
                         setRepo((prevState) => ({ ...prevState, dir: codeData.repo_dir, files: codeData.files, allCode: codeData.all_code }));
@@ -311,21 +350,38 @@ const Home = () => {
                     if(lastResponse === ""){
                         solution = await callAPI(executePlanPrompt(instruction, code),true)
                         setLastResponse(solution)
+
+                        let newMsgs = [...messages, {type:'assistant',text: solution}]
+                        let newRepo = repo
+                        newRepo.allCode = code
+                        newRepo.files = files
+                        newRepo.dir = dir
+                        updateSession(activeSession, input, solution, newRepo, dataDetails, contentDetails, personaClassification, newMsgs)
                     }else{
                         solution = await callAPI(executePlanWithResponsePrompt(input, code, lastResponse),true)
                         setLastResponse(solution)
+
+                        let newMsgs = [...messages,{type: 'user', text:input}, {type:'assistant',text: solution}]
+                        updateSession(activeSession, instruction, solution, repo, dataDetails, contentDetails, personaClassification, newMsgs)
                     }
                     setRepo((prevState) => ({ ...prevState, lastResponse: solution}));
 
                 }
-            }
-            if (repoRequired === 'no') {
+            }else{
                 if(lastResponse === ""){
                     let response = await callAPI(input);
                     setLastResponse(response)
+
+                    let newRepo = repo
+                    repo.required = repoRequired
+                    let newMsgs = [...messages,{type: 'user', text:input},{type:'assistant',text: response}]
+                    updateSession(activeSession, input, response, newRepo, dataDetails, contentDetails, personaClassification, newMsgs)
                 }else{
                     let response = await callAPI(getRegularPrompt(lastResponse, input));
                     setLastResponse(response)
+
+                    let newMsgs = [...messages, {type: 'user', text:input},{type:'assistant',text: response}]
+                    updateSession(activeSession, instruction, response, repo, dataDetails, contentDetails, personaClassification, newMsgs)
                 }
             }
         } else if(personaClassification === "Data"){
@@ -345,6 +401,10 @@ const Home = () => {
                     { type: 'assistant', text: agentText ? agentText : 'Here is your Complete Contract.',  data:true, array:tableData, count:dataDetails.count+1}
                 ]);
 
+                let newData = dataDetails
+                newData.data = newData.data.concat(tableData)
+                let newMsgs = [...messages, {type:'assistant',text: 'Here is your Complete Contract.', data:true, array:tableData, count:dataDetails.count+1}]
+                updateSession(activeSession, instruction, lastResponse, repo, newData, contentDetails, personaClassification, newMsgs)
             }
         } else if(personaClassification === "Content"){
             if(!contentDetails.description){
@@ -367,8 +427,9 @@ const Home = () => {
                     finalDraft = await callAPI(finalDraftPrompt(input, lastResponse, contentDetails.style, contentDetails.tone, review))
                     setLastResponse(finalDraft)
                 }
-                console.log(review)
-                console.log(finalDraft)
+
+                let newMsgs = [...messages, {type:'assistant',text: finalDraft}]
+                updateSession(activeSession, instruction, finalDraft, repo, dataDetails, contentDetails, personaClassification, newMsgs)
             }
         }
 
@@ -496,6 +557,45 @@ const Home = () => {
     }, [messages]);
 
     const clearHistory = () => {
+        setActiveSession(-1)
+        sessionHist = []
+        setSessions([])
+        localStorage.removeItem("staffSessions")
+
+        setImage(null)
+        setShowAllTables(false)
+        setLoader(false)
+        setRunning(false)
+        setLastResponse("")
+        setInstruction("")
+        setRepo({required:"",repoLink:"",branch:"", newBranch:"",allCode:"",dir:"",lastResponse:"",files:""})
+        setDataDetails({description:"", rows:"",input:"", label:"", data:[], count:0})
+        setContentDetails({description:"",style:"",tone:"", content:""})
+        setPersona("Persona")
+        setMessages([
+            { type: 'assistant', text: 'Hello! How can I help you today?' }
+        ]);
+    }
+
+    const selectSession = (index) => {
+        setActiveSession(index)
+
+        setImage(null)
+        setShowAllTables(false)
+        setLoader(false)
+        setRunning(true)
+        setLastResponse(sessions[index].lastResponse)
+        setInstruction(sessions[index].instruction)
+        setRepo(sessions[index].repo)
+        setDataDetails(sessions[index].dataDetails)
+        setContentDetails(sessions[index].contentDetails)
+        setPersona(sessions[index].persona)
+        setMessages(sessions[index].messages)
+    }
+
+    const createNewSession = () => {
+
+        setActiveSession(-1)
         setImage(null)
         setShowAllTables(false)
         setLoader(false)
@@ -532,7 +632,7 @@ const Home = () => {
                         <option value="Content">Content</option>
                     </select>
                 </div>
-                <span className="title">eStaff</span>
+                <span className="title"><img src={logo} alt="Logo"/>eStaff</span>
                 <label className="switch">
                     <input type="checkbox" onChange={(e) => setToggleModel(e.target.checked ? "elf" : "oai")}/>
                     <div className="slider slider--0">CoT</div>
@@ -544,56 +644,87 @@ const Home = () => {
                     <div className="slider slider--3">OAI</div>
                 </label>
             </div>
-            <div className="chat-messages">
-                {messages.map((msg, index) => (
-                    <div
-                        key={index}
-                        className={`chat-message ${msg.type === 'user' ? 'user-message' : 'assistant-message'}`}
-                    >
-                        {msg.text}
-                        {msg.img && <img className="img" src={msg.img} alt="attached"/>}
-                        {msg.codeSolution &&
-                            msg.codeList.map((file, fileIndex) =>(
-                                <div className="fileContainer" key={fileIndex}>
-                                    <div className="fileName">{file.FILE_NAME}</div>
-                                    <div className="fileCode">{file.FILE_CODE}</div>
-                                </div>
-                            ))
-                        }
-                        {msg.codeSolution &&
-                            <DiffIcon title="Compare Code and Push" className="icon float-end" onClick={()=>{pushCode(msg.codeList)}}></DiffIcon>
-                        }
-                        {msg.codeCall &&
-                            <CheckIcon title="Produce Files" className="icon float-end" onClick={()=>{produceFiles(msg.text)}}/>
-                        }
-                        {msg.gitDiff &&
-                            <div className="fileContainer">
-                                {callParse(msg.gitDiv)}
-                            </div>
-                        }
-                        {msg.data && msg.data === true && dataDetails.data.length > 1 &&
-                            <div>
-                                {showAllTables ? <TableData data={dataDetails.data}/> : <TableData data={msg.array}/>}
-                                <CheckIcon title="Finished" className="icon float-end"/>
-                                {dataDetails.count > 1 && msg.count > 1 &&
-                                    <Button variant="success" className="" onClick={()=>{setShowAllTables(!showAllTables)}}>{showAllTables ? "go back" : "Combine Previous"}</Button>
+            <div className="split">
+                <div className="historyContainer">
+                    <div className="header-container">
+                        <span className="clear-history-button" onClick={() => {
+                            clearHistory()
+                        }}>
+                            Clear
+                        </span>
+                        <span className="h3">Sessions</span>
+                        <span className="new-history-button" onClick={() => {
+                            createNewSession()
+                        }}>
+                            New
+                        </span>
+                    </div>
+                    {sessions.map((item, index) => (
+                        <div key={index} className={index === activeSession ? `history-item active` : 'history-item'} onClick={() => {
+                            selectSession(index)
+                        }}>
+                            {item.instruction.length > 40 ? item.instruction.substring(0,39)+"..." : item.instruction}
+                        </div>
+                    ))}
+                </div>
+                <div className="chat-side">
+                    <div className="chat-messages">
+                        {messages.map((msg, index) => (
+                            <div
+                                key={index}
+                                className={`chat-message ${msg.type === 'user' ? 'user-message' : 'assistant-message'}`}
+                            >
+                                {msg.text}
+                                {msg.img && <img className="img" src={msg.img} alt="attached"/>}
+                                {msg.codeSolution &&
+                                    msg.codeList.map((file, fileIndex) => (
+                                        <div className="fileContainer" key={fileIndex}>
+                                            <div className="fileName">{file.FILE_NAME}</div>
+                                            <div className="fileCode">{file.FILE_CODE}</div>
+                                        </div>
+                                    ))
+                                }
+                                {msg.codeSolution &&
+                                    <DiffIcon title="Compare Code and Push" className="icon float-end" onClick={() => {
+                                        pushCode(msg.codeList)
+                                    }}></DiffIcon>
+                                }
+                                {msg.codeCall &&
+                                    <CheckIcon title="Produce Files" className="icon float-end" onClick={() => {
+                                        produceFiles(msg.text)
+                                    }}/>
+                                }
+                                {msg.gitDiff &&
+                                    <div className="fileContainer">
+                                        {callParse(msg.gitDiv)}
+                                    </div>
+                                }
+                                {msg.data && msg.data === true && dataDetails.data.length > 1 &&
+                                    <div>
+                                        {showAllTables ? <TableData data={dataDetails.data}/> :
+                                            <TableData data={msg.array}/>}
+                                        <CheckIcon title="Finished" className="icon float-end"/>
+                                        {dataDetails.count > 1 && msg.count > 1 &&
+                                            <Button variant="success" className="" onClick={() => {
+                                                setShowAllTables(!showAllTables)
+                                            }}>{showAllTables ? "go back" : "Combine Previous"}</Button>
+                                        }
+                                    </div>
                                 }
                             </div>
+                        ))}
+                        {loader &&
+                            <div className="chat-message assistant-message">
+                                <div className="loader">
+                                    <div className="loader__circle"></div>
+                                    <div className="loader__circle"></div>
+                                    <div className="loader__circle"></div>
+                                </div>
+                            </div>
                         }
+                        <div ref={messagesEndRef}/>
                     </div>
-                ))}
-                {loader &&
-                    <div className="chat-message assistant-message">
-                        <div className="loader">
-                            <div className="loader__circle"></div>
-                            <div className="loader__circle"></div>
-                            <div className="loader__circle"></div>
-                        </div>
-                    </div>
-                }
-                <div ref={messagesEndRef}/>
-            </div>
-            <div className="chat-input-area">
+                    <div className="chat-input-area">
                 <textarea
                     ref={chatInputRef}
                     className="chat-input"
@@ -601,23 +732,22 @@ const Home = () => {
                     onKeyDown={handleKeyDown}
                     onInput={handleInput}
                 ></textarea>
-                <button className="send-button" onClick={handleSendMessage}>
-                    <SendIcon className="icon"/>
-                </button>
-                <div>
-                    <label className="attachment-label" htmlFor="attachment">
-                        Upload
-                    </label>
-                    <input
-                        type="file"
-                        id="attachment"
-                        className="attachment-input"
-                        onChange={handleAttachment}
-                        accept="image/*"
-                    />
-                    <label className="attachment-label" onClick={()=>{clearHistory()}}>
-                        Clear History
-                    </label>
+                        <button className="send-button" onClick={handleSendMessage}>
+                            <SendIcon className="icon"/>
+                        </button>
+                        <div>
+                            <label className="attachment-label" htmlFor="attachment">
+                                Upload
+                            </label>
+                            <input
+                                type="file"
+                                id="attachment"
+                                className="attachment-input"
+                                onChange={handleAttachment}
+                                accept="image/*"
+                            />
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

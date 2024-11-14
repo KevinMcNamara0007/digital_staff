@@ -39,9 +39,95 @@ body {
 .chat-container {
   width: 100%;
   min-height: 90vh;
-  background: $black-gradient;
+  background: #171717;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
+
+.split {
+  display: flex;
+  width: 100%; /* Ensure it takes the full width of the screen */
+  height: 100%;
+}
+
+// History Container
+.historyContainer {
+  width: 20%;
+  background-color: #202123; /* Matches chat background color */
+  color: #d1d5db; /* Light text color */
+  flex-shrink: 0;
+  padding: 1rem;
+  max-height: 90.2vh; /* Sets a maximum height for the container */
+  overflow-y: auto; /* Enables vertical scroll only if content exceeds max-height */
+  border-right: 1px solid #444; /* Matches header border style */
+}
+
+.historyContainer .h3 {
+  font-size: 1.2rem;
+  color: #d1d5db;
+  flex: 1;
+  text-align: center; /* Centers the "Sessions" text */;
+}
+
+.historyContainer .header-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem; /* Adds some spacing below the header */
+}
+
+.historyContainer .new-history-button {
+  margin-left: auto; /* Pushes "New" to the far right */
+}
+
+.historyContainer .history-item {
+  padding: 0.5rem;
+  margin-bottom: 0.5rem;
+  background-color: #383838;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.active{
+  background-color: #505050 !important;
+  font-weight: bold;
+}
+
+.historyContainer .history-item:hover {
+  background-color: #505050;
+}
+
+.historyContainer .history-item.active {
+  background-color: #1a1a1a;
+  font-weight: bold;
+}
+
+.historyContainer::-webkit-scrollbar {
+  width: 8px;
+}
+
+.historyContainer::-webkit-scrollbar-track {
+  background: #444;
+}
+
+.historyContainer::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 4px;
+}
+
+.clear-history-button, .new-history-button {
+  background-color: #4e4f62;
+  color: white;
+  padding: 0.5rem;
+  text-align: center;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.clear-history-button:hover, .new-history-button:hover {
+  background-color: #3b3c48;
+}
+
 
 /* Chat Header */
 .chat-header {
@@ -59,7 +145,12 @@ body {
   .title{
     position: relative;
     font-weight: 600;
-    right: 2%;
+    right: 3%;
+
+    img{
+      width: 55px;
+      height: 55px;
+    }
   }
 
   .persona-dropdown-container {
@@ -92,13 +183,20 @@ body {
 }
 
 /* Chat Messages Area */
+.chat-side{
+  display: flex;
+  flex-direction: column;
+  min-height: 90.3vh;
+  width: 100%;
+}
+
 .chat-messages {
-  height: 77.5vh !important;
+  max-height: 77.6vh; /* Set height to control when scrolling begins */
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 2rem 20%;
-  overflow-y: auto;
+  padding: 2rem 5%; /* Adjust padding as needed */
+  overflow-y: auto; /* Enables vertical scrolling only within chat messages */
   gap: 0.8rem;
 
   .img{
@@ -130,7 +228,7 @@ body {
 }
 
 .user-message {
-  background-color: #4e4f62;
+  background-color: #383838;
   align-self: flex-end;
 }
 
@@ -227,7 +325,7 @@ body {
 }
 
 .assistant-message {
-  background-color: #3b3c48;
+  background-color: #1a1a1a;
   align-self: flex-start;
 
   white-space: pre-wrap;
@@ -242,15 +340,13 @@ body {
 }
 /* Chat Input Area */
 .chat-input-area {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
+  width: 100%;
   display: flex;
   padding: 1rem;
   border-top: 1px solid #444;
   background-color: #202123;
-  align-items: center; /* Align items vertically */
+  align-items: center;
 }
 
 .chat-input {
@@ -263,10 +359,10 @@ body {
   background-color: #3b3c48;
   color: #d1d5db;
   font-size: 1.2rem;
-  resize: none; /* Disable manual resizing */
-  overflow-y: hidden; /* Hide overflow */
-  min-height: 2.5rem; /* Minimum height for the input */
-  max-height: 20rem
+  resize: none;
+  overflow-y: hidden;
+  min-height: 2.5rem;
+  max-height: 20rem;
 }
 
 .chat-input::-webkit-scrollbar {
@@ -288,7 +384,7 @@ body {
   cursor: pointer;
   height: 5.2rem; /* Match the height of the text area */
   display: flex;
-  align-items: center; /* Center text vertically */
+  align-items: center;
   justify-content: center;
   .icon{
     width:30px;
