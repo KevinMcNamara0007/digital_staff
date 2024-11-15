@@ -259,43 +259,47 @@ const Home = () => {
     }
 
     const developerFlow = async (message) => {
-        if (!repo.repoLink) {
-            setRepo((prevState) => ({...prevState, repoLink: message}));
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                {type: 'assistant', text: 'Please provide your Project Branch Name.'}
-            ]);
-        } else if (!repo.branch) {
-            setRepo((prevState) => ({...prevState, branch: message}));
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                {type: 'assistant', text: 'Please provide a new branch name for me to push to.'}
-            ]);
-        } else if (!repo.newBranch) {
-            setRepo((prevState) => ({...prevState, newBranch: message}));
-            setMessages((prevMessages) => [
-                ...prevMessages,
-                {
-                    type: 'assistant',
-                    text: 'Is this information correct?\nHTTPS LINK: ' + repo.repoLink + "\nCurrent Branch: " + repo.branch + "\nNew Branch: " + message
-                }
-            ]);
-        } else {
-            if (message.toLowerCase() !== "no") {
-                if(lastResponse === ""){
-                    await handleFlow(instruction)
-                }else{
-                    await handleFlow(message)
-                }
-            } else {
-                setRepo({required: "yes", repoLink: "", branch: "", newBranch: ""})
+        if(repo.required === "yes"){
+            if (!repo.repoLink) {
+                setRepo((prevState) => ({...prevState, repoLink: message}));
                 setMessages((prevMessages) => [
                     ...prevMessages,
-                    {type: 'assistant', text: 'Okay, lets get the correct information.'},
-                    {type: 'assistant', text: 'What is the correct GitHub HTTPS Clone Link?'}
+                    {type: 'assistant', text: 'Please provide your Project Branch Name.'}
                 ]);
+            } else if (!repo.branch) {
+                setRepo((prevState) => ({...prevState, branch: message}));
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {type: 'assistant', text: 'Please provide a new branch name for me to push to.'}
+                ]);
+            } else if (!repo.newBranch) {
+                setRepo((prevState) => ({...prevState, newBranch: message}));
+                setMessages((prevMessages) => [
+                    ...prevMessages,
+                    {
+                        type: 'assistant',
+                        text: 'Is this information correct?\nHTTPS LINK: ' + repo.repoLink + "\nCurrent Branch: " + repo.branch + "\nNew Branch: " + message
+                    }
+                ]);
+            } else {
+                if (message.toLowerCase() !== "no") {
+                    if(lastResponse === ""){
+                        await handleFlow(instruction)
+                    }else{
+                        await handleFlow(message)
+                    }
+                } else {
+                    setRepo({required: "yes", repoLink: "", branch: "", newBranch: ""})
+                    setMessages((prevMessages) => [
+                        ...prevMessages,
+                        {type: 'assistant', text: 'Okay, lets get the correct information.'},
+                        {type: 'assistant', text: 'What is the correct GitHub HTTPS Clone Link?'}
+                    ]);
 
+                }
             }
+        }else{
+            await handleFlow(message)
         }
     }
 
