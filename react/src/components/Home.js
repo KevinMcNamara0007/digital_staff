@@ -442,7 +442,7 @@ const Home = () => {
 
     const produceFiles = async (agentResponse) => {
         setLoader(true)
-        let completeFiles = await createNewFiles(instruction, repo.files, repo.newBranch, repo.dir, agentResponse)
+        let completeFiles = await createNewFiles(instruction, repo.files, repo.newBranch, repo.dir, agentResponse,"",toggleModel)
         console.log(completeFiles.length)
         if(completeFiles.length > 0){
             setMessages((prevMessages) => [
@@ -663,13 +663,15 @@ const Home = () => {
                             New
                         </span>
                     </div>
-                    {sessions.map((item, index) => (
-                        <div key={index} className={index === activeSession ? `history-item active` : 'history-item'} onClick={() => {
-                            selectSession(index)
-                        }}>
-                            {item.instruction.length > 40 ? item.instruction.substring(0,39)+"..." : item.instruction}
-                        </div>
-                    ))}
+                    <div className="sessionContainer">
+                        {sessions.map((item, index) => (
+                            <div key={index} className={index === activeSession ? `history-item active` : 'history-item'} onClick={() => {
+                                selectSession(index)
+                            }}>
+                                {item.instruction.length > 40 ? item.instruction.substring(0,39)+"..." : item.instruction}
+                            </div>
+                        ))}
+                    </div>
                 </div>
                 <div className="chat-side">
                     <div className="chat-messages">

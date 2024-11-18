@@ -57,8 +57,27 @@ body {
   flex-shrink: 0;
   padding: 1rem;
   max-height: 90.2vh; /* Sets a maximum height for the container */
-  overflow-y: auto; /* Enables vertical scroll only if content exceeds max-height */
+  overflow-y: hidden; /* Enables vertical scroll only if content exceeds max-height */
   border-right: 1px solid #444; /* Matches header border style */
+}
+
+.sessionContainer {
+  position: relative;
+  width: 100%;
+  overflow-y: auto;
+  max-height: 90%;
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #444;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: #d1d5db;
+    border-radius: 4px;
+  }
 }
 
 .historyContainer .h3 {
@@ -99,19 +118,6 @@ body {
 .historyContainer .history-item.active {
   background-color: #1a1a1a;
   font-weight: bold;
-}
-
-.historyContainer::-webkit-scrollbar {
-  width: 8px;
-}
-
-.historyContainer::-webkit-scrollbar-track {
-  background: #444;
-}
-
-.historyContainer::-webkit-scrollbar-thumb {
-  background-color: #d1d5db;
-  border-radius: 4px;
 }
 
 .clear-history-button, .new-history-button {

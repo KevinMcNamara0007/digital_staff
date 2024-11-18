@@ -53,41 +53,30 @@ def fix_json_string(input_string):
 
 
 async def produce_final_solution(user_prompt, file_list, agent_responses, original_code, model="oai"):
-    prompt = (
-        'Instructions:\n'
-        '1: You are an expert programmer who will compile original code and updated code into one final version for each file.\n'
-        '2: You will only respond using this JSON format: [{"FILE_NAME":"file_name1", "FILE_CODE":"file_code1"}, {"FILE_NAME":"file_name2", "FILE_CODE":"file_code2"}] \n'
-        '2.1: FILE_CODE will only be the code of the FILE_NAME associated with it.\n'
-        f'2.2: These are the file names: [{file_list}].\n'
-        f'2.3: Original file codes: [{original_code}].\n'
-        f'2.4: Here are the agent responses you will reference to update the code: {agent_responses}\n'
-    )
-    tokens = check_token_count(prompt)
-    print(f"Final Solution Token Amount INPUT: {tokens}")
-    # response = await call_openai(prompt, model="gpt-4o")
-    if model == "oai":
-        response = await call_openai(prompt)
-        response = response.replace("```", "")
-    else:
-        time.sleep(8)
-        response = await call_llm(prompt, tokens*1.8)
-    print(f"Final solution OUTPUT: {check_token_count(response)}")
     try:
-        index = response.index("[")
-        response = response[index:]
-        response = response.replace("[\n", "[")
-        response = json.loads(response)
-        response = await create_unit_tests(response, model)
-        return response
+        new_list = []
+        for file in file_list:
+            prompt = (f"INSTRUCTIONS:\n"
+                      f"1. You are an expert software developer.\n"
+                      f"2. Produce only complete code for this file: {file}.\n"
+                      f"3. Do not include any explanation or reasoning. ONLY RESPOND WITH CODE.\n"
+                      f"4. Use this previous response to accomplish this task:\n{agent_responses}.\n"
+                      f"5. If needed use the original code:\n{original_code}\n")
+            tokens = check_token_count(prompt)
+            print(f"Final Solution Token Amount INPUT: {tokens}\n\n")
+            if model == "oai":
+                response = await call_openai(prompt)
+                response = response.replace("```python", "").replace("```java", "").replace("```", "")
+            else:
+                response = await call_llm(prompt, tokens*1.8)
+                response = response.replace("```python", "").replace("```java", "").replace("```", "")
+            new_list.append({"FILE_NAME": file, "FILE_CODE": response})
+            print(f"\n\nFinal solution OUTPUT: {check_token_count(response)}")
+        new_list = await create_unit_tests(new_list, model)
+        return new_list
     except Exception as exc:
-        print(f'Could not parse String Into JSON ERROR. Will Remove all formatting: {exc}')
-        try:
-            response = fix_json_string(response)
-            response = json.loads(response)
-            response = await create_unit_tests(response, model)
-            return response
-        except json.JSONDecodeError:
-            return response
+        raise HTTPException(status_code=500, detail=f"Failed to Create files, please try different.\nException: {exc}")
+
 
 
 def find_file_by_name(agent_response_list, file_name):

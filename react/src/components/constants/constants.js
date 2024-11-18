@@ -105,12 +105,12 @@ export const executePlanWithResponsePrompt =  (user_prompt, files, previous) => 
         " 4. Original Code: " + file_codes
 }
 
-export const createNewFiles = async (user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code = "") => {
-    return await solutionAPI(user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code, "oai")
+export const createNewFiles = async (user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code = "",model="oai") => {
+    return await solutionAPI(user_prompt, file_list, new_branch_name, repo_dir, agent_responses, code, model)
         .then((response) => {
             return response.data
         }).catch((err) => {
-            return []
+            return [{FILE_NAME: "error",FILE_CODE:err}]
         })
 }
 
