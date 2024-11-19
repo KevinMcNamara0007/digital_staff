@@ -6,24 +6,33 @@ export const classify = async (userInput) => {
     let prompt = "Instruction: 1. Classify this prompt as a developer, data, general, or content." +
         "2. The prompt is this: " + userInput + "" +
         "3. Only respond with the single word which is one of the following: developer, data, general, content." +
-        "4. Note: content deals with rewriting papers, or other text content."
-    return await askPro(prompt, 100).then((resp) => {
-        let response = resp.data.choices[0].message.content
-        if (response.toLowerCase().includes("general")) {
+        "4. Note: Content deals with rewriting papers, reviewing articles, or any news related content." +
+        "5. Note: General deals with any general purpose question like jokes, headlines, facts of some sort."
+    if(userInput.toLowerCase().includes("data")){
+        return "Data"
+    }else if(userInput.toLowerCase().includes("content") || userInput.toLowerCase().includes("review my article") ){
+        return "Content"
+    }else if(userInput.toLowerCase().includes("code") || userInput.toLowerCase().includes("repo")){
+        return "Developer"
+    } else{
+        return await askPro(prompt, 100).then((resp) => {
+            let response = resp.data.choices[0].message.content
+            if (response.toLowerCase().includes("general")) {
+                return "General"
+            }
+            if (response.toLowerCase().includes("developer")) {
+                return "Developer"
+            }
+            if (response.toLowerCase().includes("data")) {
+                return "Data"
+            }
+            if (response.toLowerCase().includes("content")) {
+                return "Content"
+            }
+        }).catch((err) => {
             return "General"
-        }
-        if (response.toLowerCase().includes("developer")) {
-            return "Developer"
-        }
-        if (response.toLowerCase().includes("data")) {
-            return "Data"
-        }
-        if (response.toLowerCase().includes("content")) {
-            return "Content"
-        }
-    }).catch((err) => {
-        return "General"
-    })
+        })
+    }
 }
 
 //General
@@ -48,7 +57,7 @@ export const classifyRepoRequired = async (input) => {
         "3. If there is no mention of a user repo then the result will be 'No'." +
         "4. If you are not sure if the user is asking to update his existing code, the result will always be 'No'." +
         "5. This is the the users input: " + input + ""
-    if(input.toLowerCase().includes("my repo") || input.toLowerCase().includes("update my existing code")){
+    if(input.toLowerCase().includes("my repo") || input.toLowerCase().includes("update my existing code") || input.toLowerCase().includes("my app")){
         return "yes"
     }else{
         return await askPro(prompt, 100).then((resp)=>{

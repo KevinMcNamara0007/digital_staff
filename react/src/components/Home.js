@@ -132,14 +132,17 @@ const Home = () => {
             handleInput(); // Reset the height after sending the message
         }
 
-        if (running === false) {
+        if (running === false && persona === "Persona") {
             setInstruction(message)
             await handleFlow(message);
         } else if (persona === 'Developer') {
+            running === false && setRunning(true)
             image === null ? await developerFlow(message) : await imageFlow(message)
         } else if (persona === 'Data'){
+            running === false && setRunning(true)
             await dataFlow(message)
         } else if (persona === 'Content'){
+            running === false && setRunning(true)
             await contentFlow(message)
         } else if (persona === 'General'){
             await handleFlow(message);
@@ -247,11 +250,11 @@ const Home = () => {
             if (message.toLowerCase().includes("yes") || !message.toLowerCase().includes("no")) {
                 await handleFlow(instruction)
             }else{
-                setDataDetails({description:"", rows:"",input:"", label:""})
+                setDataDetails({description:"", rows:"",input:"", label:"", data:[], count:0})
                 setMessages((prevMessages) => [
                     ...prevMessages,
                     {type: 'assistant', text: 'Okay, lets correct this information.'},
-                    {type: 'assistant', text: 'Please provide your GitHub HTTPS Clone Link.'}
+                    {type: 'assistant', text: 'What is the data description or annotation name.'}
                 ]);
             }
         }
