@@ -65,8 +65,10 @@ body {
   position: relative;
   width: 100%;
   overflow-y: auto;
-  max-height: 90%;
+  max-height: 86%;
   padding-right: 10px;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
   &::-webkit-scrollbar {
     width: 8px;
   }
@@ -101,13 +103,14 @@ body {
 .historyContainer .history-item {
   padding: 0.5rem;
   margin-bottom: 0.5rem;
-  background-color: #383838;
-  border-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-top-right-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
 .active{
+  border-left: 3px solid orange;
   background-color: #505050 !important;
   font-weight: bold;
 }
@@ -121,8 +124,13 @@ body {
   font-weight: bold;
 }
 
+.icon{
+  width: 25px;
+  height: 25px;
+  filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(242deg) brightness(99%) contrast(104%);
+}
+
 .clear-history-button, .new-history-button {
-  background-color: #4e4f62;
   color: white;
   padding: 0.5rem;
   text-align: center;
@@ -151,6 +159,7 @@ body {
 
   .title{
     position: relative;
+    font-size: 23px;
     font-weight: 600;
     right: 3%;
 
@@ -198,11 +207,11 @@ body {
 }
 
 .chat-messages {
-  max-height: 77.6vh; /* Set height to control when scrolling begins */
+  max-height: 73vh; /* Set height to control when scrolling begins */
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 2rem 5%; /* Adjust padding as needed */
+  padding: 1rem 4%; /* Adjust padding as needed */
   overflow-y: auto; /* Enables vertical scrolling only within chat messages */
   gap: 0.8rem;
 
@@ -237,6 +246,7 @@ body {
 .user-message {
   background-color: #383838;
   align-self: flex-end;
+  font-size: 17px;
 }
 
 /* Container for the file display */
@@ -334,7 +344,7 @@ body {
 .assistant-message {
   background-color: #1a1a1a;
   align-self: flex-start;
-
+  font-size: 17px;
   white-space: pre-wrap;
   .icon{
     width:30px;
@@ -346,14 +356,39 @@ body {
   }
 }
 /* Chat Input Area */
-.chat-input-area {
-  position: relative;
-  width: 100%;
+.chat-actions {
   display: flex;
-  padding: 1rem;
-  border-top: 1px solid #444;
-  background-color: #202123;
+  flex-direction: column; /* Stack items vertically */
+  justify-content: space-between;
   align-items: center;
+  height: 100%; /* Matches the dynamic height of the chat input */
+  background: #3b3c48;
+  border-bottom-right-radius: 5px;
+  border-top-right-radius: 5px;
+}
+
+.send-button {
+  padding: 0.8rem;
+  background-color: #10a37f;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  width: 100%; /* Matches the width of the attachment label */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom-right-radius: 5px;
+}
+
+.send-button:hover {
+  background-color: #0d8765;
+}
+
+.chat-input-area {
+  display: flex;
+  margin: auto;
+  width: 70%;
+  align-items: flex-start; /* Align items to the top */
 }
 
 .chat-input {
@@ -367,85 +402,41 @@ body {
   color: #d1d5db;
   font-size: 1.2rem;
   resize: none;
-  overflow-y: hidden;
-  min-height: 2.5rem;
-  max-height: 20rem;
+  overflow-y: auto; /* Enable scrolling if height exceeds max */
+  min-height: 7rem;
+  max-height: 9rem;
 }
 
 .chat-input::-webkit-scrollbar {
-  width: 6px; /* Chrome, Safari: makes the scrollbar smaller */
+  width: 6px;
 }
 
 .chat-input::-webkit-scrollbar-thumb {
-  background-color: #888; /* Chrome, Safari: scrollbar color */
-  border-radius: 3px; /* Rounded scrollbar thumb */
+  background-color: #888;
+  border-radius: 3px;
 }
-
-.send-button{
-  padding: 0.8rem;
-  background-color: #10a37f;
-  font-weight: bold;
-  border: none;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  cursor: pointer;
-  height: 5.2rem; /* Match the height of the text area */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  .icon{
-    width:30px;
-    height: 30px;
-    filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(242deg) brightness(99%) contrast(104%);
-  }
-}
-.attachment-input {
-  padding: 0.8rem;
-  margin-left: 0.5rem;
-  background-color: #10a37f;
-  color: white;
-  font-weight: bold;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  height: 2.5rem; /* Match the height of the text area */
-  display: flex;
-  align-items: center; /* Center text vertically */
-  justify-content: center;
-}
-
-.send-button:hover {
-  background-color: #0d8765;
-}
-
-.attachment-input {
-  background-color: #4e4f62;
-  cursor: pointer;
-}
-
-.attachment-input:hover {
-  background-color: #3b3c48;
-}
-
 
 .attachment-label {
-  background-color: #4e4f62;
+  background-color: #3b3c48;
   color: white;
-  font-weight: bold;
-  padding: .5rem;
-  margin-left: .7rem;
-  margin-top: .5rem;
-  margin-bottom: .5rem;
-  border-radius: 5px;
+  padding: 0.8rem;
   cursor: pointer;
+  width: 100%; /* Matches the width of the send button */
+  text-align: center;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 2.5rem; /* Match the height of the textarea */
+  border-top-right-radius: 5px; /* Ensure smooth corners when stacked */
 }
 
-.attachment-label:hover {
-  background-color: #3b3c48;
+.attachment-label .icon {
+  width: 30px;
+  height: 30px;
+  filter: invert(100%) sepia(0%) saturate(7500%) hue-rotate(242deg) brightness(99%) contrast(104%);
+}
+
+.attachment-label .icon:hover {
+  filter: invert(60%) sepia(98%) saturate(3349%) hue-rotate(88deg) brightness(123%) contrast(111%);
 }
 
 .attachment-input {

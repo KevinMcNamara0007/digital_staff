@@ -18,6 +18,11 @@ import {Button} from "react-bootstrap";
 import {ReactComponent as CheckIcon} from "../images/check.svg"
 import {ReactComponent as SendIcon} from "../images/send.svg"
 import {ReactComponent as DiffIcon} from "../images/diff.svg"
+import {ReactComponent as AttachIcon} from "../images/attachIcon.svg"
+import {ReactComponent as ClearIcon} from "../images/clearIcon.svg"
+import {ReactComponent as DarkIcon} from "../images/darkIcon.svg"
+import {ReactComponent as LightIcon} from "../images/lightIcon.svg"
+import {ReactComponent as NewIcon} from "../images/newIcon.svg"
 import logo from "../images/stafflogo.png"
 import parse, {attributesToProps} from "html-react-parser";
 import DOMPurify from "dompurify";
@@ -101,8 +106,8 @@ const Home = () => {
     const handleInput = () => {
         const chatInput = chatInputRef.current;
         if (chatInput) {
-            chatInput.style.height = 'auto'; // Reset height so it can shrink on deletion
-            chatInput.style.height = `${chatInput.scrollHeight}px`; // Set height based on content
+            chatInput.style.height = 'auto'; // Reset height to auto to handle shrink
+            chatInput.style.height = `${Math.min(chatInput.scrollHeight, 320)}px`; // Recalculate height, cap at max-height (320px or 20rem)
         }
     };
 
@@ -617,6 +622,16 @@ const Home = () => {
             { type: 'assistant', text: 'Hello! How can I help you today?' }
         ]);
     }
+    const [toggleLight, setToggleLight] = useState(false)
+    const toggleLightMode = () => {
+        if(toggleLight === false){
+            setToggleLight(true)
+            document.body.classList.toggle("lightMode")
+        }else{
+            setToggleLight(false)
+            document.body.classList.toggle("lightMode")
+        }
+    }
 
     return (
         <div className="chat-container">
@@ -655,25 +670,43 @@ const Home = () => {
                 <div className="historyContainer">
                     <div className="header-container">
                         <span className="clear-history-button" onClick={() => {
-                            clearHistory()
+                            toggleLightMode()
                         }}>
-                            Clear
+                            {toggleLight ? <DarkIcon className={"icon"} title={"Switch to Dark Mode"}/> :
+                                <LightIcon className={"icon"} title={"Switch to Light Mode"}/>}
                         </span>
                         <span className="h3">Sessions</span>
                         <span className="new-history-button" onClick={() => {
                             createNewSession()
                         }}>
-                            New
+                            <NewIcon className={"icon"} title={"Create New Session"}/>
                         </span>
                     </div>
                     <div className="sessionContainer">
-                        {sessions.map((item, index) => (
-                            <div key={index} className={index === activeSession ? `history-item active` : 'history-item'} onClick={() => {
-                                selectSession(index)
-                            }}>
-                                {item.instruction.length > 40 ? item.instruction.substring(0,39)+"..." : item.instruction}
-                            </div>
-                        ))}
+                        {sessions
+                            .slice() // Create a shallow copy of the array to avoid mutating the original
+                            .reverse() // Reverse the array
+                            .map((item, reverseIndex) => {
+                                const index = sessions.length - 1 - reverseIndex; // Calculate the original index
+                                return (
+                                    <div
+                                        key={index}
+                                        className={index === activeSession ? `history-item active` : 'history-item'}
+                                        onClick={() => {
+                                            selectSession(index);
+                                        }}
+                                    >
+                                        {item.instruction.length > 40
+                                            ? item.instruction.substring(0, 39) + "..."
+                                            : item.instruction}
+                                    </div>
+                                );
+                            })}
+                    </div>
+                    <div className="clear-history-button justify-content-center" onClick={() => {
+                        clearHistory()
+                    }}>
+                            <ClearIcon className={"icon"} title={"Clear All Session List"}/>
                     </div>
                 </div>
                 <div className="chat-side">
@@ -734,19 +767,10 @@ const Home = () => {
                         <div ref={messagesEndRef}/>
                     </div>
                     <div className="chat-input-area">
-                <textarea
-                    ref={chatInputRef}
-                    className="chat-input"
-                    placeholder="Type a message..."
-                    onKeyDown={handleKeyDown}
-                    onInput={handleInput}
-                ></textarea>
-                        <button className="send-button" onClick={handleSendMessage}>
-                            <SendIcon className="icon"/>
-                        </button>
-                        <div>
+                        <textarea ref={chatInputRef} className="chat-input" placeholder="Type a message..." onKeyDown={handleKeyDown} onInput={handleInput}></textarea>
+                        <div className="chat-actions">
                             <label className="attachment-label" htmlFor="attachment">
-                                Upload
+                                <AttachIcon className="icon"/>
                             </label>
                             <input
                                 type="file"
@@ -755,6 +779,9 @@ const Home = () => {
                                 onChange={handleAttachment}
                                 accept="image/*"
                             />
+                            <button className="send-button" onClick={handleSendMessage}>
+                                <SendIcon className="icon"/>
+                            </button>
                         </div>
                     </div>
                 </div>
