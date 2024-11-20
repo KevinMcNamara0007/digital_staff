@@ -56,7 +56,7 @@ body {
   color: #d1d5db; /* Light text color */
   flex-shrink: 0;
   padding: 1rem;
-  max-height: 90.2vh; /* Sets a maximum height for the container */
+  max-height: 92.8vh; /* Sets a maximum height for the container */
   overflow-y: hidden; /* Enables vertical scroll only if content exceeds max-height */
   border-right: 1px solid #444; /* Matches header border style */
 }
@@ -65,7 +65,8 @@ body {
   position: relative;
   width: 100%;
   overflow-y: auto;
-  max-height: 86%;
+  max-height: 79%;
+  min-height: 79%;
   padding-right: 10px;
   padding-bottom: 10px;
   margin-bottom: 15px;
@@ -143,11 +144,25 @@ body {
   background-color: #3b3c48;
 }
 
+.title{
+  display: flex;
+  justify-content: left;
+  position: relative;
+  font-size: 28px;
+  font-weight: 400;
+  right: 10px;
+  align-items: center;
+  margin-bottom: 10px;
 
+  img{
+    width: 50px;
+    height: 50px;
+  }
+}
 /* Chat Header */
 .chat-header {
   background-color: $light-black;
-  padding: 1rem;
+  padding: .3rem 1rem;
   text-align: center;
   font-size: 1.2rem;
   color: #d1d5db;
@@ -156,18 +171,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between; /* This will space out items to their respective positions */
-
-  .title{
-    position: relative;
-    font-size: 23px;
-    font-weight: 600;
-    right: 3%;
-
-    img{
-      width: 55px;
-      height: 55px;
-    }
-  }
 
   .persona-dropdown-container {
     position: relative;
@@ -202,16 +205,16 @@ body {
 .chat-side{
   display: flex;
   flex-direction: column;
-  min-height: 90.3vh;
+  min-height: 92.8vh;
   width: 100%;
 }
 
 .chat-messages {
-  max-height: 73vh; /* Set height to control when scrolling begins */
+  max-height: 75vh; /* Set height to control when scrolling begins */
   display: flex;
   flex-direction: column;
   flex: 1;
-  padding: 1rem 4%; /* Adjust padding as needed */
+  padding: 2rem 4% .3rem 4%; /* Adjust padding as needed */
   overflow-y: auto; /* Enables vertical scrolling only within chat messages */
   gap: 0.8rem;
 

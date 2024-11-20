@@ -654,7 +654,6 @@ const Home = () => {
                         <option value="Content">Content</option>
                     </select>
                 </div>
-                <span className="title"><img src={logo} alt="Logo"/>eStaff</span>
                 <label className="switch">
                     <input type="checkbox" onChange={(e) => setToggleModel(e.target.checked ? "elf" : "oai")}/>
                     <div className="slider slider--0">CoT</div>
@@ -668,6 +667,7 @@ const Home = () => {
             </div>
             <div className="split">
                 <div className="historyContainer">
+                    <div className="title"><img src={logo} alt="Logo"/>E-Staff</div>
                     <div className="header-container">
                         <span className="clear-history-button" onClick={() => {
                             toggleLightMode()
@@ -706,7 +706,7 @@ const Home = () => {
                     <div className="clear-history-button justify-content-center" onClick={() => {
                         clearHistory()
                     }}>
-                            <ClearIcon className={"icon"} title={"Clear All Session List"}/>
+                        <ClearIcon className={"icon"} title={"Clear All Session List"}/>
                     </div>
                 </div>
                 <div className="chat-side">
