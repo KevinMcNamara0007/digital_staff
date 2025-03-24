@@ -1,8 +1,12 @@
+import asyncio
+import base64
 import json
 import os
 import shutil
 from dotenv import load_dotenv
 from fastapi import HTTPException
+from openai import OpenAI
+from openai.types.chat import ChatCompletionChunk
 
 # Load environment variables
 env_file = f"config/{os.environ.get('ENV', '.env-dev')}"
@@ -67,6 +71,79 @@ exclude_file_types = [
 java_build_tools = {'pom.xml': 'Maven', 'build.gradle': 'Gradle'}
 
 
+async def process_llm(prompt):
+    try:
+        response = await call_openai(prompt)
+        finish_reason = response['finish_reason']
+        llm_response = response['response']
+        if 'stop' not in finish_reason:
+            return await continue_response(prompt, llm_response)
+        return llm_response
+    except Exception as exc:
+        print(f"Could not contact OpenAI: {exc}", flush=True)
+        return None
+
+
+async def continue_response(prompt, response):
+    continue_rules = f"Please continue the response, use previous data as a source to continue from. Original Prompt: {prompt}"
+    finish_reason = ''
+    text = response
+    tries = 0
+    while 'stop' not in finish_reason.lower() and tries < 3:
+        try:
+            resp = await call_openai(str(text), continue_rules)
+            finish_reason = resp['finish_reason']
+            text = str(text) + str(resp['response'])
+            tries = tries + 1
+        except Exception as exc:
+            print(f"Could not contact OAI: {exc}", flush=True)
+            break
+    return text
+
+
+async def call_openai(prompt, model="gpt-4o"):
+    client = OpenAI(api_key=openai_key)
+    response = await asyncio.to_thread(client.chat.completions.create,
+                                       model=model,
+                                       messages=[{"role": "user", "content": prompt}])
+    return response.choices[0].message.content
+
+
+async def openai_stream(prompt, model="gpt-4o", image=None):
+    client = OpenAI(api_key=openai_key)
+    if image:
+        base64_image = encode_image(image)
+        messages = [{
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {
+                        "url": f"data:image/jpeg;base64,{base64_image}",
+                    },
+                },
+            ],
+        }]
+    else:
+        messages = [{"role": "user", "content": prompt}]
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        stream=True,
+
+    )
+    for chunk in response:
+        try:
+            # Access the content in the ChatCompletionChunk
+            content = chunk.choices[0].delta.content
+            if content:
+                print("Yielding content:", content)
+                yield content
+        except AttributeError as e:
+            print("Failed to parse chunk:", e)
+
+
 def file_filter(file_list):
     """
     Filters the list of files to include only accepted coding files, excluding __init__.py and empty files.
@@ -113,7 +190,7 @@ def check_token_count(string):
     :param history: History string.
     :return: Number of tokens.
     """
-    return len(string)/4
+    return len(string) / 4
 
 
 async def delete_folder(repo_dir):
@@ -123,3 +200,31 @@ async def delete_folder(repo_dir):
         error_message = f"Error deleting folder: {exc}"
         print(error_message)
         raise HTTPException(status_code=500, detail=error_message)
+
+
+def encode_image(image_bytes: bytes):
+    return base64.b64encode(image_bytes).decode('utf-8')
+
+
+async def image_to_text(prompt, image):
+    base64_image = encode_image(image)
+    client = OpenAI(api_key=openai_key)
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{base64_image}",
+                        },
+                    },
+                ],
+            }
+        ],
+        max_tokens=2000,
+    )
+    return response.choices[0].message.content
